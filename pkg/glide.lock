@@ -1,0 +1,52 @@
+hash: 8a251805c06cd6f4f20b276425eabe314968e2ad14fb32525fc93c53c2cfe845
+updated: 2019-03-26T04:13:15.650927387Z
+imports:
+- name: github.com/droundy/goopt
+  version: 0b8effe182da161d81b011aba271507324ecb7ab
+- name: github.com/gorilla/websocket
+  version: 66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d
+- name: github.com/jcelliott/lumber
+  version: dd349441af25132d146d7095c6693a15431fc9b1
+- name: github.com/Microsoft/go-winio
+  version: 1a8911d1ed007260465c3bfbbc785ac6915a0bb8
+- name: golang.org/x/sys
+  version: f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb
+  subpackages:
+  - windows
+- name: nanomsg.org/go/mangos/v2
+  version: 63f66a65137b9a648ac9f7bf0160b4a4d17d7999
+  subpackages:
+  - errors
+  - internal/core
+  - protocol
+  - protocol/bus
+  - protocol/pair
+  - protocol/pub
+  - protocol/pull
+  - protocol/push
+  - protocol/rep
+  - protocol/req
+  - protocol/respondent
+  - protocol/star
+  - protocol/sub
+  - protocol/surveyor
+  - protocol/xbus
+  - protocol/xpair
+  - protocol/xpub
+  - protocol/xpull
+  - protocol/xpush
+  - protocol/xrep
+  - protocol/xstar
+  - transport
+  - transport/all
+  - transport/inproc
+  - transport/ipc
+  - transport/tcp
+  - transport/tlstcp
+  - transport/ws
+  - transport/wss
+testImports:
+- name: github.com/smartystreets/goconvey
+  version: 200a235640ff2643e3126834b67f3e93df76640a
+  subpackages:
+  - convey

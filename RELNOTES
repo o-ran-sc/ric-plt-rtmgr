@@ -1,0 +1,15 @@
+### v0.0.3
+* RMR Policy Engine has been refactored to handle receiving groups properly
+* Debugging feature has been added
+* Multi level logging
+* A complex JSON file has been added to xApp Manager to test new behavior
+
+### v0.0.2
+* RTMGR (Routing Manager) implementation in Golang 
+* Updated project folder structure
+* Integration manifests
+
+### v0.0.1
+* Initial version of Routing Manager for CI/CD pipeline 
+* Dummy solution: still has no real routing capability
+* Container is based on the _**tx**_ version of [admin xApp](http://gerrit.ranco-dev-tools.eastus.cloudapp.azure.com/ric-app/admin.git) which already implements [RMR library](	http://gerrit.ranco-dev-tools.eastus.cloudapp.azure.com/ric-plt/lib/rmr.git)
