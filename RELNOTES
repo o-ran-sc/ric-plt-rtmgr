@@ -1,3 +1,8 @@
+### v0.1.0
+* Introduces NNGPush SBI module
+* Bugfixes in argument handling
+* different RMR policy generator for Push and Pub communication
+
 ### v0.0.3
 * RMR Policy Engine has been refactored to handle receiving groups properly
 * Debugging feature has been added
@@ -12,4 +17,4 @@
 ### v0.0.1
 * Initial version of Routing Manager for CI/CD pipeline 
 * Dummy solution: still has no real routing capability
-* Container is based on the _**tx**_ version of [admin xApp](http://gerrit.ranco-dev-tools.eastus.cloudapp.azure.com/ric-app/admin.git) which already implements [RMR library](	http://gerrit.ranco-dev-tools.eastus.cloudapp.azure.com/ric-plt/lib/rmr.git)
+* Container is based on the _**tx**_ version of [admin xApp] which already implements [RMR library]

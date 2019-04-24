@@ -24,19 +24,29 @@
 
 package rtmgr
 
-type Endpoint struct {
-	Name     string
-	Type     string
-	IpSocket string
-}
-
 type XApps struct {
 	XApplist []XApp
 }
 
 type RouteTable []RouteTableEntry
-
 type EndpointList []Endpoint
+
+type Endpoints map[string]*Endpoint
+
+//TODO: uuid is not a real UUID but a string of "ip:port"
+// this should be changed to real UUID later on which should come from xApp Manager // petszila
+type Endpoint struct {
+	Uuid       string
+	Name       string
+	XAppType   string
+	Ip         string
+	Port       uint16
+	TxMessages []string
+	RxMessages []string
+	Socket     interface{}
+	IsReady    bool
+	Keepalive  bool
+}
 
 type RouteTableEntry struct {
 	MessageType string
@@ -55,7 +65,7 @@ type XAppInstance struct {
 	Name       string   `json:"name"`
 	Status     string   `json:"status"`
 	Ip         string   `json:"ip"`
-	Port       int      `json:"port"`
+	Port       uint16   `json:"port"`
 	TxMessages []string `json:"txMessages"`
 	RxMessages []string `json:"rxMessages"`
 }

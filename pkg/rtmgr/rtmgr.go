@@ -53,6 +53,7 @@ var (
 		"RIC_CONTROL_XAPP_CONFIG_RESPONSE": "100001",
 	}
 	Logger = lumber.NewConsoleLogger(lumber.INFO)
+	Eps Endpoints
 )
 
 func SetLogLevel(loglevel string) {
@@ -68,3 +69,4 @@ func SetLogLevel(loglevel string) {
 		Logger.Level(lumber.DEBUG)
 	}
 }
+

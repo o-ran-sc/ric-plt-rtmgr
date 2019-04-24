@@ -41,41 +41,34 @@ const SERVICENAME = "rtmgr"
 const INTERVAL time.Duration = 2
 
 var (
-	args *map[string]string
+	args map[string]*string
 )
 
 func parseArgs() {
-	a := make(map[string]string)
-	xmgeturl := flag.String("nbi-httpget", "http://localhost:3000/xapps", "xApp Manager URL")
-	nngpubsock := flag.String("sbi-nngsub", "tcp://0.0.0.0:4560", "NNG Subsciption Socket URI")
-	file := flag.String("sdl-file", "/db/rt.json", "Local file store location")
-	rpename := flag.String("rpe", "rmr", "Policy Engine Module name")
-	loglevel := flag.String("loglevel", "INFO", "INFO | WARN | ERROR | DEBUG")
+	// TODO: arguments should be validated (filename; xm-url; sbi-if)
+	args = make(map[string]*string)
+	args["nbi"] = flag.String("nbi", "httpGetter", "Northbound interface module to be used. Valid values are: 'httpGetter'")
+	args["sbi"] = flag.String("sbi", "nngpush", "Southbound interface module to be used. Valid values are: 'nngpush | nngpub'")
+	args["rpe"] = flag.String("rpe", "rmrpush", "Route Policy Engine to be used. Valid values are: 'rmrpush | rmrpub'")
+	args["sdl"] = flag.String("sdl", "file", "Datastore enginge to be used. Valid values are: 'file'")
+	args["xm-url"] = flag.String("xm-url", "http://localhost:3000/xapps", "HTTP URL where xApp Manager exposes the entire xApp List")
+	args["sbi-if"] = flag.String("sbi-if", "0.0.0.0", "IPv4 address of interface where Southbound socket to be opened")
+	args["filename"] = flag.String("filename", "/db/rt.json", "Absolute path of file where the route information to be stored")
+	args["loglevel"] = flag.String("loglevel", "INFO", "INFO | WARN | ERROR | DEBUG")
 	flag.Parse()
-	if (*xmgeturl) != "" {
-		a["xmurl"] = (*xmgeturl)
-		a["nbiname"] = "httpGetter"
-	}
-	if (*nngpubsock) != "" {
-		a["socketuri"] = (*nngpubsock)
-		a["sbiname"] = "nngpub"
-	}
-	if (*file) != "" {
-		a["file"] = (*file)
-		a["sdlname"] = "file"
-	}
-	a["rpename"] = (*rpename)
-	a["loglevel"] = (*loglevel)
-	args = &a
 }
 
 func initRtmgr() (*nbi.NbiEngineConfig, *sbi.SbiEngineConfig, *sdl.SdlEngineConfig, *rpe.RpeEngineConfig, error) {
 	var err error
-	if nbi, err := nbi.GetNbi((*args)["nbiname"]); err == nil && nbi != nil {
-		if sbi, err := sbi.GetSbi((*args)["sbiname"]); err == nil && sbi != nil {
-			if sdl, err := sdl.GetSdl((*args)["sdlname"]); err == nil && sdl != nil {
-				if rpe, err := rpe.GetRpe((*args)["rpename"]); err == nil && rpe != nil {
-					return nbi, sbi, sdl, rpe, nil
+	var nbii *nbi.NbiEngineConfig
+	var sbii *sbi.SbiEngineConfig
+	var sdli *sdl.SdlEngineConfig
+	var rpei *rpe.RpeEngineConfig
+	if nbii, err = nbi.GetNbi(*args["nbi"]); err == nil && nbii != nil {
+		if sbii, err = sbi.GetSbi(*args["sbi"]); err == nil && sbii != nil {
+			if sdli, err = sdl.GetSdl(*args["sdl"]); err == nil && sdli != nil {
+				if rpei, err = rpe.GetRpe(*args["rpe"]); err == nil && rpei != nil {
+					return nbii, sbii, sdli, rpei, nil
 				}
 			}
 		}
@@ -83,28 +76,29 @@ func initRtmgr() (*nbi.NbiEngineConfig, *sbi.SbiEngineConfig, *sdl.SdlEngineConf
 	return nil, nil, nil, nil, err
 }
 
-func serve(nbi *nbi.NbiEngineConfig, sbi *sbi.SbiEngineConfig, sdl *sdl.SdlEngineConfig, rpe *rpe.RpeEngineConfig) {
-	err := sbi.OpenSocket((*args)["socketuri"])
+func serve(nbii *nbi.NbiEngineConfig, sbii *sbi.SbiEngineConfig, sdli *sdl.SdlEngineConfig, rpei *rpe.RpeEngineConfig) {
+	err := sbii.OpenSocket(*args["sbi-if"])
 	if err != nil {
 		rtmgr.Logger.Info("fail to open pub socket due to: " + err.Error())
 		return
 	}
-	defer sbi.CloseSocket()
+	defer sbii.CloseSocket()
 	for {
 		time.Sleep(INTERVAL * time.Second)
-		data, err := nbi.BatchFetch((*args)["xmurl"])
+		data, err := nbii.BatchFetch(*args["xm-url"])
 		if err != nil {
-			rtmgr.Logger.Error("cannot get data from " + nbi.Engine.Name + " interface dute to: " + err.Error())
+			rtmgr.Logger.Error("cannot get data from " + nbii.Engine.Name + " interface dute to: " + err.Error())
 		} else {
-			sdl.WriteAll((*args)["file"], data)
+			sdli.WriteAll(*args["filename"], data)
 		}
-		data, err = sdl.ReadAll((*args)["file"])
+		data, err = sdli.ReadAll(*args["filename"])
 		if err != nil || data == nil {
-			rtmgr.Logger.Error("cannot get data from " + sdl.Engine.Name + " interface dute to: " + err.Error())
+			rtmgr.Logger.Error("cannot get data from " + sdli.Engine.Name + " interface dute to: " + err.Error())
 			continue
 		}
-		policies := rpe.GeneratePolicies(data)
-		err = sbi.DistributeAll(policies)
+		sbi.UpdateEndpointList(data, sbii)
+		policies := rpei.GeneratePolicies(rtmgr.Eps)
+		err = sbii.DistributeAll(policies)
 		if err != nil {
 			rtmgr.Logger.Error("routing rable cannot be published due to: " + err.Error())
 		}
@@ -113,13 +107,14 @@ func serve(nbi *nbi.NbiEngineConfig, sbi *sbi.SbiEngineConfig, sdl *sdl.SdlEngin
 
 func main() {
 	parseArgs()
-	rtmgr.SetLogLevel((*args)["loglevel"])
-	nbi, sbi, sdl, rpe, err := initRtmgr()
+	rtmgr.SetLogLevel(*args["loglevel"])
+	nbii, sbii, sdli, rpei, err := initRtmgr()
 	if err != nil {
 		rtmgr.Logger.Error(err.Error())
 		os.Exit(1)
 	}
 	rtmgr.Logger.Info("Start " + SERVICENAME + " service")
-	serve(nbi, sbi, sdl, rpe)
+	rtmgr.Eps = make(rtmgr.Endpoints)
+	serve(nbii, sbii, sdli, rpei)
 	os.Exit(0)
 }

@@ -24,9 +24,14 @@
 
 package sbi
 
+import "rtmgr"
+
 type distributeAll func(*[]string) error
 type openSocket func(string) error
 type closeSocket func() error
+type createEndpointSocket func(*rtmgr.Endpoint) error
+type destroyEndpointSocket func(*rtmgr.Endpoint) error
+
 
 type SbiEngine struct {
 	Name     string
@@ -38,6 +43,8 @@ type SbiEngineConfig struct {
 	Engine        SbiEngine
 	OpenSocket    openSocket
 	CloseSocket   closeSocket
+	CreateEndpointSocket createEndpointSocket
+	DestroyEndpointSocket destroyEndpointSocket
 	DistributeAll distributeAll
 	IsAvailable   bool
 }

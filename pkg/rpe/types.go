@@ -26,7 +26,7 @@ package rpe
 
 import "rtmgr"
 
-type generatePolicies func(*[]rtmgr.XApp) (*[]string)
+type generatePolicies func(rtmgr.Endpoints) *[]string
 
 type RpeEngine struct {
 	Name     string

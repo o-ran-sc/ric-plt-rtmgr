@@ -28,18 +28,26 @@ import (
 	"errors"
 	"fmt"
 	"rtmgr"
-	"strconv"
 )
 
 var (
 	SupportedRpes = []*RpeEngineConfig{
 		&RpeEngineConfig{
 			RpeEngine{
-				Name:     "rmr",
-				Version:  "v1",
+				Name:     "rmrpub",
+				Version:  "pubsub",
 				Protocol: "rmruta",
 			},
-			generatePolicies(generateRMRPolicies),
+			generatePolicies(generateRMRPubPolicies),
+			true,
+		},
+		&RpeEngineConfig{
+			RpeEngine{
+				Name:     "rmrpush",
+				Version:  "push",
+				Protocol: "rmruta",
+			},
+			generatePolicies(generateRMRPushPolicies),
 			true,
 		},
 	}
@@ -60,7 +68,7 @@ func GetRpe(rpeName string) (*RpeEngineConfig, error) {
 			return rpe, nil
 		}
 	}
-	return nil, errors.New("SBI:" + rpeName + "is not supported or still not a available")
+	return nil, errors.New("SBI:" + rpeName + " is not supported or still not a available")
 }
 
 /*
@@ -68,27 +76,21 @@ Gets the raw xApp list and generates the list of sender endpoints and receiver e
 Returns the Tx EndpointList map where the key is the messge type and also returns the nested map of Rx EndpointList's map where keys are message type and xapp type
 Endpoint object's message type already transcoded to integer id
 */
-func getEndpointLists(xapps *[]rtmgr.XApp) (*map[string]rtmgr.EndpointList, *map[string]map[string]rtmgr.EndpointList) {
+
+func getRouteRxTxLists(eps rtmgr.Endpoints) (*map[string]rtmgr.EndpointList, *map[string]map[string]rtmgr.EndpointList) {
 	txlist := make(map[string]rtmgr.EndpointList)
 	rxgroups := make(map[string]map[string]rtmgr.EndpointList)
-	for _, xapp := range *xapps {
-		for _, instance := range xapp.Instances {
-			ep := rtmgr.Endpoint{
-				instance.Name,
-				xapp.Name,
-				instance.Ip + ":" + strconv.Itoa(instance.Port),
+	for _, ep := range eps {
+		for _, message := range ep.RxMessages {
+			messageid := rtmgr.MESSAGETYPES[message]
+			if _, ok := rxgroups[messageid]; !ok {
+				rxgroups[messageid] = make(map[string]rtmgr.EndpointList)
 			}
-			for _, message := range instance.RxMessages {
-				messageid := rtmgr.MESSAGETYPES[message]
-				if _, ok := rxgroups[messageid]; !ok {
-					rxgroups[messageid] = make(map[string]rtmgr.EndpointList)
-				}
-				rxgroups[messageid][xapp.Name] = append(rxgroups[messageid][xapp.Name], ep)
-			}
-			for _, message := range instance.TxMessages {
-				messageid := rtmgr.MESSAGETYPES[message]
-				txlist[messageid] = append(txlist[messageid], ep)
-			}
+			rxgroups[messageid][ep.XAppType] = append(rxgroups[messageid][ep.XAppType], (*ep))
+		}
+		for _, message := range ep.TxMessages {
+			messageid := rtmgr.MESSAGETYPES[message]
+			txlist[messageid] = append(txlist[messageid], (*ep))
 		}
 	}
 	return &txlist, &rxgroups
@@ -98,8 +100,8 @@ func getEndpointLists(xapps *[]rtmgr.XApp) (*map[string]rtmgr.EndpointList, *map
 Gets the raw xapp list and creates a route table for
 Returns the array of route table entries
 */
-func getRouteTable(xapps *[]rtmgr.XApp) *rtmgr.RouteTable {
-	tx, rx := getEndpointLists(xapps)
+func getRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
+	tx, rx := getRouteRxTxLists(eps)
 	var rt rtmgr.RouteTable
 	for _, messagetype := range rtmgr.MESSAGETYPES {
 		if _, ok := (*tx)[messagetype]; !ok {

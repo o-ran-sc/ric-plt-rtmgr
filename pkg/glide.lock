@@ -1,5 +1,5 @@
 hash: 8a251805c06cd6f4f20b276425eabe314968e2ad14fb32525fc93c53c2cfe845
-updated: 2019-03-26T04:13:15.650927387Z
+updated: 2019-04-04T20:26:54.485838082Z
 imports:
 - name: github.com/droundy/goopt
   version: 0b8effe182da161d81b011aba271507324ecb7ab
@@ -10,7 +10,7 @@ imports:
 - name: github.com/Microsoft/go-winio
   version: 1a8911d1ed007260465c3bfbbc785ac6915a0bb8
 - name: golang.org/x/sys
-  version: f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb
+  version: 81d4e9dc473e5e8c933f2aaeba2a3d81efb9aed2
   subpackages:
   - windows
 - name: nanomsg.org/go/mangos/v2
@@ -47,6 +47,6 @@ imports:
   - transport/wss
 testImports:
 - name: github.com/smartystreets/goconvey
-  version: 200a235640ff2643e3126834b67f3e93df76640a
+  version: 68dc04aab96ae4326137d6b77330c224063a927e
   subpackages:
   - convey

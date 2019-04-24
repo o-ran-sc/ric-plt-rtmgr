@@ -70,5 +70,5 @@ func GetSdl(sdlName string) (*SdlEngineConfig, error) {
 			return sdl, nil
 		}
 	}
-	return nil, errors.New("SDL:" + sdlName + "is not supported or still not a available")
+	return nil, errors.New("SDL:" + sdlName + " is not supported or still not a available")
 }

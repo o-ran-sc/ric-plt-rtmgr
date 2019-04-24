@@ -33,25 +33,34 @@ import (
 	"strconv"
 )
 
-var sock mangos.Socket
+var socket mangos.Socket
+
+func createNngPubEndpointSocket(ep *rtmgr.Endpoint) error {
+	return nil
+}
+
+func destroyNngPubEndpointSocket(ep *rtmgr.Endpoint) error {
+	return nil
+}
 
 /*
 Creates the NNG publication channel
 */
-func openNngPub(url string) error {
+func openNngPub(ip string) error {
 	var err error
-	if sock, err = pub.NewSocket(); err != nil {
+	if socket, err = pub.NewSocket(); err != nil {
 		return errors.New("can't get new pub socket due to:" + err.Error())
 	}
-	rtmgr.Logger.Info("publishing on: " + url)
-	if err = sock.Listen(url); err != nil {
-		return errors.New("can't publish on socket " + url + " due to:" + err.Error())
+	uri := DEFAULT_NNG_PUBSUB_SOCKET_PREFIX + ip + ":" + strconv.Itoa(DEFAULT_NNG_PUBSUB_SOCKET_NUMBER)
+	rtmgr.Logger.Info("publishing on: " + uri)
+	if err = socket.Listen(uri); err != nil {
+		return errors.New("can't publish on socket " + uri + " due to:" + err.Error())
 	}
 	return nil
 }
 
 func closeNngPub() error {
-	if err := sock.Close(); err != nil {
+	if err := socket.Close(); err != nil {
 		return errors.New("can't close socket due to:" + err.Error())
 	}
 	return nil
@@ -59,7 +68,7 @@ func closeNngPub() error {
 
 func publishAll(policies *[]string) error {
 	for _, pe := range *policies {
-		if err := sock.Send([]byte(pe)); err != nil {
+		if err := socket.Send([]byte(pe)); err != nil {
 			return errors.New("Unable to send policy entry due to: " + err.Error())
 		}
 	}

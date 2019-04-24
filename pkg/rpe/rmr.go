@@ -25,21 +25,23 @@
 
 package rpe
 
-import "rtmgr"
+import (
+	"rtmgr"
+	"strconv"
+)
 
 /*
 Produces the raw route message consumable by RMR
 */
-func generateRMRPolicies(xapps *[]rtmgr.XApp) *[]string {
+func generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 	rtmgr.Logger.Debug("Invoked rmr.generateRMRPolicies")
-	rtmgr.Logger.Debug("args: %v", (*xapps))
-	key := "00000           "
+	rtmgr.Logger.Debug("args: %v", eps)
 	rawrt := []string{key + "newrt|start\n"}
-	rt := getRouteTable(xapps)
+	rt := getRouteTable(eps)
 	for _, rte := range *rt {
 		rawrte := key + "rte|" + rte.MessageType
 		for _, tx := range rte.TxList {
-			rawrte += "," + tx.IpSocket
+			rawrte += "," + tx.Ip + ":" + strconv.Itoa(int(tx.Port))
 		}
 		rawrte += "|"
 		group := ""
@@ -47,9 +49,9 @@ func generateRMRPolicies(xapps *[]rtmgr.XApp) *[]string {
 			member := ""
 			for _, rx := range rxg {
 				if member == "" {
-					member += rx.IpSocket
+					member += rx.Ip + ":" + strconv.Itoa(int(rx.Port))
 				} else {
-					member += "," + rx.IpSocket
+					member += "," + rx.Ip + ":" + strconv.Itoa(int(rx.Port))
 				}
 			}
 			if group == "" {
@@ -64,4 +66,12 @@ func generateRMRPolicies(xapps *[]rtmgr.XApp) *[]string {
 	rawrt = append(rawrt, key+"newrt|end\n")
 	rtmgr.Logger.Debug("rmr.generateRMRPolicies returns: %v", rawrt)
 	return &rawrt
+}
+
+func generateRMRPubPolicies(eps rtmgr.Endpoints) *[]string {
+	return generateRMRPolicies(eps, "00000           ")
+}
+
+func generateRMRPushPolicies(eps rtmgr.Endpoints) *[]string {
+	return generateRMRPolicies(eps, "")
 }

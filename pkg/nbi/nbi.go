@@ -77,5 +77,5 @@ func GetNbi(nbiName string) (*NbiEngineConfig, error) {
 			return nbi, nil
 		}
 	}
-	return nil, errors.New("NBI:" + nbiName + "is not supported or still not a available")
+	return nil, errors.New("NBI:" + nbiName + " is not supported or still not a available")
 }
