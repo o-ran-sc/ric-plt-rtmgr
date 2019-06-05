@@ -1,5 +1,3 @@
-#!/bin/sh -e
-#
 #==================================================================================
 #   Copyright (c) 2019 AT&T Intellectual Property.
 #   Copyright (c) 2019 Nokia
@@ -16,16 +14,24 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #==================================================================================
-#
-#
-#	Mnemonic:	compile.sh
-#	Abstract:	Compiles the rtmgr source
-#	Date:		19 March 2019
-#
-mkdir -p $GOPATH/bin
-ln -s -f  $GOPATH/pkg $GOPATH/src
-cd $GOPATH/src
-glide install --strip-vendor
-cd $GOPATH/cmd
-go build rtmgr.go
-mv $GOPATH/cmd/rtmgr $GOPATH/bin
+
+# The CI system creates and publishes the rtmgr Docker image
+# from the last step in this multi-stage build
+
+FROM golang:1.11 as rtmgrbuild
+ENV GOPATH /opt
+RUN apt-get update \
+    && apt-get install golang-glide
+COPY . /opt
+RUN mkdir -p $GOPATH/bin \
+    && ln -s -f  $GOPATH/pkg $GOPATH/src \
+    && cd $GOPATH/src \
+    && glide install --strip-vendor \
+    && cd $GOPATH/cmd \
+    && go build rtmgr.go \
+    && mv $GOPATH/cmd/rtmgr $GOPATH/bin
+
+FROM ubuntu:16.04
+COPY --from=rtmgrbuild /opt/bin/rtmgr /
+RUN mkdir /db && touch /db/rt.json
+CMD /rtmgr
