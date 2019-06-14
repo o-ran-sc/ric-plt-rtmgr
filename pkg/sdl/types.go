@@ -23,20 +23,20 @@
 */
 package sdl
 
-import "rtmgr"
+import "routing-manager/pkg/rtmgr"
 
 type readAll func(string) (*[]rtmgr.XApp, error)
 type writeAll func(string, *[]rtmgr.XApp) error
 
-type SdlEngine struct {
+type SdlEngineConfig struct {
 	Name     string
 	Version  string
-	Protocol string
+  Protocol string
+  Instance SdlEngine
+	IsAvailable bool
 }
 
-type SdlEngineConfig struct {
-	Engine      SdlEngine
-	ReadAll     readAll
-	WriteAll    writeAll
-	IsAvailable bool
+type SdlEngine interface {
+  ReadAll(string) (*[]rtmgr.XApp, error)
+  WriteAll(string,*[]rtmgr.XApp,) error
 }

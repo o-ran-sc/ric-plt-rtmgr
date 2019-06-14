@@ -22,11 +22,14 @@
 #
 FROM golang:1.11
 
-ENV GOPATH /opt
+ENV GOPATH=/go
 
-RUN apt-get update \
-    && apt-get install golang-glide
+# Install golang-glide
+RUN apt-get update && apt-get install golang-glide
+# Install go-swagger
+RUN go get -u github.com/go-swagger/go-swagger/cmd/swagger
 
 COPY compile.sh /
 
-ENTRYPOINT /compile.sh
+ENTRYPOINT ["/compile.sh"]
+

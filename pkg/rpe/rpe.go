@@ -26,49 +26,39 @@ package rpe
 
 import (
 	"errors"
-	"fmt"
-	"rtmgr"
+	"routing-manager/pkg/rtmgr"
 )
 
 var (
 	SupportedRpes = []*RpeEngineConfig{
 		&RpeEngineConfig{
-			RpeEngine{
-				Name:     "rmrpub",
-				Version:  "pubsub",
-				Protocol: "rmruta",
-			},
-			generatePolicies(generateRMRPubPolicies),
-			true,
+			Name:     "rmrpub",
+			Version:  "pubsub",
+			Protocol: "rmruta",
+			Instance: NewRmrPub(),
+			IsAvailable: true,
 		},
 		&RpeEngineConfig{
-			RpeEngine{
-				Name:     "rmrpush",
-				Version:  "push",
-				Protocol: "rmruta",
-			},
-			generatePolicies(generateRMRPushPolicies),
-			true,
+			Name:     "rmrpush",
+			Version:  "pubsush",
+			Protocol: "rmruta",
+			Instance: NewRmrPush(),
+			IsAvailable: true,
 		},
 	}
 )
 
-func ListRpes() {
-	fmt.Printf("RPE:\n")
+func GetRpe(rpeName string) (RpeEngine, error) {
 	for _, rpe := range SupportedRpes {
-		if rpe.IsAvailable {
-			rtmgr.Logger.Info(rpe.Engine.Name + "/" + rpe.Engine.Version)
-		}
-	}
-}
-
-func GetRpe(rpeName string) (*RpeEngineConfig, error) {
-	for _, rpe := range SupportedRpes {
-		if rpe.Engine.Name == rpeName && rpe.IsAvailable {
-			return rpe, nil
+		if rpe.Name == rpeName && rpe.IsAvailable {
+			return rpe.Instance, nil
 		}
 	}
 	return nil, errors.New("SBI:" + rpeName + " is not supported or still not a available")
+}
+
+type Rpe struct {
+
 }
 
 /*
@@ -77,7 +67,7 @@ Returns the Tx EndpointList map where the key is the messge type and also return
 Endpoint object's message type already transcoded to integer id
 */
 
-func getRouteRxTxLists(eps rtmgr.Endpoints) (*map[string]rtmgr.EndpointList, *map[string]map[string]rtmgr.EndpointList) {
+func (r *Rpe) getRouteRxTxLists(eps rtmgr.Endpoints) (*map[string]rtmgr.EndpointList, *map[string]map[string]rtmgr.EndpointList) {
 	txlist := make(map[string]rtmgr.EndpointList)
 	rxgroups := make(map[string]map[string]rtmgr.EndpointList)
 	for _, ep := range eps {
@@ -100,8 +90,8 @@ func getRouteRxTxLists(eps rtmgr.Endpoints) (*map[string]rtmgr.EndpointList, *ma
 Gets the raw xapp list and creates a route table for
 Returns the array of route table entries
 */
-func getRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
-	tx, rx := getRouteRxTxLists(eps)
+func (r *Rpe) getRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
+	tx, rx := r.getRouteRxTxLists(eps)
 	var rt rtmgr.RouteTable
 	for _, messagetype := range rtmgr.MESSAGETYPES {
 		if _, ok := (*tx)[messagetype]; !ok {

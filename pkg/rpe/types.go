@@ -24,18 +24,18 @@
 
 package rpe
 
-import "rtmgr"
+import "routing-manager/pkg/rtmgr"
 
 type generatePolicies func(rtmgr.Endpoints) *[]string
 
-type RpeEngine struct {
+type RpeEngineConfig  struct {
 	Name     string
 	Version  string
-	Protocol string
+  Protocol string
+  Instance RpeEngine
+	IsAvailable bool
 }
 
-type RpeEngineConfig struct {
-	Engine           RpeEngine
-	GeneratePolicies generatePolicies
-	IsAvailable      bool
+type RpeEngine interface {
+  GeneratePolicies(rtmgr.Endpoints) *[]string
 }

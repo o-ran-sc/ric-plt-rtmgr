@@ -41,12 +41,12 @@ spec:
         args:
         - /run_test-tx.sh
         ports:
-        - containerPort: 4555
+        - containerPort: 4561
         env:
         - name: NAME
           value: "RM"
         - name: PORT
-          value: "tcp:4555"
+          value: "tcp:4561"
         - name: RATE
           value: "10"
         - name: RMR_RTG_SVC

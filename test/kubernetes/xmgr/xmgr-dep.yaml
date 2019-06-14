@@ -43,6 +43,7 @@ spec:
         - -w
         - --host=0.0.0.0
         - /db/xapps.json
+        - --middlewares=middleware.js
         ports:
         - containerPort: 3000
         volumeMounts:

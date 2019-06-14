@@ -26,49 +26,36 @@ package sdl
 
 import (
 	"errors"
-	"fmt"
-	"rtmgr"
 )
 
 var (
 	SupportedSdls = []*SdlEngineConfig{
 		&SdlEngineConfig{
-			SdlEngine{
-				Name:     "file",
-				Version:  "v1",
-				Protocol: "rawfile",
-			},
-			readAll(fileReadAll),
-			writeAll(fileWriteAll),
-			true,
+			Name:     "file",
+			Version:  "v1",
+			Protocol: "rawfile",
+			Instance: NewFile(),
+			IsAvailable: true,
 		},
 		&SdlEngineConfig{
-			SdlEngine{
-				Name:     "redis",
-				Version:  "v1",
-				Protocol: "nsdl",
-			},
-			readAll(nil),
-			writeAll(nil),
-			false,
+			Name:     "redis",
+			Version:  "v1",
+			Protocol: "ndsl",
+			Instance: nil,
+			IsAvailable: false,
 		},
 	}
 )
 
-func ListSdls() {
-	fmt.Printf("SDL:\n")
+func GetSdl(sdlName string) (SdlEngine, error) {
 	for _, sdl := range SupportedSdls {
-		if sdl.IsAvailable {
-			rtmgr.Logger.Info(sdl.Engine.Name + "/" + sdl.Engine.Version)
-		}
-	}
-}
-
-func GetSdl(sdlName string) (*SdlEngineConfig, error) {
-	for _, sdl := range SupportedSdls {
-		if sdl.Engine.Name == sdlName && sdl.IsAvailable {
-			return sdl, nil
+		if sdl.Name == sdlName && sdl.IsAvailable {
+			return sdl.Instance, nil
 		}
 	}
 	return nil, errors.New("SDL:" + sdlName + " is not supported or still not a available")
+}
+
+type Sdl struct {
+
 }

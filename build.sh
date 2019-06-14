@@ -24,13 +24,13 @@
 #
 
 echo 'Creating compiler container'
-docker build --no-cache --tag=rtmgr_compiler:0.1 build/binary/
+docker build --no-cache --tag=rtmgr_compiler build/binary/
 
 echo 'Running rtmgr compiler'
-docker run --rm --name=rtmgr_compiler -v ${PWD}:/opt/ rtmgr_compiler:0.1
+docker run --rm -v ${PWD}:/go/src/routing-manager -w /go/src/routing-manager rtmgr_compiler
 
 echo 'Cleaning up compiler container'
-docker rmi -f rtmgr_compiler:0.1
+docker rmi -f rtmgr_compiler
 
 echo 'rtmgr binary successfully built!'
 

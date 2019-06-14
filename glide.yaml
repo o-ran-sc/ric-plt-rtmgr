@@ -59,8 +59,37 @@ import:
   - transport/tlstcp
   - transport/ws
   - transport/wss
+- package: github.com/go-openapi/errors
+  version: v0.19.0
+- package: github.com/go-openapi/loads
+  version: v0.19.0
+- package: github.com/go-openapi/runtime
+  version: v0.19.0
+  subpackages:
+  - flagext
+  - middleware
+  - security
+- package: github.com/go-openapi/spec
+  version: v0.19.0
+- package: github.com/go-openapi/strfmt
+  version: v0.19.0
+- package: github.com/go-openapi/swag
+  version: v0.19.0
+- package: github.com/go-openapi/validate
+  version: v0.19.0
+- package: github.com/jessevdk/go-flags
+  version: v1.4.0
+- package: github.com/jcelliott/lumber
 ignore:
+- models
 - rtmgr
+- restapi
+- nbi
+- sbi
+- rpe
+- sdl
+- appmgr_model
+- appmgr_client
 testImport:
 - package: github.com/smartystreets/goconvey
   subpackages:

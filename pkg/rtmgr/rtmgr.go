@@ -26,6 +26,8 @@ package rtmgr
 
 import (
 	"github.com/jcelliott/lumber"
+	"errors"
+	"strings"
 )
 
 var (
@@ -51,22 +53,66 @@ var (
 		"RIC_E2_MANAGER_HC_RESPONSE":       "10008",
 		"RIC_CONTROL_XAPP_CONFIG_REQUEST":  "100000",
 		"RIC_CONTROL_XAPP_CONFIG_RESPONSE": "100001",
+		"RIC_SUB_REQ":                      "12010",
+		"RIC_SUB_RESP":                     "12011",
+		"RIC_SUB_FAILURE":                  "12012",
+		"RIC_SUB_DEL_REQ":                  "12020",
+		"RIC_SUB_DEL_RESP":                 "12021",
+		"RIC_SUB_DEL_FAILURE":              "12022",
+		"RIC_SERVICE_UPDATE":               "12030",
+		"RIC_SERVICE_UPDATE_ACK":           "12031",
+		"RIC_SERVICE_UPDATE_FAILURE":       "12032",
+		"RIC_CONTROL_REQ":                  "12040",
+		"RIC_CONTROL_ACK":                  "12041",
+		"RIC_CONTROL_FAILURE":              "12042",
+		"RIC_INDICATION":                   "12050",
+		"RIC_SERVICE_QUERY":                "12060",
+		"RIC_X2_SETUP_REQ":                 "10060",
+		"RIC_X2_SETUP_RESP":                "10061",
+		"RIC_X2_SETUP_FAILURE":             "10062",
+		"RIC_X2_RESET":                     "10070",
+		"RIC_ENDC_X2_SETUP_REQ":            "10360",
+		"RIC_ENDC_X2_SETUP_RESP":           "10361",
+		"RIC_ENDC_X2_SETUP_FAILURE":        "10362",
+		"RIC_ENDC_CONF_UPDATE":             "10370",
+		"RIC_ENDC_CONF_UPDATE_ACK":         "10371",
+		"RIC_ENDC_CONF_UPDATE_FAILURE":     "10372",
+		"RIC_RES_STATUS_REQ":               "10090",
+		"RIC_RES_STATUS_RESP":              "10091",
+		"RIC_RES_STATUS_FAILURE":           "10092",
+		"RIC_ENB_CONF_UPDATE":              "10080",
+		"RIC_ENB_CONF_UPDATE_ACK":          "10081",
+		"RIC_ENB_CONF_UPDATE_FAILURE":      "10082",
+		"RIC_ENB_LOAD_INFORMATION":         "10020",
+		"RIC_GNB_STATUS_INDICATION":        "10450",
+		"RIC_RESOURCE_STATUS_UPDATE":       "10100",
+		"RIC_ERROR_INDICATION":             "10030",
+		"DC_ADM_INT_CONTROL":               "20000",
+		"DC_ADM_INT_CONTROL_ACK":           "20001",
 	}
+
 	Logger = lumber.NewConsoleLogger(lumber.INFO)
-	Eps Endpoints
+	Eps    Endpoints
 )
 
-func SetLogLevel(loglevel string) {
-	switch loglevel {
+func SetLogLevel(loglevel string) error{
+	switch strings.ToUpper(loglevel) {
 	case "INFO":
 		Logger.Level(lumber.INFO)
+		return nil
 	case "WARN":
 		Logger.Level(lumber.WARN)
+		return nil
 	case "ERROR":
 		Logger.Level(lumber.ERROR)
+		return nil
 	case "DEBUG":
 		Logger.Info("debugmode")
 		Logger.Level(lumber.DEBUG)
+		return nil
+	default:
+		Logger.Error("Invalid log mode, setting info")
+		Logger.Level(lumber.INFO)
+		return errors.New("Invalid log level, setting info")
 	}
 }
-

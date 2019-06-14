@@ -22,10 +22,17 @@
 #	Abstract:	Compiles the rtmgr source
 #	Date:		19 March 2019
 #
-mkdir -p $GOPATH/bin
-ln -s -f  $GOPATH/pkg $GOPATH/src
-cd $GOPATH/src
 glide install --strip-vendor
-cd $GOPATH/cmd
-go build rtmgr.go
-mv $GOPATH/cmd/rtmgr $GOPATH/bin
+p="UT"
+if [ "$p" = "$1" ]
+then
+  echo "Starting Unit Tests..."
+  mkdir -p $PWD/unit-test
+  go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -cover -race -coverprofile=$PWD/unit-test/c.out
+  go tool cover -html=$PWD/unit-test/c.out -o $PWD/unit-test/coverage.html
+else
+  echo "Compiling..."
+  go build -o ./bin/rtmgr cmd/rtmgr.go
+fi
+
+

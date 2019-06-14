@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: rtmgr
-        image: cmaster:5000/rtmgr:0.1.0
+        image: cmaster:5000/rtmgr:0.2.0
         command: ["/run_rtmgr.sh"]
         env:
         - name: XMURL
@@ -48,7 +48,16 @@ spec:
           value: "/db/rt.json"
         - name: RPE
           value: "rmrpush"
+        - name: RESTURL
+          value: "0.0.0.0"
+        - name: RESTPORT
+          value: "8888"
         - name: SBI
           value: "nngpush"
+        - name: NBI
+          value: "httpRESTful"
+        - name: NBIURL
+          value: "http://0.0.0.0:8888"
         ports:
+        - containerPort: 8888
         - containerPort: 4560

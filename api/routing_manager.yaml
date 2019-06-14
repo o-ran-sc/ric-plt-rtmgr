@@ -24,7 +24,7 @@ swagger: "2.0"
 info:
   title: Routing Manager
   description: "This is the Swagger/OpenAPI 2.0 definition of Routing Manager's Northbound API."
-  version: "0.2.2"
+  version: "0.3.0"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -36,8 +36,6 @@ tags:
 #  externalDocs:
 #    description: "Find out more"
 #    url: "http://127.0.0.1"
-- name: "route"
-  description: "Available routes"
 - name: "health"
   description: "Health of the system"
 schemes:
@@ -103,13 +101,13 @@ paths:
           description: "Invalid data"
         201:
           description: "Callback received"
-  /routes:
+  /handles/xapp-subscription-handle:
     post:
       tags:
-      - "route"
-      summary: "Add new route"
-      description: "By performing a POST method on the routes resource, the API caller is able to create a new route."
-      operationId: "add_route"
+      - "handle"
+      summary: "API for updating about new xapp subscription"
+      description: "By performing a POST method on the xapp-subscription-handle resource, the API caller is able to update the Routing manager about the creation of new subscription by an Xapp instance."
+      operationId: "provide_xapp_subscription_handle"
       consumes:
       - "application/json"
 #      - "application/yaml"
@@ -118,138 +116,16 @@ paths:
 #      - "application/yaml"
       parameters:
       - in: "body"
-        name: "route"
-        description: "Route object that needs to be created"
+        name: "xapp-subscription-data"
+        description: "xApp related subscription data"
         required: true
         schema:
-          $ref: "#/definitions/route"
+          $ref: "#/definitions/xapp-subscription-data"
       responses:
         400:
-          description: "Invalid route"
+          description: "Invalid data"
         201:
-          description: "Route created"
-    put:
-      tags:
-      - "route"
-      summary: "Update an existing route"
-      description: "By performing a PUT method on the routes resource, the API caller is able to update an already existing route."
-      operationId: "update_route"
-      consumes:
-      - "application/json"
-#      - "application/yaml"
-      produces:
-      - "application/json"
-#      - "application/yaml"
-      parameters:
-      - in: "body"
-        name: "route"
-        description: "Route object that needs to be updated or created"
-        required: true
-        schema:
-          $ref: "#/definitions/route"
-      responses:
-        400:
-          description: "Invalid route ID supplied"
-        404:
-          description: "Route not found"
-        204:
-          description: "Route updated"
-    get:
-      tags:
-      - "route"
-      summary: "Retrieve the list of routes"
-      description: "By performing a GET method on the routes resource, the API caller is able to retrieve all routes"
-      operationId: "get_routes"
-      consumes:
-      - "application/json"
-#      - "application/yaml"
-      produces:
-      - "application/json"
-#      - "application/yaml"
-      responses:
-        200:
-          description: "All the routes"
-          schema:
-            $ref: "#/definitions/routes"
-
-  /routes/{route-id}:
-    get:
-      tags:
-      - "route"
-      summary: "Find route by ID"
-      description: "Returns a single route"
-      operationId: "get_route_by_id"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "route-id"
-        in: "path"
-        description: "ID of route to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/route"
-        400:
-          description: "Invalid route ID supplied"
-        404:
-          description: "Route not found"
-    put:
-      tags:
-      - "route"
-      summary: "Updates a route by explicitly referencing it by route-id"
-      description: "By performing a PUT method on a specific route referenced by the route-id the API caller is able to update that specific route"
-      operationId: "update-route-by-id"
-      consumes:
-      - "application/json"
-#      - "application/yaml"
-      produces:
-      - "application/json"
-#      - "application/yaml"
-      parameters:
-      - name: "route-id"
-        in: "path"
-        description: "ID of route that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "route"
-        in: "body"
-        description: "The updated route instance"
-        required: false
-        schema:
-          $ref: "#/definitions/route"
-      responses:
-        400:
-          description: "Invalid route ID supplied"
-        204:
-          description: "Route updated"
-    delete:
-      tags:
-      - "route"
-      summary: "Deletes a route"
-      description: "By performing a DELETE method on a specific route referenced by the route-id, the API caller is able to delete that specific route"
-      operationId: "delete_route_by_id"
-      produces:
-      - "application/json"
-#      - "application/yaml"
-      parameters:
-      - name: "route-id"
-        in: "path"
-        description: "ID of the route that needs to be deleted"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid route ID supplied"
-        404:
-          description: "Route not found"
-        204:
-          description: "Route deleted"
+          description: "Xapp Subscription data received"
 definitions:
   health-status:
     type: "object"
@@ -259,46 +135,6 @@ definitions:
         enum:
         - healthy
         - unhealthy
-  routes:
-    type: "array"
-    items:
-        $ref: "#/definitions/route"
-  route:
-    type: "object"
-    required:
-    - "id" # not so sure about that
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      senders:
-        type: "array"
-        items:
-          "$ref": "#/definitions/xapp-instance"
-      message-type:
-        type: "integer"
-        format: "int64"
-      receiver-groups:
-        type: "array"
-        items:
-          "$ref": "#/definitions/xapp-group"
-  xapp-instance:
-    type: "object"
-    required:
-    - "address"
-    - "port"
-    properties:
-      address:
-        type: "string" # I know...
-      port:
-        type: "integer"
-        format: "int32"
-        minimum: 0
-        maximum: 65535
-  xapp-group:
-    type: "array"
-    items:
-      "$ref": "#/definitions/xapp-instance"
   xapp-callback-data:
     type: "object"
     properties:
@@ -312,6 +148,24 @@ definitions:
         format: "int64"
       data:
         type: "string" #This should be a JSON object, array of xapps
+  xapp-subscription-data:
+    type: "object"
+    required:
+      - "address"
+      - "port"
+      - "subscription_id"
+    properties:
+      address:
+        type: "string" #This is the xapp instance hostname or ip address
+      port: #xapp instance port address
+        type: "integer"
+        format: "int32"
+        minimum: 0
+        maximum: 65535
+      subscription_id: #subscription sequence number
+        type: "integer"
+        format: "int16" 
+
 externalDocs:
   description: "Routing Manager"
   url: "http://placeholder"

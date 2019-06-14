@@ -27,9 +27,8 @@ package sbi
 
 import (
 	"errors"
-	"fmt"
-	"rtmgr"
         "strconv"
+	"routing-manager/pkg/rtmgr"
 )
 
 const DEFAULT_NNG_PUBSUB_SOCKET_PREFIX = "tcp://"
@@ -40,56 +39,39 @@ const DEFAULT_NNG_PIPELINE_SOCKET_NUMBER = 4561
 var (
 	SupportedSbis = []*SbiEngineConfig{
 		&SbiEngineConfig{
-			SbiEngine{
-				Name:     "nngpub",
-				Version:  "v1",
-				Protocol: "nngpubsub",
-			},
-			openSocket(openNngPub),
-			closeSocket(closeNngPub),
-			createEndpointSocket(createNngPubEndpointSocket),
-			destroyEndpointSocket(createNngPubEndpointSocket),
-			distributeAll(publishAll),
-			true,
-		},
+                        Name:     "nngpush",
+                        Version:  "v1",
+                        Protocol: "nngpipeline",
+                        Instance: NewNngPush(),
+                        IsAvailable: true,
+                },
 		&SbiEngineConfig{
-			SbiEngine{
-				Name:     "nngpush",
-				Version:  "v1",
-				Protocol: "nngpipeline",
-			},
-			openSocket(openNngPush),
-			closeSocket(closeNngPush),
-			createEndpointSocket(createNngPushEndpointSocket),
-			destroyEndpointSocket(destroyNngPushEndpointSocket),
-			distributeAll(pushAll),
-			true,
-		},
+                        Name:     "nngpub",
+                        Version:  "v1",
+                        Protocol: "nngpubsub",
+                        Instance: NewNngPub(),
+                        IsAvailable: true,
+                },
 	}
 )
 
-func ListSbis() {
-	fmt.Printf("SBI:\n")
+func GetSbi(sbiName string) (SbiEngine, error) {
 	for _, sbi := range SupportedSbis {
-		if sbi.IsAvailable {
-			rtmgr.Logger.Info(sbi.Engine.Name + "/" + sbi.Engine.Version)
-		}
-	}
-}
-
-func GetSbi(sbiName string) (*SbiEngineConfig, error) {
-	for _, sbi := range SupportedSbis {
-		if (*sbi).Engine.Name == sbiName && (*sbi).IsAvailable {
-			return sbi, nil
+		if sbi.Name == sbiName && sbi.IsAvailable {
+			return sbi.Instance, nil
 		}
 	}
 	return nil, errors.New("SBI:" + sbiName + " is not supported or still not available")
 }
 
-func pruneEndpointList(sbii *SbiEngineConfig) {
+type Sbi struct {
+
+}
+
+func (s *Sbi) pruneEndpointList(sbii SbiEngine) {
         for _, ep := range rtmgr.Eps {
                 if !ep.Keepalive {
-			sbii.DestroyEndpointSocket(ep)
+			sbii.DeleteEndpoint(ep)
                         delete(rtmgr.Eps, ep.Uuid)
                 } else {
                         rtmgr.Eps[ep.Uuid].Keepalive = false
@@ -97,7 +79,7 @@ func pruneEndpointList(sbii *SbiEngineConfig) {
         }
 }
 
-func UpdateEndpointList(xapps *[]rtmgr.XApp, sbii *SbiEngineConfig) {
+func (s *Sbi) updateEndpoints(xapps *[]rtmgr.XApp, sbii SbiEngine) {
         for _, xapp := range *xapps {
                 for _, instance := range xapp.Instances {
                         uuid := instance.Ip + ":" + strconv.Itoa(int(instance.Port))
@@ -116,7 +98,7 @@ func UpdateEndpointList(xapps *[]rtmgr.XApp, sbii *SbiEngineConfig) {
                                         false,
                                         true,
                                 }
-                                if err := sbii.CreateEndpointSocket(ep); err != nil {
+                                if err := sbii.AddEndpoint(ep); err != nil {
                                         rtmgr.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
                                         continue
                                 }
@@ -124,5 +106,5 @@ func UpdateEndpointList(xapps *[]rtmgr.XApp, sbii *SbiEngineConfig) {
                         }
                 }
         }
-        pruneEndpointList(sbii)
+        s.pruneEndpointList(sbii)
 }

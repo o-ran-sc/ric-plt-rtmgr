@@ -26,56 +26,87 @@ package nbi
 
 import (
 	"errors"
-	"fmt"
-	"rtmgr"
+	"routing-manager/pkg/rtmgr"
+        "net/url"
+        apiclient "routing-manager/pkg/appmgr_client"
+        "routing-manager/pkg/appmgr_client/operations"
+        "routing-manager/pkg/appmgr_model"
+        httptransport "github.com/go-openapi/runtime/client"
+        "github.com/go-openapi/strfmt"
+        "github.com/go-openapi/swag"
+        "time"
+
 )
 
 var (
 	SupportedNbis = []*NbiEngineConfig{
 		&NbiEngineConfig{
-			NbiEngine{
-				Name:     "httpGetter",
-				Version:  "v1",
-				Protocol: "http",
-			},
-			batchFetch(fetchXappList),
-			true,
+			Name:     "httpGetter",
+			Version:  "v1",
+			Protocol: "http",
+			Instance: NewHttpGetter(),
+			IsAvailable: true,
 		},
 		&NbiEngineConfig{
-			NbiEngine{
-				Name:     "httpRESTful",
-				Version:  "v1",
-				Protocol: "http",
-			},
-			batchFetch(nil),
-			false,
-		},
-		&NbiEngineConfig{
-			NbiEngine{
-				Name:     "gRPC",
-				Version:  "v1",
-				Protocol: "http2",
-			},
-			batchFetch(nil),
-			false,
+			Name:     "httpRESTful",
+			Version:  "v1",
+			Protocol: "http",
+			Instance: NewHttpRestful(),
+			IsAvailable: true,
 		},
 	}
 )
 
-func ListNbis() {
-	fmt.Printf("NBI:\n")
-	for _, nbi := range SupportedNbis {
-		if nbi.IsAvailable {
-			rtmgr.Logger.Info(nbi.Engine.Name + "/" + nbi.Engine.Version)
-		}
-	}
+type Nbi struct {
+
 }
 
-func GetNbi(nbiName string) (*NbiEngineConfig, error) {
+func GetNbi(nbiName string) (NbiEngine, error) {
 	for _, nbi := range SupportedNbis {
-		if nbi.Engine.Name == nbiName && nbi.IsAvailable {
-			return nbi, nil
+		if nbi.Name == nbiName && nbi.IsAvailable {
+			return nbi.Instance, nil
 		}
 	}
 	return nil, errors.New("NBI:" + nbiName + " is not supported or still not a available")
 }
+
+func CreateSubReq(restUrl string, restPort string) *appmgr_model.SubscriptionRequest {
+	// TODO: parametize function
+        subReq := appmgr_model.SubscriptionRequest{
+                TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
+                EventType:  swag.String("all"),
+                MaxRetries: swag.Int64(5),
+                RetryTimer: swag.Int64(10),
+        }
+
+        return &subReq
+}
+
+func PostSubReq(xmUrl string, nbiif string) error {
+        // setting up POST request to Xapp Manager
+        appmgrUrl, err := url.Parse(xmUrl)
+        if err != nil {
+                rtmgr.Logger.Error("Invalid XApp manager url/hostname: " + err.Error())
+                return err
+        }
+	nbiifUrl, err := url.Parse(nbiif)
+	if err != nil {
+		rtmgr.Logger.Error("Invalid NBI address/port: " + err.Error())
+		return err
+	}
+        transport := httptransport.New(appmgrUrl.Hostname()+":"+appmgrUrl.Port(), "/ric/v1", []string{"http"})
+        client := apiclient.New(transport, strfmt.Default)
+        addSubParams := operations.NewAddSubscriptionParamsWithTimeout(10 * time.Second)
+        // create sub req with rest url and port
+        subReq := CreateSubReq(nbiifUrl.Hostname(), nbiifUrl.Port())
+        resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
+        if postErr != nil {
+                rtmgr.Logger.Error("POST unsuccessful:"+postErr.Error())
+                return postErr
+        } else {
+                // TODO: use the received ID
+                rtmgr.Logger.Info("POST received: "+string(resp.Payload.ID))
+                return nil
+        }
+}
+
