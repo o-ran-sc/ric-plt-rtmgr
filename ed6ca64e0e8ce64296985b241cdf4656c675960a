@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c4d78cf_5f95f016",
+        "filename": "pkg/appmgr_client/operations/add_subscription_parameters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-06-21T14:39:05Z",
+      "side": 1,
+      "message": "why are you adding generated code to Gerrit?  This should be generated at build time, packaged, then thrown away.",
+      "revId": "ed6ca64e0e8ce64296985b241cdf4656c675960a",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    }
+  ]
+}
