@@ -16,7 +16,11 @@
 ## Introduction
 __Routing Manager__ is a basic platform service of RIC. It is responsible for distributing routing policies among the other platform components and xApps.
 
-The implemented logic periodically queries the xApp Manager component for xApps' list. Stores the data then processes it to create routing policies and distributes them to all xApps.
+The routing manager has two ways to get the xapp details from xapp manager - httpGetter or httpRESTful.
+In case of httpGetter, the implemented logic periodically queries the xApp Manager component for xApps' list.
+Where in httpRESTful, starts a http server and creates a webhook subscription in xapp manager to update about changes in xapps and waits changed data to arrive on the REST http server.
+Either ways, the xapp data received is stored and then processed to create routing policies and distributes them to all xApps.
+
 The architecture consists of the following five well defined functions:
 * NorthBound Interface (__NBI__): Maintains the communication channels towards RIC manager components 
 * Routing Policy Engine (__RPE__): Provides the logic to calculate routing policies
@@ -27,7 +31,7 @@ The architecture consists of the following five well defined functions:
 Current implementation provides support for the followings:
 * NBI:
   * __httpGet__: simple HTTP GET interface. Expects an URL where it gets the xApps' list in JSON format
-  * (WIP) __httRESTful__: provides REST API endpoints towards RIC manager components 
+  * __httRESTful__: provides REST API endpoints towards RIC manager components. Expects REST port and url where the HTTP service will be started to listen on.
 * RPE:
   * __rmr__: creates routing policies formatted for RIC RMR
 * SDL:
@@ -35,7 +39,7 @@ Current implementation provides support for the followings:
   * (backlog) __sdl__: Shared Data Library to Redis database
 * SBI:
   * __nngpub__: distributes RPE created policies via NNG Pub channel
-  * (WIP) __nngpipe__: distributes RPE created policies via NNG Pipeline channel
+  * __nngpipe__: distributes RPE created policies via NNG Pipeline channel
 
 ## Release notes
 Check the separated `RELNOTES` file.
@@ -71,6 +75,8 @@ Issue the `kubectl create -f {manifest.yaml}` command in the following order
   2. `manifests/rtmgr/rtmgr-dep.yaml`: instantiates the `rtmgr` deployment in the `example` namespace
   3. `manifests/rtmgr/rtmgr-svc.yaml`: creates the `rtmgr` service in `example` namespace
 
+**NOTE:** The above manifest files will deploy routing manager with NBI as httpRESTful which would not succeed unless there is an xapp manager running at the defined xm-url. The solution is either to deploy a real XAPP manager before deploying routing-manager or start the mock xmgr as mentioned in [Testing](#testing-and-troubleshoting).
+
 ### Testing and Troubleshoting
 Routing Manager's behaviour can be tested using the mocked xApp Manager, traffic generator xApp and receiver xApp.
 
@@ -80,6 +86,9 @@ Routing Manager's behaviour can be tested using the mocked xApp Manager, traffic
   4. Enter the `./test/docker/xmgr.build` folder and issue `docker build .`.  Tag the recently created docker image and push it to the common registry.
   5. Modify the docker image version in each kuberbetes manifest files under `./test/kubernetes/` folder accordingly then issue the `kubectl create -f {manifest.yaml}` on each file.
   6. [Compile](#compiling-code) and [Install routing manager](#installing-routing-manager)
+  7. Once the routing manager is started, it retrievs the initial xapp list from `xmgr` via HTTPGet additonaly it starts to listen on http://rtmgr:8888/v1/handles/xapp-handle endpoint and ready to receive xapp list updates.
+  8. Edit the provided `test/data/xapp.json` file accordingly and issue the following curl command to update `rtmgr's` xapp list.
+     ``` curl --header "Content-Type: application/json" --request POST --data '@./test/data/xapps.json' http://10.244.2.104:8888/v1/handles/xapp-handle ```
 
 #### Command line arguments
 Routing manager binary can be called with `-h` flag when it displays the available command line arguments and it's default value.
@@ -93,7 +102,9 @@ Usage of ./rtmgr:
   -loglevel string
         INFO | WARN | ERROR | DEBUG (default "INFO")
   -nbi string
-        Northbound interface module to be used. Valid values are: 'httpGetter' (default "httpGetter")
+        Northbound interface module to be used. Valid values are: 'httpGetter | httpRESTful' (default "httpGetter")
+  -nbi-if string
+        Base HTTP URL where routing manager will be listening on (default "http://localhost:8888")
   -rpe string
         Route Policy Engine to be used. Valid values are: 'rmrpush | rmrpub' (default "rmrpush")
   -sbi string
@@ -109,9 +120,9 @@ Usage of ./rtmgr:
 For troubleshooting purpose the default logging level can be increased to `DEBUG`.
 
 ## Upcoming changes
-[] Add RESTful NBI based on swagger api definition
-
 [] Add unit tests
+
+[] Generate http related swagger code automatically during the build process
 
 ## License
 This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE)
