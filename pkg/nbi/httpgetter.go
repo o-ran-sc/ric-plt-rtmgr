@@ -28,23 +28,53 @@ package nbi
 import (
 	"encoding/json"
 	"net/http"
-	"rtmgr"
+	"routing-manager/pkg/rtmgr"
+	"routing-manager/pkg/rpe"
+	"routing-manager/pkg/sdl"
 	"time"
 )
 
+type HttpGetter struct {
+	NbiEngine
+	FetchAllXapps FetchAllXappsHandler
+}
+
+func NewHttpGetter() *HttpGetter {
+	instance := new(HttpGetter)
+	instance.FetchAllXapps = fetchAllXapps
+	return instance
+}
+
 var myClient = &http.Client{Timeout: 1 * time.Second}
 
-func fetchXappList(url string) (*[]rtmgr.XApp, error) {
-	rtmgr.Logger.Debug("Invoked httpgetter.fetchXappList")
-	r, err := myClient.Get(url)
+func fetchAllXapps(xmurl string) (*[]rtmgr.XApp, error) {
+	rtmgr.Logger.Info("Invoked httpgetter.fetchXappList: " + xmurl)
+	r, err := myClient.Get(xmurl)
 	if err != nil {
 		return nil, err
 	}
 	defer r.Body.Close()
-	rtmgr.Logger.Debug("http client raw response: %v", r)
-	var xapps []rtmgr.XApp
-	json.NewDecoder(r.Body).Decode(&xapps)
-	rtmgr.Logger.Info("HTTP GET: OK")
-	rtmgr.Logger.Debug("httpgetter.fetchXappList returns: %v", xapps)
-	return &xapps, err
+
+	if r.StatusCode == 200 {
+		rtmgr.Logger.Debug("http client raw response: %v", r)
+		var xapps []rtmgr.XApp
+		err = json.NewDecoder(r.Body).Decode(&xapps)
+		if err != nil {
+			rtmgr.Logger.Warn("Json decode failed: " + err.Error())
+		}
+		rtmgr.Logger.Info("HTTP GET: OK")
+		rtmgr.Logger.Debug("httpgetter.fetchXappList returns: %v", xapps)
+		return &xapps, err
+	}
+	rtmgr.Logger.Warn("httpgetter got an unexpected http status code: %v", r.StatusCode)
+	return nil, nil
+}
+
+func (g *HttpGetter) Initialize(xmurl string, nbiif string, fileName string, configfile string,
+				sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine, triggerSBI chan<- bool) error {
+	return nil
+}
+
+func (g *HttpGetter) Terminate() error {
+	return nil
 }

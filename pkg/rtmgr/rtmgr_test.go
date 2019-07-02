@@ -1,7 +1,7 @@
 /*
 ==================================================================================
-  Copyright (c) 2019 AT&T Intellectual Property.
-  Copyright (c) 2019 Nokia
+   Copyright (c) 2019 AT&T Intellectual Property.
+   Copyright (c) 2019 Nokia
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,27 +17,30 @@
 ==================================================================================
 */
 /*
-  Mnemonic:	rpe/types.go
-  Abstract:	Containes RPE (Route Policy Engine) specific types
-  Date:		12 March 2019
+	Mnemonic:	rtmgr_test.go
+	Abstract:
+	Date:		14 May 2019
 */
 
-package rpe
+package rtmgr
 
-import "routing-manager/pkg/rtmgr"
+import (
+	"testing"
+)
 
-type generatePolicies func(rtmgr.Endpoints) *[]string
-type getRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
+func TestSetLogLevel(t *testing.T) {
+	modes_ok := []string{"info","warn","debug","error"}
+	modes_nok := []string{"inValId","LogLEVEL","PRoviDeD"}
+	for _, value := range(modes_ok) {
+		if SetLogLevel(value) != nil {
+			t.Error("Invalid log level: " + value)
+		}
+	}
 
-type RpeEngineConfig struct {
-	Name        string
-	Version     string
-	Protocol    string
-	Instance    RpeEngine
-	IsAvailable bool
+        for _, value := range(modes_nok) {
+                if SetLogLevel(value) == nil {
+                        t.Error("Invalid log level: " + value)
+                }
+        }
 }
 
-type RpeEngine interface {
-	GeneratePolicies(rtmgr.Endpoints) *[]string
-	GetRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
-}

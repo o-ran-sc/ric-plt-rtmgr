@@ -18,22 +18,8 @@
 #==================================================================================
 #
 #
-#	Mnemonic:	build.sh
-#	Abstract:	Compiles the rtmgr source and builds the docker container
-#	Date:		12 March 2019
+#	Mnemonic:	run_rtmgr.sh
+#	Abstract:	Runs the rtmgr executable with proper arguments
+#	Date:		19 March 2019
 #
-
-echo 'Creating compiler container'
-docker build --no-cache --tag=rtmgr_compiler:0.1 build/binary/
-
-echo 'Running rtmgr compiler'
-docker run --rm --name=rtmgr_compiler -v ${PWD}:/opt/ rtmgr_compiler:0.1
-
-echo 'Cleaning up compiler container'
-docker rmi -f rtmgr_compiler:0.1
-
-echo 'rtmgr binary successfully built!'
-
-echo 'Creating rtmgr container'
-cp ${PWD}/bin/* ${PWD}/build/container/
-docker build --no-cache --tag=rtmgr:builder build/container/
+exec ./rtmgr  -xm-url=$XMURL -nbi=$NBI -nbi-if=$NBIURL -sbi=$SBI -sbi-if=$SBIURL -filename=$RTFILE -rpe=$RPE -loglevel=$LOGLEVEL -configfile=$CFGFILE 
