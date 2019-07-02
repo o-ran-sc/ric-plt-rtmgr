@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c931e6d9_57a17e6d",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-02T14:11:59Z",
+      "side": 1,
+      "message": "Is this the package that generates go code from a swagger spec? If so, can you call it here to generate the needed files? If at all possible it\u0027s really good practice to avoid committing the generated code.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 2
+      },
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41c60c0e_7d7c3529",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-02T14:11:59Z",
+      "side": 1,
+      "message": "Can you run tests right here? Are any existing tests automated?",
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4bbc1ed_b93007fc",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-02T14:11:59Z",
+      "side": 1,
+      "message": "I suggest adding \"chmod 777 /db/rt.json\" so that your container can be launched by an unprivileged user.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 2
+      },
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6c7b6e7_a00e1f31",
+        "filename": "pkg/appmgr_client/operations/add_subscription_parameters.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-02T14:11:59Z",
+      "side": 1,
+      "message": "Can you run the code generator as part of the build, instead of committing generated code files?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    }
+  ]
+}
