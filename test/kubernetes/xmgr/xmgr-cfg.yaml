@@ -29,73 +29,79 @@ data:
   xmgrdata: |
     { 
     "xapps":
-        [{
-            "name": "admin",
-            "status": "unknown",
-            "version": "1.2.3",
-            "instances": [{
-                    "name": "admin-01",
-                    "status": "pending",
-                    "ip": "10.244.1.19",
-                    "port": 4561,
-                    "txMessages": ["HandoverPreparation","HandoverCancel"],
-                    "rxMessages": []
-                },
-                {
-                    "name": "admin-02",
-                    "status": "pending",
-                    "ip": "10.244.3.16",
-                    "port": 4555,
-                    "txMessages": ["HandoverPreparation","HandoverCancel"],
-                    "rxMessages": []
-                }
-            ]
-        },
+        [
+            {
+                "name": "admin",
+                "status": "unknown",
+                "version": "1.2.3",
+                "instances": [{
+                        "name": "admin-01",
+                        "status": "pending",
+                        "ip": "10.244.1.19",
+                        "port": 4561,
+                        "txMessages": ["HandoverPreparation","HandoverCancel"],
+                        "rxMessages": []
+                    },
+                    {
+                        "name": "admin-02",
+                        "status": "pending",
+                        "ip": "10.244.3.16",
+                        "port": 4555,
+                        "txMessages": ["HandoverPreparation","HandoverCancel"],
+                        "rxMessages": []
+                    }
+                ]
+            },
+            {
+                "name": "xapp",
+                "status": "unknown",
+                "version": "1.2.3",
+                "instances": [{
+                        "name": "xapp-01",
+                        "status": "pending",
+                        "ip": "192.168.2.1",
+                        "port": 32300,
+                        "txMessages": ["X2Setup","Reset"],
+                        "rxMessages": ["HandoverPreparation","HandoverCancel"]
+                    },
+                    {
+                        "name": "xapp-02",
+                        "status": "pending",
+                        "ip": "192.168.2.2",
+                        "port": 32300,
+                        "txMessages": ["X2Setup","Reset"],
+                        "rxMessages": ["HandoverPreparation","HandoverCancel"]
+                    }
+                ]
+            },
+            {
+                "name": "e2t",
+                "status": "unknown",
+                "version": "1.2.3",
+                "instances": [{
+                        "name": "e2t-01",
+                        "status": "pending",
+                        "ip": "192.168.3.1",
+                        "port": 32300,
+                        "txMessages": [],
+                        "rxMessages": ["HandoverPreparation","HandoverCancel","X2Setup","Reset"]
+                    },
+                    {
+                        "name": "e2t-02",
+                        "status": "pending",
+                        "ip": "192.168.3.2",
+                        "port": 32300,
+                        "txMessages": [],
+                        "rxMessages": ["HandoverPreparation","HandoverCancel","X2Setup","Reset"]
+                    }
+                ]
+            }
+    ],
+    "subscriptions":
         {
-            "name": "xapp",
-            "status": "unknown",
-            "version": "1.2.3",
-            "instances": [{
-                    "name": "xapp-01",
-                    "status": "pending",
-                    "ip": "192.168.2.1",
-                    "port": 32300,
-                    "txMessages": ["X2Setup","Reset"],
-                    "rxMessages": ["HandoverPreparation","HandoverCancel"]
-                },
-                {
-                    "name": "xapp-02",
-                    "status": "pending",
-                    "ip": "192.168.2.2",
-                    "port": 32300,
-                    "txMessages": ["X2Setup","Reset"],
-                    "rxMessages": ["HandoverPreparation","HandoverCancel"]
-                }
-            ]
-        },
-        {
-            "name": "e2t",
-            "status": "unknown",
-            "version": "1.2.3",
-            "instances": [{
-                    "name": "e2t-01",
-                    "status": "pending",
-                    "ip": "192.168.3.1",
-                    "port": 32300,
-                    "txMessages": [],
-                    "rxMessages": ["HandoverPreparation","HandoverCancel","X2Setup","Reset"]
-                },
-                {
-                    "name": "e2t-02",
-                    "status": "pending",
-                    "ip": "192.168.3.2",
-                    "port": 32300,
-                    "txMessages": [],
-                    "rxMessages": ["HandoverPreparation","HandoverCancel","X2Setup","Reset"]
-                }
-            ]
+            "id": "1ILBltYYzEGzWRrVPZKmuUmhwcc",
+            "version": 0,
+            "eventType": "all"
         }
-
-        ]
     }
 

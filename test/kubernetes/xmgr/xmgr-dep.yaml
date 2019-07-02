@@ -37,12 +37,13 @@ spec:
     spec:
       containers:
       - name: xmgr
-        image: cmaster:5000/xmgr:0.0.2
+        image: xmgr:mock
         args:
         - json-server
         - -w
         - --host=0.0.0.0
         - /db/xapps.json
+        - --middlewares=middleware.js
         ports:
         - containerPort: 3000
         volumeMounts:
