@@ -1,3 +1,17 @@
+### v0.3.0
+* Introduced platform-specific routes: basic components (e2term, ueman, subman, e2man) are stored in a json file (example in manifests/rtmgr/rtmgr-cfg.yaml)
+* Introduced subscription add functionality: /ric/v1/xapp-subscriptions endpoint is active, on a POST method it generates endpoint specific mse routing table entries
+
+### v0.2.0
+* Introduced http rest functionality
+* A way to get intial xapp data from xapp manager while booting the routing manager
+* A way to create a sinple webhook registration in the xapp-manager to listen on updates abpout changes in xapps
+
+### v0.1.1
+* Changes in swagger API definition
+* UTs for SBI, SDL and RPE modules
+* New message types according to RMR
+
 ### v0.1.0
 * Introduces NNGPush SBI module
 * Bugfixes in argument handling

@@ -20,19 +20,19 @@
 # a Docker tag from the string in file container-tag.yaml
 
 FROM golang:1.12 as rtmgrbuild
-ENV GOPATH /opt
+ENV GOPATH /go
 RUN apt-get update \
     && apt-get install golang-glide
-COPY . /opt
-RUN mkdir -p $GOPATH/bin \
-    && ln -s -f  $GOPATH/pkg $GOPATH/src \
-    && cd $GOPATH/src \
-    && glide install --strip-vendor \
-    && cd $GOPATH/cmd \
-    && go build rtmgr.go \
-    && mv $GOPATH/cmd/rtmgr $GOPATH/bin
+RUN go get -u github.com/go-swagger/go-swagger/cmd/swagger
+COPY . /go/src/routing-manager
+RUN cd /go/src/routing-manager/ \
+    && glide install --strip-vendor
+RUN cd /go/src/routing-manager/ && go build cmd/rtmgr.go \
+    && cp rtmgr /go/bin/rtmgr \
+    && cp run_rtmgr.sh /run_rtmgr.sh
 
 FROM ubuntu:16.04
-COPY --from=rtmgrbuild /opt/bin/rtmgr /
+COPY --from=rtmgrbuild /go/bin/rtmgr /
+COPY --from=rtmgrbuild /run_rtmgr.sh /
 RUN mkdir /db && touch /db/rt.json
-CMD /rtmgr
+CMD /run_rtmgr.sh

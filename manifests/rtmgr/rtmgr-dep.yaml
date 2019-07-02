@@ -37,18 +37,37 @@ spec:
     spec:
       containers:
       - name: rtmgr
-        image: cmaster:5000/rtmgr:0.1.0
+        image: localhost:5000/rtmgr:test
         command: ["/run_rtmgr.sh"]
         env:
         - name: XMURL
           value: "http://xmgr:3000/xapps"
-        - name: IP
-          value: "0.0.0.0"
         - name: RTFILE
           value: "/db/rt.json"
         - name: RPE
           value: "rmrpush"
         - name: SBI
           value: "nngpush"
+        - name: SBIURL
+          value: "0.0.0.0"
+        - name: NBI
+          value: "httpRESTful"
+        - name: NBIURL
+          value: "http://0.0.0.0:8888"
+        - name: CFGFILE
+          value: "/cfg/rtmgr-config.json"
         ports:
+        - containerPort: 8888
         - containerPort: 4560
+        volumeMounts:
+          - mountPath: /cfg
+            name: rtmgrcfg
+            readOnly: true
+      volumes:
+        - name: rtmgrcfg
+          configMap:
+            name: rtmgrcfg
+            items:
+              - key: rtmgrcfg
+                path: rtmgr-config.json
+                mode: 0644
