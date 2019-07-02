@@ -24,18 +24,29 @@
 
 package nbi
 
-import "rtmgr"
+import (
+	"routing-manager/pkg/rtmgr"
+	"routing-manager/pkg/models"
+	"routing-manager/pkg/rpe"
+	"routing-manager/pkg/sdl"
+)
 
-type batchFetch func(url string) (*[]rtmgr.XApp, error)
-
-type NbiEngine struct {
-	Name     string
-	Version  string
-	Protocol string
-}
+type FetchAllXappsHandler func(string) (*[]rtmgr.XApp, error)
+type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
+type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData)
+type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) (error)
+type RetrieveStartupDataHandler func(string, string, string, string, sdl.SdlEngine) error
 
 type NbiEngineConfig struct {
-	Engine      NbiEngine
-	BatchFetch  batchFetch
+	Name        string
+	Version     string
+	Protocol    string
+	Instance    NbiEngine
 	IsAvailable bool
 }
+
+type NbiEngine interface {
+	Initialize(string, string, string, string, sdl.SdlEngine, rpe.RpeEngine, chan<- bool) error
+	Terminate() error
+}
+

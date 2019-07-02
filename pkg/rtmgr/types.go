@@ -33,6 +33,9 @@ type EndpointList []Endpoint
 
 type Endpoints map[string]*Endpoint
 
+type SubscriptionList []Subscription
+
+
 //TODO: uuid is not a real UUID but a string of "ip:port"
 // this should be changed to real UUID later on which should come from xApp Manager // petszila
 type Endpoint struct {
@@ -52,6 +55,7 @@ type RouteTableEntry struct {
 	MessageType string
 	TxList      EndpointList
 	RxGroups    []EndpointList
+	SubID       int16
 }
 
 type XApp struct {
@@ -69,3 +73,25 @@ type XAppInstance struct {
 	TxMessages []string `json:"txMessages"`
 	RxMessages []string `json:"rxMessages"`
 }
+
+type PlatformComponents []struct {
+	Name string `json:"name"`
+	Fqdn string `json:"fqdn"`
+	Port uint16 `json:"port"`
+}
+
+type RtmgrConfig struct {
+	Pcs PlatformComponents `json:"PlatformComponents"`
+}
+
+type RicComponents struct {
+	Xapps []XApp
+	Pcs   PlatformComponents
+}
+
+type Subscription struct {
+	SubID    int16
+	Fqdn     string
+	Port     uint16
+}
+

@@ -1,0 +1,26 @@
+{
+    "PlatformComponents":
+    [
+        {
+            "name": "E2TERM",
+            "fqdn": "e2term",
+            "port": 4561
+        },
+        {
+            "name": "SUBMAN",
+            "fqdn": "subman",
+            "port": 4562
+        },
+        {
+            "name": "E2MAN",
+            "fqdn": "e2man",
+            "port": 4563
+        },
+        {
+            "name": "UEMAN",
+            "fqdn": "ueman",
+            "port": 4564
+        }
+    ]
+}
+
