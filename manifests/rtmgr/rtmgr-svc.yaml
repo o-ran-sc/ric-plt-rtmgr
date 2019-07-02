@@ -24,7 +24,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: rtmgr
-  namespace: example
 spec:
   selector:
     app: rtmgr

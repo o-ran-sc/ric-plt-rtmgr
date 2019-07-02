@@ -22,4 +22,6 @@
 #
 FROM node
 
+COPY middleware.js middleware.js
+
 RUN npm install -g json-server

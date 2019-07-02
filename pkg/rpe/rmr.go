@@ -26,24 +26,50 @@
 package rpe
 
 import (
-	"rtmgr"
+	"routing-manager/pkg/rtmgr"
 	"strconv"
 )
+
+type Rmr struct {
+	Rpe
+}
+
+type RmrPub struct {
+	Rmr
+}
+
+type RmrPush struct {
+	Rmr
+}
+
+func NewRmrPub() *RmrPub {
+	instance := new(RmrPub)
+	return instance
+}
+
+func NewRmrPush() *RmrPush {
+	instance := new(RmrPush)
+	return instance
+}
 
 /*
 Produces the raw route message consumable by RMR
 */
-func generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
-	rtmgr.Logger.Debug("Invoked rmr.generateRMRPolicies")
-	rtmgr.Logger.Debug("args: %v", eps)
+func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 	rawrt := []string{key + "newrt|start\n"}
-	rt := getRouteTable(eps)
+	rt := r.getRouteTable(eps)
 	for _, rte := range *rt {
-		rawrte := key + "rte|" + rte.MessageType
+		rawrte := key //+ "rte|" + rte.MessageType
+		if rte.SubID == -1 {
+			rawrte += "rte|"
+		} else {
+			rawrte += "mse|"
+		}
+		rawrte += rte.MessageType
 		for _, tx := range rte.TxList {
 			rawrte += "," + tx.Ip + ":" + strconv.Itoa(int(tx.Port))
 		}
-		rawrte += "|"
+		rawrte += "|" + strconv.Itoa(int(rte.SubID)) + "|"
 		group := ""
 		for _, rxg := range rte.RxGroups {
 			member := ""
@@ -64,14 +90,25 @@ func generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 		rawrt = append(rawrt, rawrte+"\n")
 	}
 	rawrt = append(rawrt, key+"newrt|end\n")
-	rtmgr.Logger.Debug("rmr.generateRMRPolicies returns: %v", rawrt)
+	rtmgr.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
 	return &rawrt
 }
 
-func generateRMRPubPolicies(eps rtmgr.Endpoints) *[]string {
-	return generateRMRPolicies(eps, "00000           ")
+func (r *RmrPub) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
+	rtmgr.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
+	return r.generateRMRPolicies(eps, "00000           ")
 }
 
-func generateRMRPushPolicies(eps rtmgr.Endpoints) *[]string {
-	return generateRMRPolicies(eps, "")
+func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
+	rtmgr.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
+	return r.generateRMRPolicies(eps, "")
 }
+
+func (r *RmrPub) GetRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
+	return r.getRouteTable(eps)
+}
+
+func (r *RmrPush) GetRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
+	return r.getRouteTable(eps)
+}
+

@@ -1,7 +1,7 @@
 /*
 ==================================================================================
-  Copyright (c) 2019 AT&T Intellectual Property.
-  Copyright (c) 2019 Nokia
+   Copyright (c) 2019 AT&T Intellectual Property.
+   Copyright (c) 2019 Nokia
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,27 +17,36 @@
 ==================================================================================
 */
 /*
-  Mnemonic:	rpe/types.go
-  Abstract:	Containes RPE (Route Policy Engine) specific types
-  Date:		12 March 2019
+	Mnemonic:	nngpub_test.go
+	Abstract:
+	Date:		25 April 2019
 */
+package sdl
 
-package rpe
+import (
+	"routing-manager/pkg/stub"
+	"testing"
+)
 
-import "routing-manager/pkg/rtmgr"
+/*
+RmrPub.GeneratePolicies() method is tested for happy path case
+*/
+func TestFileWriteAll(t *testing.T) {
+	var err error
+	var file = File{}
 
-type generatePolicies func(rtmgr.Endpoints) *[]string
-type getRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
-
-type RpeEngineConfig struct {
-	Name        string
-	Version     string
-	Protocol    string
-	Instance    RpeEngine
-	IsAvailable bool
+	err = file.WriteAll("ut.rt", &stub.ValidRicComponents)
+	t.Log(err)
 }
 
-type RpeEngine interface {
-	GeneratePolicies(rtmgr.Endpoints) *[]string
-	GetRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
+/*
+RmrPush.GeneratePolicies() method is tested for happy path case
+*/
+func TestFileReadAll(t *testing.T) {
+	var err error
+	var file = File{}
+
+	data, err := file.ReadAll("ut.rt")
+	t.Log(data)
+	t.Log(err)
 }

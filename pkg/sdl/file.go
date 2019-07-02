@@ -29,7 +29,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"rtmgr"
+	"routing-manager/pkg/rtmgr"
 )
 
 /*
@@ -37,10 +37,19 @@ Reads the content of the rt.json file
 Parses the JSON content and loads each xApp entry into an xApp object
 Returns an array os xApp object
 */
-func fileReadAll(file string) (*[]rtmgr.XApp, error) {
-	rtmgr.Logger.Debug("Invoked file.fileReadAll")
-	rtmgr.Logger.Debug("file.fileReadAll opens file: " + file)
-	var xapps *[]rtmgr.XApp
+
+type File struct {
+	Sdl
+}
+
+func NewFile() *File {
+	instance := new(File)
+	return instance
+}
+
+func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
+	rtmgr.Logger.Debug("Invoked sdl.ReadAll("+ file +")")
+	var rcs *rtmgr.RicComponents
 	jsonFile, err := os.Open(file)
 	if err != nil {
 		return nil, errors.New("cannot open the file due to: " + err.Error())
@@ -50,19 +59,43 @@ func fileReadAll(file string) (*[]rtmgr.XApp, error) {
 	if err != nil {
 		return nil, errors.New("cannot read the file due to: " + err.Error())
 	}
-	err = json.Unmarshal(byteValue, &xapps)
+	err = json.Unmarshal(byteValue, &rcs)
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())
 	}
-	rtmgr.Logger.Debug("file.fileReadAll returns: %v", xapps)
-	return xapps, nil
+	rtmgr.Logger.Debug("file.fileReadAll returns: %v", rcs)
+	return rcs, nil
 }
 
-func fileWriteAll(file string, xapps *[]rtmgr.XApp) error {
-	rtmgr.Logger.Debug("Invoked file.fileWriteAll")
+func (f *File) WriteAll(file string, rcs *rtmgr.RicComponents) error {
+	rtmgr.Logger.Debug("Invoked sdl.WriteAll")
 	rtmgr.Logger.Debug("file.fileWriteAll writes into file: " + file)
-	rtmgr.Logger.Debug("file.fileWriteAll writes data: %v", (*xapps))
-	byteValue, err := json.Marshal(xapps)
+	rtmgr.Logger.Debug("file.fileWriteAll writes data: %v", (*rcs))
+	byteValue, err := json.Marshal(rcs)
+	if err != nil {
+		return errors.New("cannot convert data due to: " + err.Error())
+	}
+	err = ioutil.WriteFile(file, byteValue, 0644)
+	if err != nil {
+		return errors.New("cannot write file due to: " + err.Error())
+	}
+	return nil
+}
+
+func (f *File) WriteXapps(file string, xapps *[]rtmgr.XApp) error {
+	rtmgr.Logger.Debug("Invoked sdl.WriteXapps")
+	rtmgr.Logger.Debug("file.fileWriteXapps writes into file: " + file)
+	rtmgr.Logger.Debug("file.fileWriteXapps writes data: %v", (*xapps))
+
+	ricData, err := NewFile().ReadAll(file)
+	if err != nil || ricData == nil {
+		rtmgr.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("cannot read full ric data to modify xapps data, due to:  " + err.Error())
+	}
+
+	ricData.Xapps = *xapps
+
+	byteValue, err := json.Marshal(ricData)
 	if err != nil {
 		return errors.New("cannot convert data due to: " + err.Error())
 	}
