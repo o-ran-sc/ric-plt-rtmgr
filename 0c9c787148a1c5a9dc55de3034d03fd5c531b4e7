@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "aef0dade_adeeab9d",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-03T10:02:01Z",
+      "side": 1,
+      "message": "The key thing is to invoke the build steps from the Dockerfile. I tend to prefer seeing steps directly in the Dockerfile rather than burying them in a shell script, this enables a bit of layer caching, but it\u0027s really up to you.",
+      "parentUuid": "95f6663f_4572fb65",
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "41c60c0e_7d7c3529",
         "filename": "Dockerfile",
         "patchSetId": 1
@@ -71,6 +89,24 @@
       "side": 1,
       "message": "Well, yes. We had some debate on this locally - what do you recommend, where to store results of unit test? Should those be displayed during build time or to be placed inside a volume?",
       "parentUuid": "41c60c0e_7d7c3529",
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78da256e_713b0d9b",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-03T10:02:01Z",
+      "side": 1,
+      "message": "The easiest thing to do is echo the results to standard out.  Output logs are kept from all builds, but the filesystem is not.  Here the key thing is to fail (stop the build) on test failure.",
+      "parentUuid": "e45e894a_f663d1bd",
       "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
       "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
       "unresolved": true
@@ -112,6 +148,30 @@
       "side": 1,
       "message": "I would not recommend 777 on any file that might contain sensitive data. Is there an explanation for this? Is docker being run by a specific user (non-root)? I would recommend 640 in each case. (principle of least privilege should be practiced even now).",
       "parentUuid": "b4bbc1ed_b93007fc",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 2
+      },
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "747ce4a2_97d907bb",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-07-03T10:02:01Z",
+      "side": 1,
+      "message": "This is only a file permission inside the docker image, not a file exposed at the host level. If a bad actor has penetrated into a running docker container, well, I see additional security concern here.",
+      "parentUuid": "99e44c59_95aa2b10",
       "range": {
         "startLine": 37,
         "startChar": 0,
