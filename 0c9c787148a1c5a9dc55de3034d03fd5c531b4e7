@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "95f6663f_4572fb65",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2019-07-03T06:11:51Z",
+      "side": 1,
+      "message": "Yes it is, of course your comment is totally valid. Initially we agreed to pre-generate the swagger code for sake of simplicity (those times there was no ORAN repo which is accessible - but now there is). And it\u0027s still in plan to add an extra step to generate routing manager\u0027s own rest api, plus xapp manager\u0027s client api to fetch from its own repository). I have some ideas how to implement this in a \"nice\" way - does it matter if I use makefile or batch script? It should be available for a non-docker build also (plus documentation update).",
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "41c60c0e_7d7c3529",
         "filename": "Dockerfile",
         "patchSetId": 1
@@ -42,6 +59,24 @@
     },
     {
       "key": {
+        "uuid": "e45e894a_f663d1bd",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2019-07-03T06:11:51Z",
+      "side": 1,
+      "message": "Well, yes. We had some debate on this locally - what do you recommend, where to store results of unit test? Should those be displayed during build time or to be placed inside a volume?",
+      "parentUuid": "41c60c0e_7d7c3529",
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4bbc1ed_b93007fc",
         "filename": "Dockerfile",
         "patchSetId": 1
@@ -53,6 +88,30 @@
       "writtenOn": "2019-07-02T14:11:59Z",
       "side": 1,
       "message": "I suggest adding \"chmod 777 /db/rt.json\" so that your container can be launched by an unprivileged user.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 2
+      },
+      "revId": "0c9c787148a1c5a9dc55de3034d03fd5c531b4e7",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99e44c59_95aa2b10",
+        "filename": "Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000044
+      },
+      "writtenOn": "2019-07-03T06:11:51Z",
+      "side": 1,
+      "message": "I would not recommend 777 on any file that might contain sensitive data. Is there an explanation for this? Is docker being run by a specific user (non-root)? I would recommend 640 in each case. (principle of least privilege should be practiced even now).",
+      "parentUuid": "b4bbc1ed_b93007fc",
       "range": {
         "startLine": 37,
         "startChar": 0,
