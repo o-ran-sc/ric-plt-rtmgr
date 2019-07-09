@@ -55,5 +55,6 @@ FROM ubuntu:16.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
+RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh
 
