@@ -52,7 +52,7 @@ spec:
         - name: NBI
           value: "httpRESTful"
         - name: NBIURL
-          value: "http://0.0.0.0:8888"
+          value: "http://rtmgr:8888"
         - name: CFGFILE
           value: "/cfg/rtmgr-config.json"
         - name: LOGLEVEL

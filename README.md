@@ -83,6 +83,12 @@ glide install --strip-vendor
 go build cmd/rtmgr.go
 ```
 
+**NOTE:** before doing a docker build it is advised to remove any generated files and vendor packages:
+```bash
+# assuming that you stand in project root dir
+rm -rf appmgr vendor pkg/appmgr_* pkg/models pkg/restapi
+```
+
 ### Installing Routing Manager
 #### Preparing environment
 Tag the `rtmgr` container according to the project release and push it to a registry accessible from all minions of the Kubernetes cluster.
