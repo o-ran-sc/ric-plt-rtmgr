@@ -34,11 +34,11 @@ COPY . /go/src/routing-manager
 WORKDIR /go/src/routing-manager
 
 RUN git clone "https://gerrit.o-ran-sc.org/r/ric-plt/appmgr" \
-    && cp appmgr/api/appmgr_rest_api.json api/ \
+    && cp appmgr/api/appmgr_rest_api.yaml api/ \
     && rm -rf appmgr
 
 RUN swagger generate server -f api/routing_manager.yaml -t pkg/ --exclude-main -r LICENSE
-RUN swagger generate client -f api/appmgr_rest_api.json -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
+RUN swagger generate client -f api/appmgr_rest_api.yaml -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
 
 RUN glide install --strip-vendor
 
@@ -55,6 +55,5 @@ FROM ubuntu:16.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
-RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh
 
