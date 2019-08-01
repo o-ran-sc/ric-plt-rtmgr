@@ -1,3 +1,11 @@
+### v0.3.2
+* Minor code changes due to appmgr/rtmgr api differences
+* Doc update
+* UT fixes 
+
+### v0.3.1
+* Removed "rte" route types and made all routes to construct of "mse" literal. 
+
 ### v0.3.0
 * Introduced platform-specific routes: basic components (e2term, ueman, subman, e2man) are stored in a json file (example in manifests/rtmgr/rtmgr-cfg.yaml)
 * Introduced subscription add functionality: /ric/v1/xapp-subscriptions endpoint is active, on a POST method it generates endpoint specific mse routing table entries

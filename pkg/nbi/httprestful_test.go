@@ -96,8 +96,8 @@ func createMockPlatformComponents() {
 
 func TestRecvXappCallbackData(t *testing.T) {
 	data := models.XappCallbackData {
-                Data: *swag.String("[]"),
-                DataVersion: *swag.Int64(1),
+                XApps: *swag.String("[]"),
+                Version: *swag.Int64(1),
                 Event: *swag.String("any"),
                 ID: *swag.Int64(123456),
 	}
@@ -124,8 +124,8 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 	datach := make(chan *models.XappCallbackData, 10)
 	defer close(datach)
 	data := models.XappCallbackData{
-		Data: *swag.String("[]"),
-		DataVersion: *swag.Int64(1),
+		XApps: *swag.String("[]"),
+		Version: *swag.Int64(1),
 		Event: *swag.String("someevent"),
 		ID: *swag.Int64(123456)}
 	var httpRestful, _ = GetNbi("httpRESTful")
@@ -146,8 +146,8 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 
 func TestValidateXappCallbackData(t *testing.T) {
         data := models.XappCallbackData{
-                Data: *swag.String("[]"),
-                DataVersion: *swag.Int64(1),
+                XApps: *swag.String("[]"),
+                Version: *swag.Int64(1),
                 Event: *swag.String("someevent"),
                 ID: *swag.Int64(123456)}
 
@@ -159,8 +159,8 @@ func TestValidateXappCallbackData(t *testing.T) {
 
 func TestValidateXappCallbackDataWithInvalidData(t *testing.T) {
         data := models.XappCallbackData{
-                Data: *swag.String("{}"),
-                DataVersion: *swag.Int64(1),
+                XApps: *swag.String("{}"),
+                Version: *swag.Int64(1),
                 Event: *swag.String("someevent"),
                 ID: *swag.Int64(123456)}
 

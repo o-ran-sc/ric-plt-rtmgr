@@ -29,7 +29,7 @@ info:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 host: "rtmgr"
-basePath: "/v1"
+basePath: "/ric/v1"
 tags:
 - name: "handle"
   description: "Available handles"
@@ -143,10 +143,10 @@ definitions:
         format: "int64"
       event:
         type: "string"
-      data-version:
+      version:
         type: "integer"
         format: "int64"
-      data:
+      xApps:
         type: "string" #This should be a JSON object, array of xapps
   xapp-subscription-data:
     type: "object"

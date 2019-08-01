@@ -77,7 +77,7 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	}
 	if nil != xappData {
                 var xapps []rtmgr.XApp
-                err := json.Unmarshal([]byte(xappData.Data), &xapps)
+                err := json.Unmarshal([]byte(xappData.XApps), &xapps)
 		return &xapps, err
 	} else {
 		rtmgr.Logger.Info("No data")
@@ -89,11 +89,11 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 }
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
-	if len(callbackData.Data) == 0 {
-		return fmt.Errorf("Invalid Data field: \"%s\"", callbackData.Data)
+	if len(callbackData.XApps) == 0 {
+		return fmt.Errorf("Invalid Data field: \"%s\"", callbackData.XApps)
 	}
 	var xapps []rtmgr.XApp
-        err := json.Unmarshal([]byte(callbackData.Data), &xapps)
+        err := json.Unmarshal([]byte(callbackData.XApps), &xapps)
         if err != nil {
 		return fmt.Errorf("Unmarshal failed: \"%s\"", err.Error())
 	}

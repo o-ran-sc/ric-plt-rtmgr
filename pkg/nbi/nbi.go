@@ -98,7 +98,7 @@ func PostSubReq(xmUrl string, nbiif string) error {
         client := apiclient.New(transport, strfmt.Default)
         addSubParams := operations.NewAddSubscriptionParamsWithTimeout(10 * time.Second)
         // create sub req with rest url and port
-        subReq := CreateSubReq(nbiifUrl.Hostname(), nbiifUrl.Port())
+        subReq := CreateSubReq(string(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname()), nbiifUrl.Port())
         resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
         if postErr != nil {
                 rtmgr.Logger.Error("POST unsuccessful:"+postErr.Error())

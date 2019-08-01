@@ -59,13 +59,7 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 	rawrt := []string{key + "newrt|start\n"}
 	rt := r.getRouteTable(eps)
 	for _, rte := range *rt {
-		rawrte := key //+ "rte|" + rte.MessageType
-		if rte.SubID == -1 {
-			rawrte += "rte|"
-		} else {
-			rawrte += "mse|"
-		}
-		rawrte += rte.MessageType
+		rawrte := key + "mse|" + rte.MessageType
 		for _, tx := range rte.TxList {
 			rawrte += "," + tx.Ip + ":" + strconv.Itoa(int(tx.Port))
 		}
