@@ -1,0 +1,9 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Zoltán Koczka <zoltan.koczka@nokia.com>
+Code-Review+1: Kálmán Nagy <kalman.nagy@nokia.com>
+Code-Review+2: Gergo Mocsi <gergo.mocsi@nokia.com>
+Submitted-by: Gergo Mocsi <gergo.mocsi@nokia.com>
+Submitted-at: Thu, 01 Aug 2019 08:39:05 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/610
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
