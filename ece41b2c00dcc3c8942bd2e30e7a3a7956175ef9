@@ -1,0 +1,12 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Zoltán Koczka <zoltan.koczka@nokia.com>
+Code-Review+1: Balazs Baksa <balazs.baksa@nokia.com>
+Code-Review+1: Satish Inakoti <satish.inakoti@nokia.com>
+Code-Review+1: Viktor Bekesi <viktor.bekesi@nokia.com>
+Code-Review+2: Gergo Mocsi <gergo.mocsi@nokia.com>
+Verified+1: Gergo Mocsi <gergo.mocsi@nokia.com>
+Submitted-by: Balint Uveges <balint.uveges@nokia.com>
+Submitted-at: Thu, 29 Aug 2019 12:36:25 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/833
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
