@@ -1,0 +1,9 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Satish Inakoti <satish.inakoti@nokia.com>
+Code-Review+2: Balint Uveges <balint.uveges@nokia.com>
+Verified+1: Balint Uveges <balint.uveges@nokia.com>
+Submitted-by: Balint Uveges <balint.uveges@nokia.com>
+Submitted-at: Mon, 02 Sep 2019 10:03:35 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/860
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
