@@ -157,10 +157,10 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 
         server.Port, err = strconv.Atoi(nbiUrl.Port())
         if err != nil {
-               rtmgr.Logger.Error("Invalid NBI RestAPI port")
-               os.Exit(1)
+	        rtmgr.Logger.Error("Invalid NBI RestAPI port")
+	        os.Exit(1)
         }
-        server.Host = nbiUrl.Hostname()
+        server.Host = "0.0.0.0"
         // set handlers
         api.HandleProvideXappHandleHandler = handle.ProvideXappHandleHandlerFunc(
                 func(params handle.ProvideXappHandleParams) middleware.Responder {
