@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d7418bf_1ac70e18",
+        "filename": "api/routing_manager.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1000012
+      },
+      "writtenOn": "2019-09-02T09:23:25Z",
+      "side": 1,
+      "message": "Why did we increase the sequence number/subscription id\u0027s size?",
+      "revId": "1892a705147ad415b7c43cc5bb6d8ac4262b3583",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": false
+    }
+  ]
+}
