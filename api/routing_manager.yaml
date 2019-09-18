@@ -126,6 +126,26 @@ paths:
           description: "Invalid data"
         201:
           description: "Xapp Subscription data received"
+    delete:
+      tags:
+      - "handle"
+      summary: "API for deleting an xapp subscription"
+      description: "By performing the delete operation on xapp-subscription-handle resource, the API caller will be able to update routing manager about the deletion of an xapp's subscription"
+      operationId: "delete_xapp_subscription_handle"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "xapp-subscription-data"
+        description: "xApp related subscription data"
+        required: true
+        schema:
+          $ref: "#/definitions/xapp-subscription-data"
+      responses:
+        204:
+          description: "Content not found"
+        200:
+          description: "Xapp Subscription deleted"
   /handles/xapp-subscription-handle/{subscription_id}:
     put:
       tags:

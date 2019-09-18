@@ -106,7 +106,7 @@ func provideXappHandleHandlerImpl(datach chan<- *models.XappCallbackData, data *
 	}
 	err := validateXappCallbackData(data)
 	if err != nil {
-		rtmgr.Logger.Debug("XApp callback data validation failed: "+err.Error())
+		rtmgr.Logger.Warn("XApp callback data validation failed: "+err.Error())
 		return err
 	} else {
 		datach<-data
@@ -139,7 +139,39 @@ func provideXappSubscriptionHandleImpl(subchan chan<- *models.XappSubscriptionDa
 	return nil
 }
 
-func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData) {
+func subscriptionExists(data *models.XappSubscriptionData) bool {
+	present := false
+	sub := rtmgr.Subscription{SubID:*data.SubscriptionID, Fqdn:*data.Address, Port:*data.Port,}
+	for _, elem := range rtmgr.Subs {
+		if elem == sub {
+			present = true
+			break
+		}
+	}
+	return present
+}
+
+func deleteXappSubscriptionHandleImpl(subdelchan chan<- *models.XappSubscriptionData,
+                                        data *models.XappSubscriptionData) error {
+	rtmgr.Logger.Debug("Invoked deleteXappSubscriptionHandleImpl")
+	err := validateXappSubscriptionData(data)
+	if err != nil {
+		rtmgr.Logger.Error(err.Error())
+		return err
+	}
+
+	if !subscriptionExists(data) {
+		rtmgr.Logger.Warn("Subscription not found: %d", *data.SubscriptionID)
+		err := fmt.Errorf("Subscription not found: %d", *data.SubscriptionID)
+		return err
+	}
+
+	subdelchan <- data
+	return nil
+}
+
+func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData,
+								subdelchan chan<- *models.XappSubscriptionData) {
         swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
         if err != nil {
                 //log.Fatalln(err)
@@ -178,6 +210,15 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			err := provideXappSubscriptionHandleImpl(subchan, params.XappSubscriptionData)
 			if err != nil {
 				return handle.NewProvideXappSubscriptionHandleBadRequest()
+			} else {
+				return handle.NewGetHandlesOK()
+			}
+		})
+	api.HandleDeleteXappSubscriptionHandleHandler = handle.DeleteXappSubscriptionHandleHandlerFunc(
+		func(params handle.DeleteXappSubscriptionHandleParams) middleware.Responder {
+			err := deleteXappSubscriptionHandleImpl(subdelchan, params.XappSubscriptionData)
+			if err != nil {
+				return handle.NewDeleteXappSubscriptionHandleNoContent()
 			} else {
 				return handle.NewGetHandlesOK()
 			}
@@ -261,9 +302,10 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 
 	datach := make(chan *models.XappCallbackData, 10)
 	subschan := make(chan *models.XappSubscriptionData, 10)
+	subdelchan := make(chan *models.XappSubscriptionData, 10)
 	rtmgr.Logger.Info("Launching Rest Http service")
 	go func() {
-		r.LaunchRest(&nbiif, datach, subschan)
+		r.LaunchRest(&nbiif, datach, subschan, subdelchan)
 	}()
 
 	go func() {
@@ -277,11 +319,21 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 			}
 		}
 	}()
+
 	go func() {
 		for {
 			data := <-subschan
 			rtmgr.Logger.Debug("received XApp subscription data")
 			addSubscription(&rtmgr.Subs, data)
+			triggerSBI <- true
+		}
+	}()
+
+	go func() {
+		for {
+			data := <-subdelchan
+			rtmgr.Logger.Debug("received XApp subscription delete data")
+			delSubscription(&rtmgr.Subs, data)
 			triggerSBI <- true
 		}
 	}()
@@ -308,3 +360,22 @@ func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 	return b
 }
 
+func delSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubscriptionData) bool {
+	rtmgr.Logger.Debug("Deleteing the subscription from the subscriptions list")
+	var present bool = false
+	sub := rtmgr.Subscription{SubID:*xappSubData.SubscriptionID, Fqdn:*xappSubData.Address, Port:*xappSubData.Port,}
+	for i, elem := range *subs {
+		if elem == sub {
+			present = true
+			// Since the order of the list is not important, we are swapping the last element
+			// with the matching element and replacing the list with list(n-1) elements.
+			(*subs)[len(*subs)-1], (*subs)[i] = (*subs)[i], (*subs)[len(*subs)-1]
+			*subs = (*subs)[:len(*subs)-1]
+			break
+		}
+	}
+	if present == false {
+		rtmgr.Logger.Warn("rtmgr.delSubscription: Subscription = %v, not present in the existing subscriptions", xappSubData)
+	}
+	return present
+}
