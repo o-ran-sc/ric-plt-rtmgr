@@ -158,6 +158,26 @@ paths:
         201:
           description: "Xapp list received"
   
+#      - "application/yaml"
+      parameters:
+        - in: path
+          name: subscription_id
+          required: true
+          type: integer
+          format: "uint16"
+          description: "Subscription ID"
+        - in: body
+          name: xapp-list
+          description: "xApp list"
+          required: true
+          schema:
+           $ref: "#/definitions/xapp-list"
+      responses:
+        400:
+          description: "Invalid data"
+        201:
+          description: "Xapp list received"
+  
 definitions:
   health-status:
     type: "object"

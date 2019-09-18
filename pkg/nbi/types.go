@@ -33,7 +33,7 @@ import (
 
 type FetchAllXappsHandler func(string) (*[]rtmgr.XApp, error)
 type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
-type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData)
+type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *models.XappSubscriptionData)
 type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) (error)
 type RetrieveStartupDataHandler func(string, string, string, string, sdl.SdlEngine) error
 

@@ -1,3 +1,6 @@
+### v0.3.3
+* Introduced delete API over REST interface for subscriptions.
+
 ### v0.3.2
 * Minor code changes due to appmgr/rtmgr api differences
 * Doc update
