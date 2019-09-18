@@ -99,7 +99,7 @@ func TestRecvXappCallbackData(t *testing.T) {
                 XApps: *swag.String("[]"),
                 Version: *swag.Int64(1),
                 Event: *swag.String("any"),
-                ID: *swag.Int64(123456),
+                ID: *swag.String("123456"),
 	}
 
 	ch := make(chan *models.XappCallbackData)
@@ -127,7 +127,7 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 		XApps: *swag.String("[]"),
 		Version: *swag.Int64(1),
 		Event: *swag.String("someevent"),
-		ID: *swag.Int64(123456)}
+		ID: *swag.String("123456")}
 	var httpRestful, _ = GetNbi("httpRESTful")
 	err := httpRestful.(*HttpRestful).ProvideXappHandleHandlerImpl(datach, &data)
 	if err != nil {
@@ -149,7 +149,7 @@ func TestValidateXappCallbackData(t *testing.T) {
                 XApps: *swag.String("[]"),
                 Version: *swag.Int64(1),
                 Event: *swag.String("someevent"),
-                ID: *swag.Int64(123456)}
+                ID: *swag.String("123456")}
 
 	err := validateXappCallbackData(&data)
 	if err != nil {
@@ -162,7 +162,7 @@ func TestValidateXappCallbackDataWithInvalidData(t *testing.T) {
                 XApps: *swag.String("{}"),
                 Version: *swag.Int64(1),
                 Event: *swag.String("someevent"),
-                ID: *swag.Int64(123456)}
+                ID: *swag.String("123456")}
 
         err := validateXappCallbackData(&data)
         if err == nil {

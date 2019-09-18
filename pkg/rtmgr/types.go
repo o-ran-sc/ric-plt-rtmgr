@@ -55,7 +55,7 @@ type RouteTableEntry struct {
 	MessageType string
 	TxList      EndpointList
 	RxGroups    []EndpointList
-	SubID       int16
+	SubID       int32
 }
 
 type XApp struct {
@@ -90,7 +90,7 @@ type RicComponents struct {
 }
 
 type Subscription struct {
-	SubID    int16
+	SubID    int32
 	Fqdn     string
 	Port     uint16
 }

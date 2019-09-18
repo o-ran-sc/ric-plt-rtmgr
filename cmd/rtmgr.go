@@ -50,7 +50,7 @@ func parseArgs() {
 	// TODO: arguments should be validated (filename; xm-url; sbi-if; rest-url; rest-port)
 	args = make(map[string]*string)
 	args["configfile"] = flag.String("configfile", "/etc/rtmgrcfg.json", "Routing manager's configuration file path")
-	args["nbi"] = flag.String("nbi", "httpGetter", "Northbound interface module to be used. Valid values are: 'httpGetter | httpRESTful'")
+	args["nbi"] = flag.String("nbi", "httpRESTful", "Northbound interface module to be used. Valid values are: 'httpGetter | httpRESTful'")
 	args["sbi"] = flag.String("sbi", "nngpush", "Southbound interface module to be used. Valid values are: 'nngpush | nngpub'")
 	args["rpe"] = flag.String("rpe", "rmrpush", "Route Policy Engine to be used. Valid values are: 'rmrpush | rmrpub'")
 	args["sdl"] = flag.String("sdl", "file", "Datastore enginge to be used. Valid values are: 'file'")
