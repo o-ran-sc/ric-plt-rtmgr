@@ -29,9 +29,10 @@ RUN cd /go/bin \
     && mv swagger_linux_amd64 swagger \
     && chmod +x swagger
 
-COPY . /go/src/routing-manager
-
 WORKDIR /go/src/routing-manager
+COPY api/ /go/src/routing-manager/api
+COPY LICENSE LICENSE
+RUN mkdir pkg
 
 RUN git clone "https://gerrit.o-ran-sc.org/r/ric-plt/appmgr" \
     && cp appmgr/api/appmgr_rest_api.yaml api/ \
@@ -40,11 +41,17 @@ RUN git clone "https://gerrit.o-ran-sc.org/r/ric-plt/appmgr" \
 RUN swagger generate server -f api/routing_manager.yaml -t pkg/ --exclude-main -r LICENSE
 RUN swagger generate client -f api/appmgr_rest_api.yaml -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
 
+COPY glide.lock glide.lock
+COPY glide.yaml glide.yaml
+
 RUN glide install --strip-vendor
 
-RUN go build cmd/rtmgr.go \
-    && cp rtmgr /go/bin/rtmgr \
-    && cp run_rtmgr.sh /run_rtmgr.sh
+COPY pkg pkg
+COPY cmd cmd
+COPY run_rtmgr.sh /run_rtmgr.sh
+
+ENV GOBIN /go/bin
+RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
 FROM rtmgrbuild as rtmgrut
@@ -57,4 +64,3 @@ COPY --from=rtmgrbuild /run_rtmgr.sh /
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
 RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh
-

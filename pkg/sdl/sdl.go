@@ -31,17 +31,17 @@ import (
 var (
 	SupportedSdls = []*SdlEngineConfig{
 		&SdlEngineConfig{
-			Name:     "file",
-			Version:  "v1",
-			Protocol: "rawfile",
-			Instance: NewFile(),
+			Name:        "file",
+			Version:     "v1",
+			Protocol:    "rawfile",
+			Instance:    NewFile(),
 			IsAvailable: true,
 		},
 		&SdlEngineConfig{
-			Name:     "redis",
-			Version:  "v1",
-			Protocol: "ndsl",
-			Instance: nil,
+			Name:        "redis",
+			Version:     "v1",
+			Protocol:    "ndsl",
+			Instance:    nil,
 			IsAvailable: false,
 		},
 	}
@@ -57,5 +57,4 @@ func GetSdl(sdlName string) (SdlEngine, error) {
 }
 
 type Sdl struct {
-
 }

@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	mangos.go
-  Abstract:	
+  Abstract:
   Date:		3 May 2019
 */
 
@@ -28,12 +28,12 @@ import "errors"
 
 type MangosMessage struct {
 	Header []byte
-	Body []byte
-	Pipe MangosPipe
-	bbuf  []byte
-	hbuf  []byte
-	bsize int
-	pool  interface {}
+	Body   []byte
+	Pipe   MangosPipe
+	bbuf   []byte
+	hbuf   []byte
+	bsize  int
+	pool   interface{}
 }
 
 type MangosProtocolInfo struct {
@@ -46,7 +46,6 @@ type MangosProtocolInfo struct {
 // Mangos Listener Stub
 
 type MangosListener struct {
-
 }
 
 func (l MangosListener) Listen() error {
@@ -65,14 +64,14 @@ func (l MangosListener) SetOption(s string, i interface{}) error {
 	return nil
 }
 
-func (l MangosListener) GetOption(s string) (interface{},error) {
+func (l MangosListener) GetOption(s string) (interface{}, error) {
 	return nil, nil
 }
 
 // Mangos Dialer Stub
 
 type MangosDialer struct {
-	}
+}
 
 func (d MangosDialer) Open() error {
 	return nil
@@ -90,14 +89,13 @@ func (d MangosDialer) SetOption(s string, i interface{}) error {
 	return nil
 }
 
-func (d MangosDialer) GetOption(s string) (interface{},error) {
+func (d MangosDialer) GetOption(s string) (interface{}, error) {
 	return nil, nil
 }
 
 // Mangos Context Stub
 
 type MangosContext struct {
-
 }
 
 func (c MangosContext) Close() error {
@@ -108,7 +106,7 @@ func (c MangosContext) SetOption(s string, i interface{}) error {
 	return nil
 }
 
-func (c MangosContext) GetOption(s string) (interface{},error) {
+func (c MangosContext) GetOption(s string) (interface{}, error) {
 	return nil, nil
 }
 
@@ -117,7 +115,7 @@ func (c MangosContext) Send(b []byte) error {
 }
 
 func (c MangosContext) Recv() ([]byte, error) {
-	return make([]byte,0), nil
+	return make([]byte, 0), nil
 }
 
 func (c MangosContext) SendMsg(*MangosMessage) error {
@@ -131,7 +129,6 @@ func (c MangosContext) RecvMsg() (*MangosMessage, error) {
 // Mangos Pipe Stub
 
 type MangosPipe struct {
-
 }
 
 func (p MangosPipe) ID() uint32 {
@@ -154,7 +151,7 @@ func (p MangosPipe) Address() string {
 	return ""
 }
 
-func (p MangosPipe) GetOption(s string) (interface{},error) {
+func (p MangosPipe) GetOption(s string) (interface{}, error) {
 	return nil, nil
 }
 
@@ -165,9 +162,9 @@ type PipeEventHook func(int, MangosPipe)
 // Mangos Socket Stub
 
 type MangosSocket struct {
-	GenerateSocketCloseError bool
-	GenerateSocketSendError bool
-	GenerateSocketDialError bool
+	GenerateSocketCloseError  bool
+	GenerateSocketSendError   bool
+	GenerateSocketDialError   bool
 	GenerateSocketListenError bool
 }
 
@@ -190,7 +187,7 @@ func (s MangosSocket) Send(b []byte) error {
 }
 
 func (s MangosSocket) Recv() ([]byte, error) {
-	return make([]byte,0), nil
+	return make([]byte, 0), nil
 }
 
 func (s MangosSocket) SendMsg(*MangosMessage) error {
@@ -238,7 +235,7 @@ func (s MangosSocket) SetOption(t string, i interface{}) error {
 	return nil
 }
 
-func (s MangosSocket) GetOption(t string) (interface{},error) {
+func (s MangosSocket) GetOption(t string) (interface{}, error) {
 	return nil, nil
 }
 
@@ -253,7 +250,6 @@ func (s MangosSocket) SetPipeEventHook(p PipeEventHook) PipeEventHook {
 // Mangos ProtocolPipe Stub
 
 type MangosProtocolPipe struct {
-
 }
 
 func (p MangosProtocolPipe) ID() uint32 {
@@ -275,7 +271,6 @@ func (p MangosProtocolPipe) RecvMsg() *MangosMessage {
 // Mangos ProtocolContext Stub
 
 type MangosProtocolContext struct {
-
 }
 
 func (p MangosProtocolContext) Close() error {

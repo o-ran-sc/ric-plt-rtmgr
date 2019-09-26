@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	sbi/types.go
-  Abstract:	Containes SBI (SouthBound Interface) specific types
+  Abstract:	Contains SBI (SouthBound Interface) specific types
   Date:		16 March 2019
 */
 
@@ -27,27 +27,27 @@ package sbi
 import "routing-manager/pkg/rtmgr"
 
 type SbiEngineConfig struct {
-	Name     string
-	Version  string
-  Protocol string
-  Instance SbiEngine
-  IsAvailable bool
+	Name        string
+	Version     string
+	Protocol    string
+	Instance    SbiEngine
+	IsAvailable bool
 }
 
 type SbiEngine interface {
-  Initialize(string) error
-  Terminate() error
-  DistributeAll(*[]string) error
-  AddEndpoint(*rtmgr.Endpoint) error
-  DeleteEndpoint(*rtmgr.Endpoint) error
-  UpdateEndpoints(*rtmgr.RicComponents)
+	Initialize(string) error
+	Terminate() error
+	DistributeAll(*[]string) error
+	AddEndpoint(*rtmgr.Endpoint) error
+	DeleteEndpoint(*rtmgr.Endpoint) error
+	UpdateEndpoints(*rtmgr.RicComponents)
 }
 
 type NngSocket interface {
 	Listen(string) error
 	Send([]byte) error
-  Close() error
-  DialOptions(string, map[string]interface{}) error
+	Close() error
+	DialOptions(string, map[string]interface{}) error
 }
 
-type CreateNewNngSocketHandler func() (NngSocket,error)
+type CreateNewNngSocketHandler func() (NngSocket, error)

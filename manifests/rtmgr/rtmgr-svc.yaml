@@ -29,7 +29,7 @@ spec:
     app: rtmgr
   clusterIP: None
   ports:
-  - name: nngpub
-    port: 4560
-    protocol: TCP
+    - name: nngpub
+      port: 4560
+      protocol: TCP
 

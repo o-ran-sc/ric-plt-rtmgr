@@ -25,19 +25,19 @@
 package nbi
 
 import (
-	"routing-manager/pkg/stub"
-        "routing-manager/pkg/models"
-        "routing-manager/pkg/sdl"
-	"github.com/go-openapi/swag"
-        "testing"
-	"time"
-        "net"
-        "net/http"
-        "net/http/httptest"
-	"fmt"
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"github.com/go-openapi/swag"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"routing-manager/pkg/models"
+	"routing-manager/pkg/sdl"
+	"routing-manager/pkg/stub"
+	"testing"
+	"time"
 )
 
 var BASIC_XAPPLIST = []byte(`[
@@ -58,9 +58,7 @@ var BASIC_XAPPLIST = []byte(`[
 
 var SUBSCRIPTION_RESP = []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 
-
 var INVALID_SUB_RESP = []byte(`{"Version":0, "EventType":all}`)
-
 
 func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 	l, err := net.Listen("tcp", url)
@@ -74,10 +72,10 @@ func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 			w.Write(g)
 		}
 		if r.Method == "POST" && r.URL.String() == "/ric/v1/subscriptions" {
-                        w.Header().Add("Content-Type", "application/json")
-                        w.WriteHeader(http.StatusCreated)
-                        w.Write(p)
-                }
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			w.Write(p)
+		}
 
 	}))
 	ts.Listener.Close()
@@ -89,28 +87,28 @@ func createMockPlatformComponents() {
 	var filename = string("config.json")
 	file, _ := json.MarshalIndent(stub.ValidPlatformComponents, "", "")
 	filestr := string(file)
-	filestr = "{\"PlatformComponents\":"+filestr+"}"
+	filestr = "{\"PlatformComponents\":" + filestr + "}"
 	file = []byte(filestr)
 	_ = ioutil.WriteFile(filename, file, 644)
 }
 
 func TestRecvXappCallbackData(t *testing.T) {
-	data := models.XappCallbackData {
-                XApps: *swag.String("[]"),
-                Version: *swag.Int64(1),
-                Event: *swag.String("any"),
-                ID: *swag.String("123456"),
+	data := models.XappCallbackData{
+		XApps:   *swag.String("[]"),
+		Version: *swag.Int64(1),
+		Event:   *swag.String("any"),
+		ID:      *swag.String("123456"),
 	}
 
 	ch := make(chan *models.XappCallbackData)
 	defer close(ch)
 	httpRestful := NewHttpRestful()
-	go func() {ch<- &data}()
+	go func() { ch <- &data }()
 	time.Sleep(1 * time.Second)
 	t.Log(string(len(ch)))
 	xappList, err := httpRestful.RecvXappCallbackData(ch)
 	if err != nil {
-		t.Error("Receive failed: "+err.Error())
+		t.Error("Receive failed: " + err.Error())
 	} else {
 		if xappList == nil {
 			t.Error("Expected an XApp notification list")
@@ -124,18 +122,18 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 	datach := make(chan *models.XappCallbackData, 10)
 	defer close(datach)
 	data := models.XappCallbackData{
-		XApps: *swag.String("[]"),
+		XApps:   *swag.String("[]"),
 		Version: *swag.Int64(1),
-		Event: *swag.String("someevent"),
-		ID: *swag.String("123456")}
+		Event:   *swag.String("someevent"),
+		ID:      *swag.String("123456")}
 	var httpRestful, _ = GetNbi("httpRESTful")
 	err := httpRestful.(*HttpRestful).ProvideXappHandleHandlerImpl(datach, &data)
 	if err != nil {
-		t.Error("Error occured: "+err.Error())
+		t.Error("Error occured: " + err.Error())
 	} else {
 		recv := <-datach
 		if recv == nil {
-			t.Error("Something gone wrong: "+err.Error())
+			t.Error("Something gone wrong: " + err.Error())
 		} else {
 			if recv != &data {
 				t.Error("Malformed data on channel")
@@ -145,37 +143,36 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 }
 
 func TestValidateXappCallbackData(t *testing.T) {
-        data := models.XappCallbackData{
-                XApps: *swag.String("[]"),
-                Version: *swag.Int64(1),
-                Event: *swag.String("someevent"),
-                ID: *swag.String("123456")}
+	data := models.XappCallbackData{
+		XApps:   *swag.String("[]"),
+		Version: *swag.Int64(1),
+		Event:   *swag.String("someevent"),
+		ID:      *swag.String("123456")}
 
 	err := validateXappCallbackData(&data)
 	if err != nil {
-		t.Error("Invalid XApp callback data: "+err.Error())
+		t.Error("Invalid XApp callback data: " + err.Error())
 	}
 }
 
 func TestValidateXappCallbackDataWithInvalidData(t *testing.T) {
-        data := models.XappCallbackData{
-                XApps: *swag.String("{}"),
-                Version: *swag.Int64(1),
-                Event: *swag.String("someevent"),
-                ID: *swag.String("123456")}
+	data := models.XappCallbackData{
+		XApps:   *swag.String("{}"),
+		Version: *swag.Int64(1),
+		Event:   *swag.String("someevent"),
+		ID:      *swag.String("123456")}
 
-        err := validateXappCallbackData(&data)
-        if err == nil {
-                t.Error("Invalid XApp callback data: "+err.Error())
-        }
+	err := validateXappCallbackData(&data)
+	if err == nil {
+		t.Error("Invalid XApp callback data: " + err.Error())
+	}
 }
 
-
 func TestHttpGetXappsInvalidData(t *testing.T) {
-        _, err := httpGetXapps(XMURL)
-        if err == nil {
-                t.Error("No XApp data received: "+err.Error())
-        }
+	_, err := httpGetXapps(XMURL)
+	if err == nil {
+		t.Error("No XApp data received: " + err.Error())
+	}
 }
 
 func TestHttpGetXappsWithValidData(t *testing.T) {
@@ -197,9 +194,9 @@ func TestHttpGetXappsWithValidData(t *testing.T) {
 func TestRetrieveStartupDataTimeout(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	createMockPlatformComponents()
-	err := retrieveStartupData(XMURL, "httpgetter","rt.json", "config.json", sdlEngine)
+	err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
 	if err == nil {
-		t.Error("Cannot retrieve startup data: "+err.Error())
+		t.Error("Cannot retrieve startup data: " + err.Error())
 	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
@@ -209,14 +206,14 @@ func TestRetrieveStartupData(t *testing.T) {
 	ts := createMockAppmgrWithData("127.0.0.1:3000", BASIC_XAPPLIST, SUBSCRIPTION_RESP)
 	ts.Start()
 	defer ts.Close()
-        sdlEngine, _ := sdl.GetSdl("file")
+	sdlEngine, _ := sdl.GetSdl("file")
 	var httpRestful, _ = GetNbi("httpRESTful")
 	createMockPlatformComponents()
-	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json","config.json", sdlEngine)
-        //err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
-        if err != nil {
-                t.Error("Cannot retrieve startup data: "+err.Error())
-        }
+	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	//err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	if err != nil {
+		t.Error("Cannot retrieve startup data: " + err.Error())
+	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
 }
@@ -225,13 +222,13 @@ func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 	ts := createMockAppmgrWithData("127.0.0.1:3000", BASIC_XAPPLIST, INVALID_SUB_RESP)
 	ts.Start()
 	defer ts.Close()
-        sdlEngine, _ := sdl.GetSdl("file")
+	sdlEngine, _ := sdl.GetSdl("file")
 	var httpRestful, _ = GetNbi("httpRESTful")
 	createMockPlatformComponents()
-        err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
-        if err == nil {
-                t.Error("Cannot retrieve startup data: "+err.Error())
-        }
+	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	if err == nil {
+		t.Error("Cannot retrieve startup data: " + err.Error())
+	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
 }

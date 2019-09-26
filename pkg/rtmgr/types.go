@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	rtmgr/types.go
-  Abstract:	Containes RTMGR (Routing Manager) specific types
+  Abstract:	Contains RTMGR (Routing Manager) specific types
   Date:		12 March 2019
 */
 
@@ -34,7 +34,6 @@ type EndpointList []Endpoint
 type Endpoints map[string]*Endpoint
 
 type SubscriptionList []Subscription
-
 
 //TODO: uuid is not a real UUID but a string of "ip:port"
 // this should be changed to real UUID later on which should come from xApp Manager // petszila
@@ -90,8 +89,7 @@ type RicComponents struct {
 }
 
 type Subscription struct {
-	SubID    int32
-	Fqdn     string
-	Port     uint16
+	SubID int32
+	Fqdn  string
+	Port  uint16
 }
-

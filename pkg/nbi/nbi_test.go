@@ -25,14 +25,14 @@
 package nbi
 
 import (
-	"testing"
-	"reflect"
 	"errors"
-	"routing-manager/pkg/appmgr_model"
 	"github.com/go-openapi/swag"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
+	"routing-manager/pkg/appmgr_model"
+	"testing"
 )
 
 func TestGetNbi(t *testing.T) {
@@ -58,66 +58,65 @@ func TestGetNbi(t *testing.T) {
 
 func TestCreateSubReq(t *testing.T) {
 	var subReq = appmgr_model.SubscriptionRequest{
-                TargetURL:  swag.String("localhost:8000/ric/v1/handles/xapp-handle/"),
-                EventType:  swag.String("all"),
-                MaxRetries: swag.Int64(5),
-                RetryTimer: swag.Int64(10),
-        }
-	subReq2 := CreateSubReq("localhost","8000")
+		TargetURL:  swag.String("localhost:8000/ric/v1/handles/xapp-handle/"),
+		EventType:  swag.String("all"),
+		MaxRetries: swag.Int64(5),
+		RetryTimer: swag.Int64(10),
+	}
+	subReq2 := CreateSubReq("localhost", "8000")
 	if reflect.TypeOf(subReq) != reflect.TypeOf(*subReq2) {
 		t.Errorf("Invalid type, got: %v, want: %v.", reflect.TypeOf(subReq), reflect.TypeOf(*subReq2))
 	}
 	if *(subReq.TargetURL) != *(subReq2.TargetURL) {
 		t.Errorf("Invalid TargetURL generated, got %v, want %v", *subReq.TargetURL, *subReq2.TargetURL)
 	}
-        if *(subReq.EventType) != *(subReq2.EventType) {
-                t.Errorf("Invalid EventType generated, got %v, want %v", *subReq.EventType, *subReq2.EventType)
-        }
-        if *(subReq.MaxRetries) != *(subReq2.MaxRetries) {
-                t.Errorf("Invalid MaxRetries generated, got %v, want %v", *subReq.MaxRetries, *subReq2.MaxRetries)
-        }
-        if *(subReq.RetryTimer) != *(subReq2.RetryTimer) {
-                t.Errorf("Invalid RetryTimer generated, got %v, want %v", *subReq.RetryTimer, *subReq2.RetryTimer)
-        }
+	if *(subReq.EventType) != *(subReq2.EventType) {
+		t.Errorf("Invalid EventType generated, got %v, want %v", *subReq.EventType, *subReq2.EventType)
+	}
+	if *(subReq.MaxRetries) != *(subReq2.MaxRetries) {
+		t.Errorf("Invalid MaxRetries generated, got %v, want %v", *subReq.MaxRetries, *subReq2.MaxRetries)
+	}
+	if *(subReq.RetryTimer) != *(subReq2.RetryTimer) {
+		t.Errorf("Invalid RetryTimer generated, got %v, want %v", *subReq.RetryTimer, *subReq2.RetryTimer)
+	}
 }
 
 func TestPostSubReq(t *testing.T) {
 	b := []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 	l, err := net.Listen("tcp", "127.0.0.1:3000")
-        if err != nil {
-                t.Error("Failed to create listener: " + err.Error())
-        }
-        ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-                t.Log(r.Method)
-                t.Log(r.URL)
-                if r.Method == "POST" && r.URL.String() == "/ric/v1/subscriptions" {
-                        t.Log("Sending reply")
-                        w.Header().Add("Content-Type", "application/json")
-                        w.WriteHeader(http.StatusCreated)
-                        w.Write(b)
-                }
-        }))
-        ts.Listener.Close()
-        ts.Listener = l
-
-        ts.Start()
-	defer ts.Close()
-	err = PostSubReq("http://127.0.0.1:3000/ric/v1/subscription","localhost:8888")
 	if err != nil {
-		t.Error("Error occured: "+err.Error())
+		t.Error("Failed to create listener: " + err.Error())
+	}
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Log(r.Method)
+		t.Log(r.URL)
+		if r.Method == "POST" && r.URL.String() == "/ric/v1/subscriptions" {
+			t.Log("Sending reply")
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			w.Write(b)
+		}
+	}))
+	ts.Listener.Close()
+	ts.Listener = l
+
+	ts.Start()
+	defer ts.Close()
+	err = PostSubReq("http://127.0.0.1:3000/ric/v1/subscription", "localhost:8888")
+	if err != nil {
+		t.Error("Error occured: " + err.Error())
 	}
 }
 
 func TestPostSubReqWithInvalidUrls(t *testing.T) {
 	// invalid Xapp Manager URL
-        err := PostSubReq("http://127.0","http://localhost:8888")
-        if err == nil {
-                t.Error("Error occured: "+err.Error())
-        }
-	// invalid rest api url
-	err = PostSubReq("http://127.0.0.1:3000/","localhost:8888")
+	err := PostSubReq("http://127.0", "http://localhost:8888")
 	if err == nil {
-		t.Error("Error occured: "+err.Error())
+		t.Error("Error occured: " + err.Error())
+	}
+	// invalid rest api url
+	err = PostSubReq("http://127.0.0.1:3000/", "localhost:8888")
+	if err == nil {
+		t.Error("Error occured: " + err.Error())
 	}
 }
-

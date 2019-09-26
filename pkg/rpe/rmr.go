@@ -34,17 +34,8 @@ type Rmr struct {
 	Rpe
 }
 
-type RmrPub struct {
-	Rmr
-}
-
 type RmrPush struct {
 	Rmr
-}
-
-func NewRmrPub() *RmrPub {
-	instance := new(RmrPub)
-	return instance
 }
 
 func NewRmrPush() *RmrPush {
@@ -57,7 +48,7 @@ Produces the raw route message consumable by RMR
 */
 func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 	rawrt := []string{key + "newrt|start\n"}
-	rt := r.getRouteTable(eps)
+	rt := r.generateRouteTable(eps)
 	for _, rte := range *rt {
 		rawrte := key + "mse|" + rte.MessageType
 		for _, tx := range rte.TxList {
@@ -88,21 +79,11 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 	return &rawrt
 }
 
-func (r *RmrPub) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
-	rtmgr.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
-	return r.generateRMRPolicies(eps, "00000           ")
-}
-
 func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
 	rtmgr.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
 	return r.generateRMRPolicies(eps, "")
 }
 
-func (r *RmrPub) GetRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
-	return r.getRouteTable(eps)
+func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
+	return r.generateRouteTable(eps)
 }
-
-func (r *RmrPush) GetRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
-	return r.getRouteTable(eps)
-}
-

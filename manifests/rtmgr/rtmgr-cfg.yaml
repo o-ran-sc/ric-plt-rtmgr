@@ -26,29 +26,29 @@ metadata:
   name: rtmgrcfg
 data:
   # FQDN and port info of the platform components for routing manager to form and distribute corresponding routes to them
-        rtmgrcfg: |
-                {
-                        "PlatformComponents":
-                        [
-                                {
-                                        "name": "E2TERM",
-                                        "fqdn": "e2term",
-                                        "port": 4561
-                                },
-                                {
-                                        "name": "SUBMAN",
-                                        "fqdn": "subman",
-                                        "port": 4561
-                                },
-                                {
-                                        "name": "E2MAN",
-                                        "fqdn": "e2man",
-                                        "port": 4561
-                                },
-                                {
-                                        "name": "UEMAN",
-                                        "fqdn": "ueman",
-                                        "port": 4561
-                                }
-                        ]
-                }
+  rtmgrcfg: |
+    {
+      "PlatformComponents":
+      [
+        {
+          "name": "E2TERM",
+          "fqdn": "e2term",
+          "port": 4561
+        },
+        {
+          "name": "SUBMAN",
+          "fqdn": "subman",
+          "port": 4561
+        },
+        {
+          "name": "E2MAN",
+          "fqdn": "e2man",
+          "port": 4561
+        },
+        {
+          "name": "UEMAN",
+          "fqdn": "ueman",
+          "port": 4561
+        }
+      ]
+    }

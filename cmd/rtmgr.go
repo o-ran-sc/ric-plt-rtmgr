@@ -26,6 +26,7 @@
 */
 package main
 
+//TODO: change flag to pflag (won't need any argument parse)
 import (
 	"flag"
 	"os"
@@ -51,8 +52,8 @@ func parseArgs() {
 	args = make(map[string]*string)
 	args["configfile"] = flag.String("configfile", "/etc/rtmgrcfg.json", "Routing manager's configuration file path")
 	args["nbi"] = flag.String("nbi", "httpRESTful", "Northbound interface module to be used. Valid values are: 'httpGetter | httpRESTful'")
-	args["sbi"] = flag.String("sbi", "nngpush", "Southbound interface module to be used. Valid values are: 'nngpush | nngpub'")
-	args["rpe"] = flag.String("rpe", "rmrpush", "Route Policy Engine to be used. Valid values are: 'rmrpush | rmrpub'")
+	args["sbi"] = flag.String("sbi", "nngpush", "Southbound interface module to be used. Valid values are: 'nngpush")
+	args["rpe"] = flag.String("rpe", "rmrpush", "Route Policy Engine to be used. Valid values are: 'rmrpush'")
 	args["sdl"] = flag.String("sdl", "file", "Datastore enginge to be used. Valid values are: 'file'")
 	args["xm-url"] = flag.String("xm-url", "http://localhost:3000/xapps", "HTTP URL where xApp Manager exposes the entire xApp List")
 	args["nbi-if"] = flag.String("nbi-if", "http://localhost:8888", "Base HTTP URL where routing manager will be listening on")
@@ -85,14 +86,14 @@ func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.SbiEngine, sdlEngine sdl.Sdl
 		if <-triggerSBI {
 			data, err := sdlEngine.ReadAll(*args["filename"])
 			if err != nil || data == nil {
-				rtmgr.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+				rtmgr.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
 				continue
 			}
 			sbiEngine.UpdateEndpoints(data)
 			policies := rpeEngine.GeneratePolicies(rtmgr.Eps)
 			err = sbiEngine.DistributeAll(policies)
 			if err != nil {
-				rtmgr.Logger.Error("routing rable cannot be published due to: " + err.Error())
+				rtmgr.Logger.Error("Routing table cannot be published due to: " + err.Error())
 			}
 		}
 	}
@@ -103,15 +104,15 @@ func serve(nbiEngine nbi.NbiEngine, sbiEngine sbi.SbiEngine, sdlEngine sdl.SdlEn
 	triggerSBI := make(chan bool)
 
 	nbiErr := nbiEngine.Initialize(*args["xm-url"], *args["nbi-if"], *args["filename"], *args["configfile"],
-					sdlEngine, rpeEngine, triggerSBI)
+		sdlEngine, rpeEngine, triggerSBI)
 	if nbiErr != nil {
-		rtmgr.Logger.Error("fail to initialize nbi due to: " + nbiErr.Error())
+		rtmgr.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
 		return
 	}
 
 	err := sbiEngine.Initialize(*args["sbi-if"])
 	if err != nil {
-		rtmgr.Logger.Info("fail to open pub socket due to: " + err.Error())
+		rtmgr.Logger.Info("Failed to open push socket due to: " + err.Error())
 		return
 	}
 	defer nbiEngine.Terminate()
@@ -125,7 +126,7 @@ func serve(nbiEngine nbi.NbiEngine, sbiEngine sbi.SbiEngine, sdlEngine sdl.SdlEn
 		if *args["nbi"] == "httpGetter" {
 			data, err := nbiEngine.(*nbi.HttpGetter).FetchAllXapps(*args["xm-url"])
 			if err != nil {
-				rtmgr.Logger.Error("cannot fetch xapp data dute to: " + err.Error())
+				rtmgr.Logger.Error("Cannot fetch xapp data due to: " + err.Error())
 			} else if data != nil {
 				sdlEngine.WriteXapps(*args["filename"], data)
 			}

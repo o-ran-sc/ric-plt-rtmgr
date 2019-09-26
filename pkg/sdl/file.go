@@ -48,7 +48,7 @@ func NewFile() *File {
 }
 
 func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
-	rtmgr.Logger.Debug("Invoked sdl.ReadAll("+ file +")")
+	rtmgr.Logger.Debug("Invoked sdl.ReadAll(" + file + ")")
 	var rcs *rtmgr.RicComponents
 	jsonFile, err := os.Open(file)
 	if err != nil {

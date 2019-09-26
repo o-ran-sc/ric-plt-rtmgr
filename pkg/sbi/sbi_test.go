@@ -24,17 +24,17 @@
 package sbi
 
 import (
-	"testing"
-	"reflect"
 	"errors"
+	"reflect"
+	"testing"
 )
 
 func TestGetSbi(t *testing.T) {
 	var errtype = errors.New("")
-	var sbitype = new(NngPub)
+	var sbitype = new(NngPush)
 	var invalids = []string{"nngpus", ""}
 
-	sbii, err := GetSbi("nngpub")
+	sbii, err := GetSbi("nngpush")
 	if err != nil {
 		t.Errorf("GetSbi(nngpub) was incorrect, got: %v, want: %v.", reflect.TypeOf(err), nil)
 	}

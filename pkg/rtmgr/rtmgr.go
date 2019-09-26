@@ -25,12 +25,12 @@
 package rtmgr
 
 import (
-	"github.com/jcelliott/lumber"
-	"errors"
-	"strings"
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"errors"
+	"github.com/jcelliott/lumber"
+	"io/ioutil"
+	"os"
+	"strings"
 )
 
 var (
@@ -58,51 +58,51 @@ var (
 		"RIC_CONTROL_XAPP_CONFIG_REQUEST":  "100000",
 		"RIC_CONTROL_XAPP_CONFIG_RESPONSE": "100001",
 
-		"RIC_X2_SETUP_REQ":                 "10060",
-		"RIC_X2_SETUP_RESP":                "10061",
-		"RIC_X2_SETUP_FAILURE":             "10062",
-		"RIC_X2_RESET":                     "10070",
-		"RIC_X2_RESET_RESP":                "10071",
+		"RIC_X2_SETUP_REQ":     "10060",
+		"RIC_X2_SETUP_RESP":    "10061",
+		"RIC_X2_SETUP_FAILURE": "10062",
+		"RIC_X2_RESET":         "10070",
+		"RIC_X2_RESET_RESP":    "10071",
 
-		"RIC_SUB_REQ":                      "12010",
-		"RIC_SUB_RESP":                     "12011",
-		"RIC_SUB_FAILURE":                  "12012",
-		"RIC_SUB_DEL_REQ":                  "12020",
-		"RIC_SUB_DEL_RESP":                 "12021",
-		"RIC_SUB_DEL_FAILURE":              "12022",
+		"RIC_SUB_REQ":         "12010",
+		"RIC_SUB_RESP":        "12011",
+		"RIC_SUB_FAILURE":     "12012",
+		"RIC_SUB_DEL_REQ":     "12020",
+		"RIC_SUB_DEL_RESP":    "12021",
+		"RIC_SUB_DEL_FAILURE": "12022",
 
-		"RIC_CONTROL_REQ":                  "12040",
-		"RIC_CONTROL_ACK":                  "12041",
-		"RIC_CONTROL_FAILURE":              "12042",
-		"RIC_INDICATION":		    "12050",
-		"RIC_ENDC_X2_SETUP_REQ":            "10360",
-		"RIC_ENDC_X2_SETUP_RESP":           "10361",
-		"RIC_ENDC_X2_SETUP_FAILURE":        "10362",
-		"RIC_ENDC_CONF_UPDATE":             "10370",
-		"RIC_ENDC_CONF_UPDATE_ACK":         "10371",
-		"RIC_ENDC_CONF_UPDATE_FAILURE":     "10372",
-		"RIC_RES_STATUS_REQ":               "10090",
-		"RIC_RES_STATUS_RESP":              "10091",
-		"RIC_RES_STATUS_FAILURE":           "10092",
-		"RIC_ENB_CONF_UPDATE":              "10080",
-		"RIC_ENB_CONF_UPDATE_ACK":          "10081",
-		"RIC_ENB_CONF_UPDATE_FAILURE":      "10082",
-		"RIC_ENB_LOAD_INFORMATION":         "10020",
-		"RIC_GNB_STATUS_INDICATION":        "10450",
-		"RIC_RESOURCE_STATUS_UPDATE":       "10100",
-		"RIC_ERROR_INDICATION":             "10030",
-		"DC_ADM_INT_CONTROL":               "20000",
-		"DC_ADM_INT_CONTROL_ACK":           "20001",
+		"RIC_CONTROL_REQ":              "12040",
+		"RIC_CONTROL_ACK":              "12041",
+		"RIC_CONTROL_FAILURE":          "12042",
+		"RIC_INDICATION":               "12050",
+		"RIC_ENDC_X2_SETUP_REQ":        "10360",
+		"RIC_ENDC_X2_SETUP_RESP":       "10361",
+		"RIC_ENDC_X2_SETUP_FAILURE":    "10362",
+		"RIC_ENDC_CONF_UPDATE":         "10370",
+		"RIC_ENDC_CONF_UPDATE_ACK":     "10371",
+		"RIC_ENDC_CONF_UPDATE_FAILURE": "10372",
+		"RIC_RES_STATUS_REQ":           "10090",
+		"RIC_RES_STATUS_RESP":          "10091",
+		"RIC_RES_STATUS_FAILURE":       "10092",
+		"RIC_ENB_CONF_UPDATE":          "10080",
+		"RIC_ENB_CONF_UPDATE_ACK":      "10081",
+		"RIC_ENB_CONF_UPDATE_FAILURE":  "10082",
+		"RIC_ENB_LOAD_INFORMATION":     "10020",
+		"RIC_GNB_STATUS_INDICATION":    "10450",
+		"RIC_RESOURCE_STATUS_UPDATE":   "10100",
+		"RIC_ERROR_INDICATION":         "10030",
+		"DC_ADM_INT_CONTROL":           "20000",
+		"DC_ADM_INT_CONTROL_ACK":       "20001",
 	}
 
-	// Messagetype mappings for the platform components. 
+	// Messagetype mappings for the platform components.
 	// This implements static default routes needed by the RIC. Needs to be changed in case new components/message types needes to be added/updated.
 	// Representation : {"componentName1": {"tx": <tx message type list>, "rx": <rx message type list>}}
 	PLATFORMMESSAGETYPES = map[string]map[string][]string{
-		"E2TERM":   {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_REQ", "RIC_SUB_DEL_REQ", "RIC_CONTROL_REQ"}},
-		"E2MAN":    {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}},
-		"SUBMAN":   {"tx": []string{"RIC_SUB_REQ", "RIC_SUB_DEL_REQ"}, "rx": []string{"RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}},
-		"UEMAN":    {"tx": []string{"RIC_CONTROL_REQ"}, "rx": []string{}},
+		"E2TERM": {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_REQ", "RIC_SUB_DEL_REQ", "RIC_CONTROL_REQ"}},
+		"E2MAN":  {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}},
+		"SUBMAN": {"tx": []string{"RIC_SUB_REQ", "RIC_SUB_DEL_REQ"}, "rx": []string{"RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}},
+		"UEMAN":  {"tx": []string{"RIC_CONTROL_REQ"}, "rx": []string{}},
 	}
 
 	Logger = lumber.NewConsoleLogger(lumber.INFO)
@@ -110,7 +110,7 @@ var (
 	Subs   SubscriptionList
 )
 
-func SetLogLevel(loglevel string) error{
+func SetLogLevel(loglevel string) error {
 	switch strings.ToUpper(loglevel) {
 	case "INFO":
 		Logger.Level(lumber.INFO)
@@ -133,7 +133,7 @@ func SetLogLevel(loglevel string) error{
 }
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
-	Logger.Debug("Invoked rtmgr.GetPlatformComponents("+ configfile +")")
+	Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
 	var rcfg RtmgrConfig
 	jsonFile, err := os.Open(configfile)
 	if err != nil {
@@ -151,4 +151,3 @@ func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	Logger.Debug("Platform components read from the configfile:  %v", rcfg.Pcs)
 	return &(rcfg.Pcs), nil
 }
-

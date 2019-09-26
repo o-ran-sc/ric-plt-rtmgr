@@ -19,7 +19,7 @@
 /*
   Mnemonic:	httpgetter.go
   Abstract:	HTTPgetter NBI implementation
-  		Simple HTTP getter solution. Only for testing purpose.
+  		Simple HTTP getter solution.
   Date:		15 March 2019
 */
 
@@ -28,8 +28,8 @@ package nbi
 import (
 	"encoding/json"
 	"net/http"
-	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/rpe"
+	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
 	"time"
 )
@@ -71,7 +71,7 @@ func fetchAllXapps(xmurl string) (*[]rtmgr.XApp, error) {
 }
 
 func (g *HttpGetter) Initialize(xmurl string, nbiif string, fileName string, configfile string,
-				sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine, triggerSBI chan<- bool) error {
+	sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine, triggerSBI chan<- bool) error {
 	return nil
 }
 

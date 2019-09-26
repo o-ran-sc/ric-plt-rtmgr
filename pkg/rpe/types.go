@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	rpe/types.go
-  Abstract:	Containes RPE (Route Policy Engine) specific types
+  Abstract:	Contains RPE (Route Policy Engine) specific types
   Date:		12 March 2019
 */
 
@@ -27,7 +27,7 @@ package rpe
 import "routing-manager/pkg/rtmgr"
 
 type generatePolicies func(rtmgr.Endpoints) *[]string
-type getRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
+type generateRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
 
 type RpeEngineConfig struct {
 	Name        string
@@ -39,5 +39,5 @@ type RpeEngineConfig struct {
 
 type RpeEngine interface {
 	GeneratePolicies(rtmgr.Endpoints) *[]string
-	GetRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
+	GenerateRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
 }

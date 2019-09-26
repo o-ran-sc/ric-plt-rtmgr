@@ -36,15 +36,13 @@ var (
 	XMURL string = "http://127.0.0.1:3000/ric/v1/xapps"
 )
 
-
 func TestFetchXappListInvalidData(t *testing.T) {
 	var httpGetter = NewHttpGetter()
-        _, err := httpGetter.FetchAllXapps(XMURL)
+	_, err := httpGetter.FetchAllXapps(XMURL)
 	if err == nil {
-		t.Error("No XApp data received: "+err.Error())
+		t.Error("No XApp data received: " + err.Error())
 	}
 }
-
 
 func TestFetchXappListWithInvalidData(t *testing.T) {
 	var expected int = 0
@@ -70,7 +68,7 @@ func TestFetchXappListWithInvalidData(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 	var httpGetter = NewHttpGetter()
-        xapplist, err := httpGetter.FetchAllXapps(XMURL)
+	xapplist, err := httpGetter.FetchAllXapps(XMURL)
 	if err == nil {
 		t.Error("Error occured: " + err.Error())
 	} else {
@@ -127,4 +125,3 @@ func TestFetchAllXappsWithValidData(t *testing.T) {
 		}
 	}
 }
-

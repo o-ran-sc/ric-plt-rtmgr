@@ -27,27 +27,27 @@ package stub
 import "routing-manager/pkg/rtmgr"
 
 var ValidXapps = &[]rtmgr.XApp{
-	rtmgr.XApp{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{rtmgr.XAppInstance{Name: "instance1", Status: "unknown", Ip: "10.0.0.1", Port: 0, TxMessages: []string{"HandoverPreparation", "HandoverCancel"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
-	rtmgr.XApp{Name: "app2", Status: "", Version: "", Instances: []rtmgr.XAppInstance{rtmgr.XAppInstance{Name: "instance2", Status: "unknown", Ip: "192.168.0.1", Port: 0, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
-	rtmgr.XApp{Name: "app3", Status: "", Version: "", Instances: []rtmgr.XAppInstance{rtmgr.XAppInstance{Name: "instance2", Status: "unknown", Ip: "10.1.1.1", Port: 0, TxMessages: []string{"X2Setup"}, RxMessages: []string{"Reset", "UEContextRelease"}}}},
-	rtmgr.XApp{Name: "app4", Status: "", Version: "", Instances: []rtmgr.XAppInstance{rtmgr.XAppInstance{Name: "instance2", Status: "unknown", Ip: "10.2.2.1", Port: 0, TxMessages: []string{"Reset", "UEContextRelease"}, RxMessages: []string{"", ""}}}},
+	{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2TERM", Status: "unknown", Ip: "10.0.0.1", Port: 0, TxMessages: []string{"HandoverPreparation", "HandoverCancel"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
+	{Name: "app2", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "SUBMAN", Status: "unknown", Ip: "192.168.0.1", Port: 0, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
+	{Name: "app3", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2MAN", Status: "unknown", Ip: "10.1.1.1", Port: 0, TxMessages: []string{"X2Setup"}, RxMessages: []string{"Reset", "UEContextRelease"}}}},
+	{Name: "app4", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "UEMAN", Status: "unknown", Ip: "10.2.2.1", Port: 0, TxMessages: []string{"Reset", "UEContextRelease"}, RxMessages: []string{"", ""}}}},
 }
 
-var ValidPlatformComponents = &rtmgr.PlatformComponents {
-	{Name:"E2TERM", Fqdn:"e2term", Port:4561},
-	{Name:"SUBMAN", Fqdn:"subman", Port:4561},
-	{Name:"E2MAN",  Fqdn:"e2man",  Port:4561},
-	{Name:"UEMAN",  Fqdn:"ueman",  Port:4561},
+var ValidPlatformComponents = &rtmgr.PlatformComponents{
+	{Name: "E2TERM", Fqdn: "e2term", Port: 4561},
+	{Name: "SUBMAN", Fqdn: "subman", Port: 4561},
+	{Name: "E2MAN", Fqdn: "e2man", Port: 4561},
+	{Name: "UEMAN", Fqdn: "ueman", Port: 4561},
 }
 
 var ValidEndpoints = []rtmgr.Endpoint{
-	rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "i1", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
-	rtmgr.Endpoint{Uuid: "192.168.0.1:0", Name: "i2", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
-	rtmgr.Endpoint{Uuid: "10.1.1.1:0", Name: "i3", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
-	rtmgr.Endpoint{Uuid: "10.2.2.1:0", Name: "i4", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: true},
+	{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
+	{Uuid: "192.168.0.1:0", Name: "SUBMAN", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
+	{Uuid: "10.1.1.1:0", Name: "E2MAN", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
+	{Uuid: "10.2.2.1:0", Name: "UEMAN", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: true},
 }
 
-var ValidRicComponents = rtmgr.RicComponents {
+var ValidRicComponents = rtmgr.RicComponents{
 	*ValidXapps, *ValidPlatformComponents,
 }
 

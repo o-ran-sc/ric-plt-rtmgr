@@ -25,16 +25,16 @@
 package nbi
 
 import (
-	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/rpe"
+	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
 )
 
 type FetchAllXappsHandler func(string) (*[]rtmgr.XApp, error)
 type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
 type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *models.XappSubscriptionData)
-type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) (error)
+type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
 type RetrieveStartupDataHandler func(string, string, string, string, sdl.SdlEngine) error
 
 type NbiEngineConfig struct {
@@ -49,4 +49,3 @@ type NbiEngine interface {
 	Initialize(string, string, string, string, sdl.SdlEngine, rpe.RpeEngine, chan<- bool) error
 	Terminate() error
 }
-

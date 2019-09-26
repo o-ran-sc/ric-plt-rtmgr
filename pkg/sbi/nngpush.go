@@ -99,9 +99,9 @@ func (c *NngPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 func (c *NngPush) DeleteEndpoint(ep *rtmgr.Endpoint) error {
 	rtmgr.Logger.Debug("Invoked sbi. DeleteEndpoint")
 	rtmgr.Logger.Debug("args: %v", (*ep))
-	if err:= ep.Socket.(NngSocket).Close(); err != nil {
-			return errors.New("can't close push socket of endpoint:" + ep.Uuid + " due to: " + err.Error())
-		}
+	if err := ep.Socket.(NngSocket).Close(); err != nil {
+		return errors.New("can't close push socket of endpoint:" + ep.Uuid + " due to: " + err.Error())
+	}
 	return nil
 }
 
@@ -137,11 +137,11 @@ func (c *NngPush) DistributeAll(policies *[]string) error {
 }
 
 func (c *NngPush) send(ep *rtmgr.Endpoint, policies *[]string) {
-	rtmgr.Logger.Debug("Push policy to endpoint: "+ ep.Uuid)
+	rtmgr.Logger.Debug("Push policy to endpoint: " + ep.Uuid)
 	for _, pe := range *policies {
 		if err := ep.Socket.(NngSocket).Send([]byte(pe)); err != nil {
 			rtmgr.Logger.Error("Unable to send policy entry due to: " + err.Error())
 		}
 	}
-	rtmgr.Logger.Info("NNG PUSH to ednpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len((*policies))) + ")")
+	rtmgr.Logger.Info("NNG PUSH to endpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len((*policies))) + ")")
 }

@@ -38,17 +38,6 @@ func resetTestDataset(testdata []rtmgr.Endpoint) {
 }
 
 /*
-RmrPub.GeneratePolicies() method is tested for happy path case
-*/
-func TestRmrPubGeneratePolicies(t *testing.T) {
-	var rmrpub = RmrPub{}
-	resetTestDataset(stub.ValidEndpoints)
-
-	rawrt := rmrpub.GeneratePolicies(rtmgr.Eps)
-	t.Log(rawrt)
-}
-
-/*
 RmrPush.GeneratePolicies() method is tested for happy path case
 */
 func TestRmrPushGeneratePolicies(t *testing.T) {

@@ -29,15 +29,15 @@ type readAll func(string) (*rtmgr.RicComponents, error)
 type writeAll func(string, *rtmgr.RicComponents) error
 
 type SdlEngineConfig struct {
-	Name     string
-	Version  string
-  Protocol string
-  Instance SdlEngine
+	Name        string
+	Version     string
+	Protocol    string
+	Instance    SdlEngine
 	IsAvailable bool
 }
 
 type SdlEngine interface {
-  ReadAll(string) (*rtmgr.RicComponents, error)
-  WriteAll(string, *rtmgr.RicComponents) error
-  WriteXapps(string, *[]rtmgr.XApp) error
+	ReadAll(string) (*rtmgr.RicComponents, error)
+	WriteAll(string, *rtmgr.RicComponents) error
+	WriteXapps(string, *[]rtmgr.XApp) error
 }

@@ -26,39 +26,37 @@ package nbi
 
 import (
 	"errors"
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"net/url"
+	apiclient "routing-manager/pkg/appmgr_client"
+	"routing-manager/pkg/appmgr_client/operations"
+	"routing-manager/pkg/appmgr_model"
 	"routing-manager/pkg/rtmgr"
-        "net/url"
-        apiclient "routing-manager/pkg/appmgr_client"
-        "routing-manager/pkg/appmgr_client/operations"
-        "routing-manager/pkg/appmgr_model"
-        httptransport "github.com/go-openapi/runtime/client"
-        "github.com/go-openapi/strfmt"
-        "github.com/go-openapi/swag"
-        "time"
-
+	"time"
 )
 
 var (
 	SupportedNbis = []*NbiEngineConfig{
 		&NbiEngineConfig{
-			Name:     "httpGetter",
-			Version:  "v1",
-			Protocol: "http",
-			Instance: NewHttpGetter(),
+			Name:        "httpGetter",
+			Version:     "v1",
+			Protocol:    "http",
+			Instance:    NewHttpGetter(),
 			IsAvailable: true,
 		},
 		&NbiEngineConfig{
-			Name:     "httpRESTful",
-			Version:  "v1",
-			Protocol: "http",
-			Instance: NewHttpRestful(),
+			Name:        "httpRESTful",
+			Version:     "v1",
+			Protocol:    "http",
+			Instance:    NewHttpRestful(),
 			IsAvailable: true,
 		},
 	}
 )
 
 type Nbi struct {
-
 }
 
 func GetNbi(nbiName string) (NbiEngine, error) {
@@ -72,41 +70,40 @@ func GetNbi(nbiName string) (NbiEngine, error) {
 
 func CreateSubReq(restUrl string, restPort string) *appmgr_model.SubscriptionRequest {
 	// TODO: parametize function
-        subReq := appmgr_model.SubscriptionRequest{
-                TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
-                EventType:  swag.String("all"),
-                MaxRetries: swag.Int64(5),
-                RetryTimer: swag.Int64(10),
-        }
+	subReq := appmgr_model.SubscriptionRequest{
+		TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
+		EventType:  swag.String("all"),
+		MaxRetries: swag.Int64(5),
+		RetryTimer: swag.Int64(10),
+	}
 
-        return &subReq
+	return &subReq
 }
 
 func PostSubReq(xmUrl string, nbiif string) error {
-        // setting up POST request to Xapp Manager
-        appmgrUrl, err := url.Parse(xmUrl)
-        if err != nil {
-                rtmgr.Logger.Error("Invalid XApp manager url/hostname: " + err.Error())
-                return err
-        }
+	// setting up POST request to Xapp Manager
+	appmgrUrl, err := url.Parse(xmUrl)
+	if err != nil {
+		rtmgr.Logger.Error("Invalid XApp manager url/hostname: " + err.Error())
+		return err
+	}
 	nbiifUrl, err := url.Parse(nbiif)
 	if err != nil {
 		rtmgr.Logger.Error("Invalid NBI address/port: " + err.Error())
 		return err
 	}
-        transport := httptransport.New(appmgrUrl.Hostname()+":"+appmgrUrl.Port(), "/ric/v1", []string{"http"})
-        client := apiclient.New(transport, strfmt.Default)
-        addSubParams := operations.NewAddSubscriptionParamsWithTimeout(10 * time.Second)
-        // create sub req with rest url and port
-        subReq := CreateSubReq(string(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname()), nbiifUrl.Port())
-        resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
-        if postErr != nil {
-                rtmgr.Logger.Error("POST unsuccessful:"+postErr.Error())
-                return postErr
-        } else {
-                // TODO: use the received ID
-                rtmgr.Logger.Info("POST received: "+string(resp.Payload.ID))
-                return nil
-        }
+	transport := httptransport.New(appmgrUrl.Hostname()+":"+appmgrUrl.Port(), "/ric/v1", []string{"http"})
+	client := apiclient.New(transport, strfmt.Default)
+	addSubParams := operations.NewAddSubscriptionParamsWithTimeout(10 * time.Second)
+	// create sub req with rest url and port
+	subReq := CreateSubReq(string(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname()), nbiifUrl.Port())
+	resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
+	if postErr != nil {
+		rtmgr.Logger.Error("POST unsuccessful:" + postErr.Error())
+		return postErr
+	} else {
+		// TODO: use the received ID
+		rtmgr.Logger.Info("POST received: " + string(resp.Payload.ID))
+		return nil
+	}
 }
-
