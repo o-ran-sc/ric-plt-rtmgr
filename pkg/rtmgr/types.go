@@ -25,7 +25,7 @@
 package rtmgr
 
 type XApps struct {
-	XApplist []XApp
+	XAppList []XApp
 }
 
 type RouteTable []RouteTableEntry
@@ -79,12 +79,12 @@ type PlatformComponents []struct {
 	Port uint16 `json:"port"`
 }
 
-type RtmgrConfig struct {
+type ConfigRtmgr struct {
 	Pcs PlatformComponents `json:"PlatformComponents"`
 }
 
 type RicComponents struct {
-	Xapps []XApp
+	XApps []XApp
 	Pcs   PlatformComponents
 }
 

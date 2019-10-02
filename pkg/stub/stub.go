@@ -26,7 +26,7 @@ package stub
 
 import "routing-manager/pkg/rtmgr"
 
-var ValidXapps = &[]rtmgr.XApp{
+var ValidXApps = &[]rtmgr.XApp{
 	{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2TERM", Status: "unknown", Ip: "10.0.0.1", Port: 0, TxMessages: []string{"HandoverPreparation", "HandoverCancel"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
 	{Name: "app2", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "SUBMAN", Status: "unknown", Ip: "192.168.0.1", Port: 0, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
 	{Name: "app3", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2MAN", Status: "unknown", Ip: "10.1.1.1", Port: 0, TxMessages: []string{"X2Setup"}, RxMessages: []string{"Reset", "UEContextRelease"}}}},
@@ -48,7 +48,7 @@ var ValidEndpoints = []rtmgr.Endpoint{
 }
 
 var ValidRicComponents = rtmgr.RicComponents{
-	*ValidXapps, *ValidPlatformComponents,
+	XApps: *ValidXApps, Pcs: *ValidPlatformComponents,
 }
 
 var ValidPolicies = &[]string{"", ""}

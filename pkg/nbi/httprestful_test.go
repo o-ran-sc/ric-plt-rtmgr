@@ -40,7 +40,7 @@ import (
 	"time"
 )
 
-var BASIC_XAPPLIST = []byte(`[
+var BasicXAppLists = []byte(`[
  {
  "name":"xapp-01","status":"unknown","version":"1.2.3",
     "instances":[
@@ -56,9 +56,9 @@ var BASIC_XAPPLIST = []byte(`[
 }
 ]`)
 
-var SUBSCRIPTION_RESP = []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
+var SubscriptionResp = []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 
-var INVALID_SUB_RESP = []byte(`{"Version":0, "EventType":all}`)
+var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
 
 func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 	l, err := net.Listen("tcp", url)
@@ -84,7 +84,7 @@ func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 }
 
 func createMockPlatformComponents() {
-	var filename = string("config.json")
+	var filename = "config.json"
 	file, _ := json.MarshalIndent(stub.ValidPlatformComponents, "", "")
 	filestr := string(file)
 	filestr = "{\"PlatformComponents\":" + filestr + "}"
@@ -168,20 +168,20 @@ func TestValidateXappCallbackDataWithInvalidData(t *testing.T) {
 	}
 }
 
-func TestHttpGetXappsInvalidData(t *testing.T) {
-	_, err := httpGetXapps(XMURL)
+func TestHttpGetXAppsInvalidData(t *testing.T) {
+	_, err := httpGetXApps(XMURL)
 	if err == nil {
 		t.Error("No XApp data received: " + err.Error())
 	}
 }
 
-func TestHttpGetXappsWithValidData(t *testing.T) {
-	var expected int = 1
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BASIC_XAPPLIST, nil)
+func TestHttpGetXAppsWithValidData(t *testing.T) {
+	var expected = 1
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
 
 	ts.Start()
 	defer ts.Close()
-	xapplist, err := httpGetXapps(XMURL)
+	xapplist, err := httpGetXApps(XMURL)
 	if err != nil {
 		t.Error("Error occured: " + err.Error())
 	} else {
@@ -203,7 +203,7 @@ func TestRetrieveStartupDataTimeout(t *testing.T) {
 }
 
 func TestRetrieveStartupData(t *testing.T) {
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BASIC_XAPPLIST, SUBSCRIPTION_RESP)
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, SubscriptionResp)
 	ts.Start()
 	defer ts.Close()
 	sdlEngine, _ := sdl.GetSdl("file")
@@ -219,7 +219,7 @@ func TestRetrieveStartupData(t *testing.T) {
 }
 
 func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BASIC_XAPPLIST, INVALID_SUB_RESP)
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, InvalidSubResp)
 	ts.Start()
 	defer ts.Close()
 	sdlEngine, _ := sdl.GetSdl("file")

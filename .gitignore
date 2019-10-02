@@ -2,4 +2,4 @@ vendor
 bin
 pkg/sdl/ut.rt
 .idea/*
-
+.gitreview

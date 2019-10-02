@@ -17,7 +17,7 @@
 ==================================================================================
 */
 /*
-	Mnemonic:	nngpub_test.go
+	Mnemonic:	sbi_test.go
 	Abstract:
 	Date:		25 April 2019
 */

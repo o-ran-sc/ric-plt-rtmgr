@@ -38,15 +38,15 @@ import (
 )
 
 var (
-	SupportedNbis = []*NbiEngineConfig{
-		&NbiEngineConfig{
+	SupportedNbis = []*EngineConfig{
+		{
 			Name:        "httpGetter",
 			Version:     "v1",
 			Protocol:    "http",
 			Instance:    NewHttpGetter(),
 			IsAvailable: true,
 		},
-		&NbiEngineConfig{
+		{
 			Name:        "httpRESTful",
 			Version:     "v1",
 			Protocol:    "http",
@@ -59,7 +59,7 @@ var (
 type Nbi struct {
 }
 
-func GetNbi(nbiName string) (NbiEngine, error) {
+func GetNbi(nbiName string) (Engine, error) {
 	for _, nbi := range SupportedNbis {
 		if nbi.Name == nbiName && nbi.IsAvailable {
 			return nbi.Instance, nil
@@ -69,7 +69,7 @@ func GetNbi(nbiName string) (NbiEngine, error) {
 }
 
 func CreateSubReq(restUrl string, restPort string) *appmgr_model.SubscriptionRequest {
-	// TODO: parametize function
+	// TODO: parameterize function
 	subReq := appmgr_model.SubscriptionRequest{
 		TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
 		EventType:  swag.String("all"),
@@ -96,7 +96,7 @@ func PostSubReq(xmUrl string, nbiif string) error {
 	client := apiclient.New(transport, strfmt.Default)
 	addSubParams := operations.NewAddSubscriptionParamsWithTimeout(10 * time.Second)
 	// create sub req with rest url and port
-	subReq := CreateSubReq(string(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname()), nbiifUrl.Port())
+	subReq := CreateSubReq(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname(), nbiifUrl.Port())
 	resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
 	if postErr != nil {
 		rtmgr.Logger.Error("POST unsuccessful:" + postErr.Error())

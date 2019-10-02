@@ -25,6 +25,7 @@
 
 package nbi
 
+//noinspection GoUnresolvedReference,GoUnresolvedReference,GoUnresolvedReference,GoUnresolvedReference,GoUnresolvedReference,GoUnresolvedReference
 import (
 	"encoding/json"
 	"errors"
@@ -47,7 +48,7 @@ import (
 //var myClient = &http.Client{Timeout: 1 * time.Second}
 
 type HttpRestful struct {
-	NbiEngine
+	Engine
 	LaunchRest                   LaunchRestHandler
 	RecvXappCallbackData         RecvXappCallbackDataHandler
 	ProvideXappHandleHandlerImpl ProvideXappHandleHandlerImpl
@@ -89,12 +90,12 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 	if len(callbackData.XApps) == 0 {
-		return fmt.Errorf("Invalid Data field: \"%s\"", callbackData.XApps)
+		return fmt.Errorf("invalid Data field: \"%s\"", callbackData.XApps)
 	}
 	var xapps []rtmgr.XApp
 	err := json.Unmarshal([]byte(callbackData.XApps), &xapps)
 	if err != nil {
-		return fmt.Errorf("Unmarshal failed: \"%s\"", err.Error())
+		return fmt.Errorf("unmarshal failed: \"%s\"", err.Error())
 	}
 	return nil
 }
@@ -160,8 +161,8 @@ func deleteXappSubscriptionHandleImpl(subdelchan chan<- *models.XappSubscription
 	}
 
 	if !subscriptionExists(data) {
-		rtmgr.Logger.Warn("Subscription not found: %d", *data.SubscriptionID)
-		err := fmt.Errorf("Subscription not found: %d", *data.SubscriptionID)
+		rtmgr.Logger.Warn("subscription not found: %d", *data.SubscriptionID)
+		err := fmt.Errorf("subscription not found: %d", *data.SubscriptionID)
 		return err
 	}
 
@@ -229,7 +230,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 	}
 }
 
-func httpGetXapps(xmurl string) (*[]rtmgr.XApp, error) {
+func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
 	rtmgr.Logger.Info("Invoked httpgetter.fetchXappList: " + xmurl)
 	r, err := myClient.Get(xmurl)
 	if err != nil {
@@ -252,12 +253,12 @@ func httpGetXapps(xmurl string) (*[]rtmgr.XApp, error) {
 	return nil, nil
 }
 
-func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, sdlEngine sdl.SdlEngine) error {
+func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, sdlEngine sdl.Engine) error {
 	var readErr error
 	var maxRetries = 10
 	for i := 1; i <= maxRetries; i++ {
 		time.Sleep(2 * time.Second)
-		xappData, err := httpGetXapps(xmurl)
+		xappData, err := httpGetXApps(xmurl)
 		if xappData != nil && err == nil {
 			pcData, confErr := rtmgr.GetPlatformComponents(configfile)
 			if confErr != nil {
@@ -266,7 +267,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			}
 			rtmgr.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
 			// Combine the xapps data and platform data before writing to the SDL
-			ricData := &rtmgr.RicComponents{Xapps: *xappData, Pcs: *pcData}
+			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData}
 			writeErr := sdlEngine.WriteAll(fileName, ricData)
 			if writeErr != nil {
 				rtmgr.Logger.Error(writeErr.Error())
@@ -277,7 +278,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 				return nil
 			}
 		} else if err == nil {
-			readErr = errors.New("Unexpected HTTP status code")
+			readErr = errors.New("unexpected HTTP status code")
 		} else {
 			rtmgr.Logger.Warn("cannot get xapp data due to: " + err.Error())
 			readErr = err
@@ -287,10 +288,10 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 }
 
 func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, configfile string,
-	sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine, triggerSBI chan<- bool) error {
+	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool) error {
 	err := r.RetrieveStartupData(xmurl, nbiif, fileName, configfile, sdlEngine)
 	if err != nil {
-		rtmgr.Logger.Error("Exiting as nbi failed to get the intial startup data from the xapp manager: " + err.Error())
+		rtmgr.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
 		return err
 	}
 
@@ -308,7 +309,7 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 			if err != nil {
 				rtmgr.Logger.Error("cannot get data from rest api dute to: " + err.Error())
 			} else if data != nil {
-				sdlEngine.WriteXapps(fileName, data)
+				sdlEngine.WriteXApps(fileName, data)
 				triggerSBI <- true
 			}
 		}
@@ -340,7 +341,7 @@ func (r *HttpRestful) Terminate() error {
 }
 
 func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubscriptionData) bool {
-	var b bool = false
+	var b = false
 	sub := rtmgr.Subscription{SubID: *xappSubData.SubscriptionID, Fqdn: *xappSubData.Address, Port: *xappSubData.Port}
 	for _, elem := range *subs {
 		if elem == sub {
@@ -356,7 +357,7 @@ func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 
 func delSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubscriptionData) bool {
 	rtmgr.Logger.Debug("Deleteing the subscription from the subscriptions list")
-	var present bool = false
+	var present = false
 	sub := rtmgr.Subscription{SubID: *xappSubData.SubscriptionID, Fqdn: *xappSubData.Address, Port: *xappSubData.Port}
 	for i, elem := range *subs {
 		if elem == sub {

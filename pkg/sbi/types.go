@@ -26,15 +26,15 @@ package sbi
 
 import "routing-manager/pkg/rtmgr"
 
-type SbiEngineConfig struct {
+type EngineConfig struct {
 	Name        string
 	Version     string
 	Protocol    string
-	Instance    SbiEngine
+	Instance    Engine
 	IsAvailable bool
 }
 
-type SbiEngine interface {
+type Engine interface {
 	Initialize(string) error
 	Terminate() error
 	DistributeAll(*[]string) error

@@ -105,7 +105,7 @@ func TestNngPushTerminate(t *testing.T) {
 }
 
 /*
-nngpush.UpdateEndpoints() is testd against stub.ValidXapps dataset
+nngpush.UpdateEndpoints() is testd against stub.ValidXApps dataset
 */
 func TestNngPushUpdateEndpoints(t *testing.T) {
 	var nngpush = NngPush{}

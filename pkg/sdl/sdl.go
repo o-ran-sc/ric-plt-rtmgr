@@ -29,15 +29,15 @@ import (
 )
 
 var (
-	SupportedSdls = []*SdlEngineConfig{
-		&SdlEngineConfig{
+	SupportedSdls = []*EngineConfig{
+		{
 			Name:        "file",
 			Version:     "v1",
 			Protocol:    "rawfile",
 			Instance:    NewFile(),
 			IsAvailable: true,
 		},
-		&SdlEngineConfig{
+		{
 			Name:        "redis",
 			Version:     "v1",
 			Protocol:    "ndsl",
@@ -47,7 +47,7 @@ var (
 	}
 )
 
-func GetSdl(sdlName string) (SdlEngine, error) {
+func GetSdl(sdlName string) (Engine, error) {
 	for _, sdl := range SupportedSdls {
 		if sdl.Name == sdlName && sdl.IsAvailable {
 			return sdl.Instance, nil

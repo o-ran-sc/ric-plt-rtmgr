@@ -31,13 +31,13 @@ import (
 	"strconv"
 )
 
-const DEFAULT_NNG_PIPELINE_SOCKET_PREFIX = "tcp://"
-const DEFAULT_NNG_PIPELINE_SOCKET_NUMBER = 4561
-const PLATFORMTYPE = "platform"
+const DefaultNngPipelineSocketPrefix = "tcp://"
+const DefaultNngPipelineSocketNumber = 4561
+const PlatformType = "platform"
 
 var (
-	SupportedSbis = []*SbiEngineConfig{
-		&SbiEngineConfig{
+	SupportedSbis = []*EngineConfig{
+		{
 			Name:        "nngpush",
 			Version:     "v1",
 			Protocol:    "nngpipeline",
@@ -47,7 +47,7 @@ var (
 	}
 )
 
-func GetSbi(sbiName string) (SbiEngine, error) {
+func GetSbi(sbiName string) (Engine, error) {
 	for _, sbi := range SupportedSbis {
 		if sbi.Name == sbiName && sbi.IsAvailable {
 			return sbi.Instance, nil
@@ -59,7 +59,7 @@ func GetSbi(sbiName string) (SbiEngine, error) {
 type Sbi struct {
 }
 
-func (s *Sbi) pruneEndpointList(sbi SbiEngine) {
+func (s *Sbi) pruneEndpointList(sbi Engine) {
 	for _, ep := range rtmgr.Eps {
 		if !ep.Keepalive {
 			rtmgr.Logger.Debug("deleting %v", ep)
@@ -71,26 +71,26 @@ func (s *Sbi) pruneEndpointList(sbi SbiEngine) {
 	}
 }
 
-func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbii SbiEngine) {
-	for _, xapp := range (*rcs).Xapps {
+func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
+	for _, xapp := range (*rcs).XApps {
 		for _, instance := range xapp.Instances {
 			uuid := instance.Ip + ":" + strconv.Itoa(int(instance.Port))
 			if _, ok := rtmgr.Eps[uuid]; ok {
 				rtmgr.Eps[uuid].Keepalive = true
 			} else {
 				ep := &rtmgr.Endpoint{
-					uuid,
-					instance.Name,
-					xapp.Name,
-					instance.Ip,
-					instance.Port,
-					instance.TxMessages,
-					instance.RxMessages,
-					nil,
-					false,
-					true,
+					Uuid:       uuid,
+					Name:       instance.Name,
+					XAppType:   xapp.Name,
+					Ip:         instance.Ip,
+					Port:       instance.Port,
+					TxMessages: instance.TxMessages,
+					RxMessages: instance.RxMessages,
+					Socket:     nil,
+					IsReady:    false,
+					Keepalive:  true,
 				}
-				if err := sbii.AddEndpoint(ep); err != nil {
+				if err := sbi.AddEndpoint(ep); err != nil {
 					rtmgr.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
 					continue
 				}
@@ -98,11 +98,11 @@ func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbii SbiEngine) {
 			}
 		}
 	}
-	s.updatePlatformEndpoints(&((*rcs).Pcs), sbii)
-	s.pruneEndpointList(sbii)
+	s.updatePlatformEndpoints(&((*rcs).Pcs), sbi)
+	s.pruneEndpointList(sbi)
 }
 
-func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbii SbiEngine) {
+func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine) {
 	rtmgr.Logger.Debug("updatePlatformEndpoints invoked. PCS: %v", *pcs)
 	for _, pc := range *pcs {
 		uuid := pc.Fqdn + ":" + strconv.Itoa(int(pc.Port))
@@ -110,19 +110,19 @@ func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbii SbiEng
 			rtmgr.Eps[uuid].Keepalive = true
 		} else {
 			ep := &rtmgr.Endpoint{
-				uuid,
-				pc.Name,
-				PLATFORMTYPE,
-				pc.Fqdn,
-				pc.Port,
-				rtmgr.PLATFORMMESSAGETYPES[pc.Name]["tx"],
-				rtmgr.PLATFORMMESSAGETYPES[pc.Name]["rx"],
-				nil,
-				false,
-				true,
+				Uuid:       uuid,
+				Name:       pc.Name,
+				XAppType:   PlatformType,
+				Ip:         pc.Fqdn,
+				Port:       pc.Port,
+				TxMessages: rtmgr.PLATFORMMESSAGETYPES[pc.Name]["tx"],
+				RxMessages: rtmgr.PLATFORMMESSAGETYPES[pc.Name]["rx"],
+				Socket:     nil,
+				IsReady:    false,
+				Keepalive:  true,
 			}
 			rtmgr.Logger.Debug("ep created: %v", ep)
-			if err := sbii.AddEndpoint(ep); err != nil {
+			if err := sbi.AddEndpoint(ep); err != nil {
 				rtmgr.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
 				continue
 			}

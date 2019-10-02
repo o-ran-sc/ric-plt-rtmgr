@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	nbi.go
-  Abstract:	Containes NBI (NorthBound Interface) specific types
+  Abstract:	Contains NBI (NorthBound Interface) specific types
   Date:		12 March 2019
 */
 
@@ -31,21 +31,21 @@ import (
 	"routing-manager/pkg/sdl"
 )
 
-type FetchAllXappsHandler func(string) (*[]rtmgr.XApp, error)
+type FetchAllXAppsHandler func(string) (*[]rtmgr.XApp, error)
 type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
 type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *models.XappSubscriptionData)
 type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
-type RetrieveStartupDataHandler func(string, string, string, string, sdl.SdlEngine) error
+type RetrieveStartupDataHandler func(string, string, string, string, sdl.Engine) error
 
-type NbiEngineConfig struct {
+type EngineConfig struct {
 	Name        string
 	Version     string
 	Protocol    string
-	Instance    NbiEngine
+	Instance    Engine
 	IsAvailable bool
 }
 
-type NbiEngine interface {
-	Initialize(string, string, string, string, sdl.SdlEngine, rpe.RpeEngine, chan<- bool) error
+type Engine interface {
+	Initialize(string, string, string, string, sdl.Engine, rpe.Engine, chan<- bool) error
 	Terminate() error
 }

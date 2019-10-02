@@ -57,7 +57,7 @@ func createNewPushSocket() (NngSocket, error) {
 func pipeEventHandler(event mangos.PipeEvent, pipe mangos.Pipe) {
 	rtmgr.Logger.Debug("Invoked: pipeEventHandler()")
 	for _, ep := range rtmgr.Eps {
-		uri := DEFAULT_NNG_PIPELINE_SOCKET_PREFIX + ep.Ip + ":" + strconv.Itoa(DEFAULT_NNG_PIPELINE_SOCKET_NUMBER)
+		uri := DefaultNngPipelineSocketPrefix + ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
 		if uri == pipe.Address() {
 			switch event {
 			case 1:
@@ -83,7 +83,7 @@ func (c *NngPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 	var err error
 	var socket NngSocket
 	rtmgr.Logger.Debug("Invoked sbi.AddEndpoint")
-	rtmgr.Logger.Debug("args: %v", (*ep))
+	rtmgr.Logger.Debug("args: %v", *ep)
 	socket, err = c.NewSocket()
 	if err != nil {
 		return errors.New("can't add new socket to endpoint:" + ep.Uuid + " due to: " + err.Error())
@@ -98,7 +98,7 @@ func (c *NngPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 
 func (c *NngPush) DeleteEndpoint(ep *rtmgr.Endpoint) error {
 	rtmgr.Logger.Debug("Invoked sbi. DeleteEndpoint")
-	rtmgr.Logger.Debug("args: %v", (*ep))
+	rtmgr.Logger.Debug("args: %v", *ep)
 	if err := ep.Socket.(NngSocket).Close(); err != nil {
 		return errors.New("can't close push socket of endpoint:" + ep.Uuid + " due to: " + err.Error())
 	}
@@ -114,7 +114,7 @@ NOTE: Asynchronous dial starts a goroutine which keep maintains the connection t
 */
 func (c *NngPush) dial(ep *rtmgr.Endpoint) error {
 	rtmgr.Logger.Debug("Dialing to endpoint: " + ep.Uuid)
-	uri := DEFAULT_NNG_PIPELINE_SOCKET_PREFIX + ep.Ip + ":" + strconv.Itoa(DEFAULT_NNG_PIPELINE_SOCKET_NUMBER)
+	uri := DefaultNngPipelineSocketPrefix + ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
 	options := make(map[string]interface{})
 	options[mangos.OptionDialAsynch] = true
 	if err := ep.Socket.(NngSocket).DialOptions(uri, options); err != nil {
@@ -125,7 +125,7 @@ func (c *NngPush) dial(ep *rtmgr.Endpoint) error {
 
 func (c *NngPush) DistributeAll(policies *[]string) error {
 	rtmgr.Logger.Debug("Invoked: sbi.DistributeAll")
-	rtmgr.Logger.Debug("args: %v", (*policies))
+	rtmgr.Logger.Debug("args: %v", *policies)
 	for _, ep := range rtmgr.Eps {
 		if ep.IsReady {
 			go c.send(ep, policies)
@@ -143,5 +143,5 @@ func (c *NngPush) send(ep *rtmgr.Endpoint, policies *[]string) {
 			rtmgr.Logger.Error("Unable to send policy entry due to: " + err.Error())
 		}
 	}
-	rtmgr.Logger.Info("NNG PUSH to endpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len((*policies))) + ")")
+	rtmgr.Logger.Info("NNG PUSH to endpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len(*policies)) + ")")
 }

@@ -29,15 +29,15 @@ import (
 )
 
 func TestSetLogLevel(t *testing.T) {
-	modes_ok := []string{"info", "warn", "debug", "error"}
-	modes_nok := []string{"inValId", "LogLEVEL", "PRoviDeD"}
-	for _, value := range modes_ok {
+	modeIsOk := []string{"info", "warn", "debug", "error"}
+	modeOsNok := []string{"inValId", "LogLEVEL", "Provided"}
+	for _, value := range modeIsOk {
 		if SetLogLevel(value) != nil {
 			t.Error("Invalid log level: " + value)
 		}
 	}
 
-	for _, value := range modes_nok {
+	for _, value := range modeOsNok {
 		if SetLogLevel(value) == nil {
 			t.Error("Invalid log level: " + value)
 		}

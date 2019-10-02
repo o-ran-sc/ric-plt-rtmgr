@@ -18,7 +18,7 @@
 */
 /*
   Mnemonic:	rtmgr/rtmgr.go
-  Abstract:	Containes RTMGR (Routing Manager) module's generic variables and functions
+  Abstract:	Contains RTMGR (Routing Manager) module's generic variables and functions
   Date:		26 March 2019
 */
 
@@ -35,9 +35,9 @@ import (
 
 var (
 	//TODO: temporary solution
-	// CamelCase Message Types are for being able to test with old fashioned admin controll xApps
-	// TODO: Add a seperate message definition file (Not using the one from RMR to not create dependency on that library).
-	MESSAGETYPES = map[string]string{
+	// CamelCase Message Types are for being able to test with old fashioned admin control xApps
+	// TODO: Add a separate message definition file (Not using the one from RMR to not create dependency on that library).
+	MessageTypes = map[string]string{
 		"HandoverPreparation":              "0",
 		"HandoverCancel":                   "1",
 		"LoadIndication":                   "2",
@@ -122,19 +122,23 @@ func SetLogLevel(loglevel string) error {
 		Logger.Level(lumber.ERROR)
 		return nil
 	case "DEBUG":
-		Logger.Info("debugmode")
+		Logger.Info("Debug mode")
 		Logger.Level(lumber.DEBUG)
 		return nil
+	case "TRACE":
+		Logger.Info("Trace mode")
+		Logger.Level(lumber.TRACE)
+		return nil	
 	default:
-		Logger.Error("Invalid log mode, setting info")
+		Logger.Error("invalid log mode, setting info")
 		Logger.Level(lumber.INFO)
-		return errors.New("Invalid log level, setting info")
+		return errors.New("invalid log level, setting info")
 	}
 }
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
-	var rcfg RtmgrConfig
+	var rcfg ConfigRtmgr
 	jsonFile, err := os.Open(configfile)
 	if err != nil {
 		return nil, errors.New("cannot open the file due to: " + err.Error())

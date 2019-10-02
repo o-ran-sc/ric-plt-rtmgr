@@ -33,19 +33,19 @@ import (
 )
 
 var (
-	XMURL string = "http://127.0.0.1:3000/ric/v1/xapps"
+	XMURL = "http://127.0.0.1:3000/ric/v1/xapps"
 )
 
 func TestFetchXappListInvalidData(t *testing.T) {
 	var httpGetter = NewHttpGetter()
-	_, err := httpGetter.FetchAllXapps(XMURL)
+	_, err := httpGetter.FetchAllXApps(XMURL)
 	if err == nil {
 		t.Error("No XApp data received: " + err.Error())
 	}
 }
 
 func TestFetchXappListWithInvalidData(t *testing.T) {
-	var expected int = 0
+	var expected = 0
 	rtmgr.SetLogLevel("debug")
 	b := []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 	l, err := net.Listen("tcp", "127.0.0.1:3000")
@@ -68,7 +68,7 @@ func TestFetchXappListWithInvalidData(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 	var httpGetter = NewHttpGetter()
-	xapplist, err := httpGetter.FetchAllXapps(XMURL)
+	xapplist, err := httpGetter.FetchAllXApps(XMURL)
 	if err == nil {
 		t.Error("Error occured: " + err.Error())
 	} else {
@@ -79,8 +79,8 @@ func TestFetchXappListWithInvalidData(t *testing.T) {
 	}
 }
 
-func TestFetchAllXappsWithValidData(t *testing.T) {
-	var expected int = 1
+func TestFetchAllXAppsWithValidData(t *testing.T) {
+	var expected = 1
 	b := []byte(`[
  {
  "name":"xapp-01","status":"unknown","version":"1.2.3",
@@ -116,7 +116,7 @@ func TestFetchAllXappsWithValidData(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 	var httpGetter = NewHttpGetter()
-	xapplist, err := httpGetter.FetchAllXapps(XMURL)
+	xapplist, err := httpGetter.FetchAllXApps(XMURL)
 	if err != nil {
 		t.Error("Error occured: " + err.Error())
 	} else {

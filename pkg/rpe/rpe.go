@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	SupportedRpes = []*RpeEngineConfig{
-		&RpeEngineConfig{
+	SupportedRpes = []*EngineConfig{
+		{
 			Name:        "rmrpush",
 			Version:     "pubsush",
 			Protocol:    "rmruta",
@@ -43,7 +43,7 @@ var (
 	}
 )
 
-func GetRpe(rpeName string) (RpeEngine, error) {
+func GetRpe(rpeName string) (Engine, error) {
 	for _, rpe := range SupportedRpes {
 		if rpe.Name == rpeName && rpe.IsAvailable {
 			return rpe.Instance, nil
@@ -78,65 +78,49 @@ func getEndpointByUuid(uuid string) *rtmgr.Endpoint {
 	return nil
 }
 
-func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
+func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoint, routeTable *rtmgr.RouteTable, subId int32) {
 	txList := rtmgr.EndpointList{*tx}
 	rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
-	messageId := rtmgr.MESSAGETYPES[messageType]
+	messageId := rtmgr.MessageTypes[messageType]
 	route := rtmgr.RouteTableEntry{
-		messageId,
-		txList,
-		rxList,
-		-1}
+		MessageType: messageId,
+		TxList:      txList,
+		RxGroups:    rxList,
+		SubID:       subId}
 	*routeTable = append(*routeTable, route)
-	rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: -1", messageId, txList, rxList)
+	rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
+	rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
 }
 
-func (r *Rpe) addSubscriptionRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoint, routeTable *rtmgr.RouteTable, subId int32) {
-	txList := rtmgr.EndpointList{*tx}
-	rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
-	messageId := rtmgr.MESSAGETYPES[messageType]
-	route := rtmgr.RouteTableEntry{
-		messageId,
-		txList,
-		rxList,
-		subId,
-	}
-	*routeTable = append(*routeTable, route)
-	rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, txList, rxList, subId)
-}
-
-func (r *Rpe) generateXappRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
+func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
 	rtmgr.Logger.Debug("rpe.generateXappRoutes invoked")
-	endPointList := rtmgr.Eps
-	for _, endPoint := range endPointList {
-		rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", endPoint.Name, endPoint.XAppType)
-		if endPoint.XAppType != sbi.PLATFORMTYPE && len(endPoint.TxMessages) > 0 && len(endPoint.RxMessages) > 0 {
-			//xApp -> Subscription Manager
-			r.addRoute("RIC_SUB_REQ", endPoint, subManEp, routeTable)
-			r.addRoute("RIC_SUB_DEL_REQ", endPoint, subManEp, routeTable)
-			//xApp -> E2 Termination
-			r.addRoute("RIC_CONTROL_REQ", endPoint, e2TermEp, routeTable)
-		}
+	rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", xAppEp.Name, xAppEp.XAppType)
+	if xAppEp.XAppType != sbi.PlatformType && len(xAppEp.TxMessages) > 0 && len(xAppEp.RxMessages) > 0 {
+		//xApp -> Subscription Manager
+		r.addRoute("RIC_SUB_REQ", xAppEp, subManEp, routeTable, -1)
+		r.addRoute("RIC_SUB_DEL_REQ", xAppEp, subManEp, routeTable, -1)
+		//xApp -> E2 Termination
+		r.addRoute("RIC_CONTROL_REQ", xAppEp, e2TermEp, routeTable, -1)
 	}
 }
 
 func (r *Rpe) generateSubscriptionRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
 	rtmgr.Logger.Debug("rpe.addSubscriptionRoutes invoked")
-	subscriptionList := rtmgr.Subs
-	for _, subscription := range subscriptionList {
+	subscriptionList := &rtmgr.Subs
+	for _, subscription := range *subscriptionList {
 		rtmgr.Logger.Debug("Subscription: %v", subscription)
 		xAppUuid := subscription.Fqdn + ":" + strconv.Itoa(int(subscription.Port))
 		rtmgr.Logger.Debug("xApp UUID: %v", xAppUuid)
 		xAppEp := getEndpointByUuid(xAppUuid)
 		//Subscription Manager -> xApp
-		r.addSubscriptionRoute("RIC_SUB_RESP", subManEp, xAppEp, routeTable, subscription.SubID)
-		r.addSubscriptionRoute("RIC_SUB_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID)
-		r.addSubscriptionRoute("RIC_SUB_DEL_RESP", subManEp, xAppEp, routeTable, subscription.SubID)
-		r.addSubscriptionRoute("RIC_SUB_DEL_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_SUB_RESP", subManEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_SUB_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_SUB_DEL_RESP", subManEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_SUB_DEL_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID)
 		//E2 Termination -> xApp
-		r.addSubscriptionRoute("RIC_INDICATION", e2TermEp, xAppEp, routeTable, subscription.SubID)
-		r.addSubscriptionRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, subscription.SubID)
-		r.addSubscriptionRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_INDICATION", e2TermEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, subscription.SubID)
+		r.addRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, subscription.SubID)
 	}
 }
 
@@ -144,13 +128,13 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 	rtmgr.Logger.Debug("rpe.generatePlatformRoutes invoked")
 	//Platform Routes --- Subscription Routes
 	//Subscription Manager -> E2 Termination
-	r.addRoute("RIC_SUB_REQ", subManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_SUB_DEL_REQ", subManEp, e2TermEp, routeTable)
+	r.addRoute("RIC_SUB_REQ", subManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_SUB_DEL_REQ", subManEp, e2TermEp, routeTable, -1)
 	//E2 Termination -> Subscription Manager
-	r.addRoute("RIC_SUB_RESP", e2TermEp, subManEp, routeTable)
-	r.addRoute("RIC_SUB_DEL_RESP", e2TermEp, subManEp, routeTable)
-	r.addRoute("RIC_SUB_FAILURE", e2TermEp, subManEp, routeTable)
-	r.addRoute("RIC_SUB_DEL_FAILURE", e2TermEp, subManEp, routeTable)
+	r.addRoute("RIC_SUB_RESP", e2TermEp, subManEp, routeTable, -1)
+	r.addRoute("RIC_SUB_DEL_RESP", e2TermEp, subManEp, routeTable, -1)
+	r.addRoute("RIC_SUB_FAILURE", e2TermEp, subManEp, routeTable, -1)
+	r.addRoute("RIC_SUB_DEL_FAILURE", e2TermEp, subManEp, routeTable, -1)
 	//TODO: UE Man Routes removed (since it is not existing)
 	//UE Manager -> Subscription Manager
 	//r.addRoute("RIC_SUB_REQ", ueManEp, subManEp, routeTable)
@@ -160,22 +144,22 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 
 	//Platform Routes --- X2 Routes
 	//E2 Manager -> E2 Termination
-	r.addRoute("RIC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_X2_RESET_RESP", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable)
+	r.addRoute("RIC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESET_RESP", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
 	//E2 Termination -> E2 Manager
-	r.addRoute("RIC_X2_SETUP_REQ", e2TermEp, e2ManEp, routeTable)
-	r.addRoute("RIC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable)
-	r.addRoute("RIC_X2_RESET", e2TermEp, e2ManEp, routeTable)
-	r.addRoute("RIC_X2_RESOURCE_STATUS_RESPONSE", e2TermEp, e2ManEp, routeTable)
-	r.addRoute("RIC_X2_RESET_RESP", e2TermEp, e2ManEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable)
-	r.addRoute("RIC_ENDC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable)
+	r.addRoute("RIC_X2_SETUP_REQ", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESET", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESOURCE_STATUS_RESPONSE", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESET_RESP", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
 }
 
 func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable {
@@ -206,8 +190,8 @@ func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable
 
 	for _, endPoint := range endPointList {
 		rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", endPoint.Name, endPoint.XAppType)
-		if endPoint.XAppType != sbi.PLATFORMTYPE && len(endPoint.TxMessages) > 0 && len(endPoint.RxMessages) > 0 {
-			r.generateXappRoutes(e2TermEp, subManEp, routeTable)
+		if endPoint.XAppType != sbi.PlatformType && len(endPoint.TxMessages) > 0 && len(endPoint.RxMessages) > 0 {
+			r.generateXappRoutes(endPoint, e2TermEp, subManEp, routeTable)
 			r.generateSubscriptionRoutes(e2TermEp, subManEp, routeTable)
 		}
 	}

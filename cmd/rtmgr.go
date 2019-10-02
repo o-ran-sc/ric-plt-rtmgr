@@ -54,26 +54,21 @@ func parseArgs() {
 	args["nbi"] = flag.String("nbi", "httpRESTful", "Northbound interface module to be used. Valid values are: 'httpGetter | httpRESTful'")
 	args["sbi"] = flag.String("sbi", "nngpush", "Southbound interface module to be used. Valid values are: 'nngpush")
 	args["rpe"] = flag.String("rpe", "rmrpush", "Route Policy Engine to be used. Valid values are: 'rmrpush'")
-	args["sdl"] = flag.String("sdl", "file", "Datastore enginge to be used. Valid values are: 'file'")
+	args["sdl"] = flag.String("sdl", "file", "Data store engine to be used. Valid values are: 'file'")
 	args["xm-url"] = flag.String("xm-url", "http://localhost:3000/xapps", "HTTP URL where xApp Manager exposes the entire xApp List")
 	args["nbi-if"] = flag.String("nbi-if", "http://localhost:8888", "Base HTTP URL where routing manager will be listening on")
 	args["sbi-if"] = flag.String("sbi-if", "0.0.0.0", "IPv4 address of interface where Southbound socket to be opened")
 	args["filename"] = flag.String("filename", "/db/rt.json", "Absolute path of file where the route information to be stored")
-	args["loglevel"] = flag.String("loglevel", "INFO", "INFO | WARN | ERROR | DEBUG")
+	args["loglevel"] = flag.String("loglevel", "INFO", "INFO | WARN | ERROR | DEBUG | TRACE")
 	flag.Parse()
 }
 
-func initRtmgr() (nbi.NbiEngine, sbi.SbiEngine, sdl.SdlEngine, rpe.RpeEngine, error) {
-	var err error
-	var nbii nbi.NbiEngine
-	var sbii sbi.SbiEngine
-	var sdli sdl.SdlEngine
-	var rpei rpe.RpeEngine
-	if nbii, err = nbi.GetNbi(*args["nbi"]); err == nil && nbii != nil {
-		if sbii, err = sbi.GetSbi(*args["sbi"]); err == nil && sbii != nil {
-			if sdli, err = sdl.GetSdl(*args["sdl"]); err == nil && sdli != nil {
-				if rpei, err = rpe.GetRpe(*args["rpe"]); err == nil && rpei != nil {
-					return nbii, sbii, sdli, rpei, nil
+func initRtmgr() (nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, err error) {
+	if nbiEngine, err = nbi.GetNbi(*args["nbi"]); err == nil && nbiEngine != nil {
+		if sbiEngine, err = sbi.GetSbi(*args["sbi"]); err == nil && sbiEngine != nil {
+			if sdlEngine, err = sdl.GetSdl(*args["sdl"]); err == nil && sdlEngine != nil {
+				if rpeEngine, err = rpe.GetRpe(*args["rpe"]); err == nil && rpeEngine != nil {
+					return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
 				}
 			}
 		}
@@ -81,7 +76,7 @@ func initRtmgr() (nbi.NbiEngine, sbi.SbiEngine, sdl.SdlEngine, rpe.RpeEngine, er
 	return nil, nil, nil, nil, err
 }
 
-func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.SbiEngine, sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine) {
+func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine) {
 	for {
 		if <-triggerSBI {
 			data, err := sdlEngine.ReadAll(*args["filename"])
@@ -99,7 +94,7 @@ func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.SbiEngine, sdlEngine sdl.Sdl
 	}
 }
 
-func serve(nbiEngine nbi.NbiEngine, sbiEngine sbi.SbiEngine, sdlEngine sdl.SdlEngine, rpeEngine rpe.RpeEngine) {
+func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine) {
 
 	triggerSBI := make(chan bool)
 
@@ -124,11 +119,11 @@ func serve(nbiEngine nbi.NbiEngine, sbiEngine sbi.SbiEngine, sdlEngine sdl.SdlEn
 	for {
 		time.Sleep(INTERVAL * time.Second)
 		if *args["nbi"] == "httpGetter" {
-			data, err := nbiEngine.(*nbi.HttpGetter).FetchAllXapps(*args["xm-url"])
+			data, err := nbiEngine.(*nbi.HttpGetter).FetchAllXApps(*args["xm-url"])
 			if err != nil {
 				rtmgr.Logger.Error("Cannot fetch xapp data due to: " + err.Error())
 			} else if data != nil {
-				sdlEngine.WriteXapps(*args["filename"], data)
+				sdlEngine.WriteXApps(*args["filename"], data)
 			}
 		}
 

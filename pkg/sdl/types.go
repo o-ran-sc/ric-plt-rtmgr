@@ -18,26 +18,26 @@
 */
 /*
   Mnemonic:	sdl/types.go
-  Abstract:	Containes SDL (Shared Data Layer) specific types
+  Abstract:	Contains SDL (Shared Data Layer) specific types
   Date:		16 March 2019
 */
 package sdl
 
 import "routing-manager/pkg/rtmgr"
 
-type readAll func(string) (*rtmgr.RicComponents, error)
-type writeAll func(string, *rtmgr.RicComponents) error
+//type readAll func(string) (*rtmgr.RicComponents, error)
+//type writeAll func(string, *rtmgr.RicComponents) error
 
-type SdlEngineConfig struct {
+type EngineConfig struct {
 	Name        string
 	Version     string
 	Protocol    string
-	Instance    SdlEngine
+	Instance    Engine
 	IsAvailable bool
 }
 
-type SdlEngine interface {
+type Engine interface {
 	ReadAll(string) (*rtmgr.RicComponents, error)
 	WriteAll(string, *rtmgr.RicComponents) error
-	WriteXapps(string, *[]rtmgr.XApp) error
+	WriteXApps(string, *[]rtmgr.XApp) error
 }

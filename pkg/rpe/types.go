@@ -26,18 +26,18 @@ package rpe
 
 import "routing-manager/pkg/rtmgr"
 
-type generatePolicies func(rtmgr.Endpoints) *[]string
-type generateRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
+//type generatePolicies func(rtmgr.Endpoints) *[]string
+//type generateRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
 
-type RpeEngineConfig struct {
+type EngineConfig struct {
 	Name        string
 	Version     string
 	Protocol    string
-	Instance    RpeEngine
+	Instance    Engine
 	IsAvailable bool
 }
 
-type RpeEngine interface {
+type Engine interface {
 	GeneratePolicies(rtmgr.Endpoints) *[]string
 	GenerateRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
 }

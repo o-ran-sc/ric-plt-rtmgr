@@ -1,3 +1,6 @@
+### v0.3.4
+* The following tools made available in the final docker image: iputils-ping, net-tools, curl and tcpdump
+
 ### v0.3.3
 * Introduced delete API over REST interface for subscriptions.
 

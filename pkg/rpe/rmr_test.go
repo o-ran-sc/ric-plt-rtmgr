@@ -31,7 +31,7 @@ import (
 
 func resetTestDataset(testdata []rtmgr.Endpoint) {
 	rtmgr.Eps = make(map[string]*rtmgr.Endpoint)
-	for _, endpoint := range stub.ValidEndpoints {
+	for _, endpoint := range testdata {
 		ep := endpoint
 		rtmgr.Eps[ep.Uuid] = &ep
 	}
