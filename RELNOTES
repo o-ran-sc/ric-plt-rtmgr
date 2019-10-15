@@ -1,3 +1,7 @@
+### v0.3.5
+* Added platform route to send RIC_SCTP_CLEAR_ALL message to implement big red button.
+* Added E2_TERM_INIT and RIC_SCTP_CONNECTION_FAILURE message type routes.
+
 ### v0.3.4
 * The following tools made available in the final docker image: iputils-ping, net-tools, curl and tcpdump
 
