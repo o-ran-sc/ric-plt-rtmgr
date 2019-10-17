@@ -29,6 +29,7 @@ import (
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sbi"
 	"strconv"
+	"runtime"
 )
 
 var (
@@ -79,17 +80,25 @@ func getEndpointByUuid(uuid string) *rtmgr.Endpoint {
 }
 
 func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoint, routeTable *rtmgr.RouteTable, subId int32) {
-	txList := rtmgr.EndpointList{*tx}
-	rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
-	messageId := rtmgr.MessageTypes[messageType]
-	route := rtmgr.RouteTableEntry{
-		MessageType: messageId,
-		TxList:      txList,
-		RxGroups:    rxList,
-		SubID:       subId}
-	*routeTable = append(*routeTable, route)
-	rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
-	rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
+	if tx != nil && rx != nil {
+		txList := rtmgr.EndpointList{*tx}
+		rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
+		messageId := rtmgr.MessageTypes[messageType]
+		route := rtmgr.RouteTableEntry{
+				MessageType: messageId,
+				TxList:      txList,
+				RxGroups:    rxList,
+				SubID:       subId}
+				*routeTable = append(*routeTable, route)
+			rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
+			rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
+		} else {
+			pc,_,_,ok := runtime.Caller(1)
+			details := runtime.FuncForPC(pc)
+			if ok && details != nil {
+				rtmgr.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
+			}
+		}
 }
 
 func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
