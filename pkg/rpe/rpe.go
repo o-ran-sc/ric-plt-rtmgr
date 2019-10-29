@@ -110,6 +110,9 @@ func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoin
 		r.addRoute("RIC_SUB_DEL_REQ", xAppEp, subManEp, routeTable, -1)
 		//xApp -> E2 Termination
 		r.addRoute("RIC_CONTROL_REQ", xAppEp, e2TermEp, routeTable, -1)
+		//E2 Termination -> xApp
+		r.addRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, -1)
+		r.addRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, -1)
 	}
 }
 
@@ -154,21 +157,28 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 	//Platform Routes --- X2 Routes
 	//E2 Manager -> E2 Termination
 	r.addRoute("RIC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable, -1)
-	r.addRoute("RIC_X2_SETUP_RESP", e2ManEp, e2TermEp, routeTable, -1)
-	r.addRoute("RIC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESET_REQ", e2ManEp, e2TermEp, routeTable, -1)
 	r.addRoute("RIC_X2_RESET_RESP", e2ManEp, e2TermEp, routeTable, -1)
 	r.addRoute("RIC_ENDC_X2_SETUP_REQ", e2ManEp, e2TermEp, routeTable, -1)
 	r.addRoute("RIC_SCTP_CLEAR_ALL", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENB_CONF_UPDATE_ACK", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENB_CONF_UPDATE_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_CONF_UPDATE_ACK", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_CONF_UPDATE_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
 	//E2 Termination -> E2 Manager
 	r.addRoute("E2_TERM_INIT", e2TermEp, e2ManEp, routeTable, -1)
-	r.addRoute("RIC_X2_SETUP_REQ", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable, -1)
-	r.addRoute("RIC_X2_RESET", e2TermEp, e2ManEp, routeTable, -1)
-	r.addRoute("RIC_X2_RESOURCE_STATUS_RESPONSE", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESET_REQ", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_X2_RESET_RESP", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_X2_RESOURCE_STATUS_RESPONSE", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_ENDC_X2_SETUP_FAILURE", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_ENDC_CONF_UPDATE", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_SCTP_CONNECTION_FAILURE", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_ERROR_INDICATION", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_ENB_CONF_UPDATE", e2TermEp, e2ManEp, routeTable, -1)
+	r.addRoute("RIC_ENB_LOAD_INFORMATION", e2TermEp, e2ManEp, routeTable, -1)
 }
 
 func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable {
