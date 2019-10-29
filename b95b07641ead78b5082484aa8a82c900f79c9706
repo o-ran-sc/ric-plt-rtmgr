@@ -1,0 +1,8 @@
+Code-Review+1: Balint Uveges <balint.uveges@nokia.com>
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+2: Zoltán Koczka <zoltan.koczka@nokia.com>
+Submitted-by: Zoltán Koczka <zoltan.koczka@nokia.com>
+Submitted-at: Tue, 29 Oct 2019 13:12:20 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/1261
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
