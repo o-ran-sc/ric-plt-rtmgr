@@ -1,3 +1,6 @@
+### v0.3.7
+* Fix routes for RIC_ENDC_X2_SETUP_REQ, RIC_ENDC_X2_SETUP_RESP and RIC_ENDC_X2_SETUP_FAILURE
+
 ### v0.3.6
 * Routing Manager is more resilient to missing components
 * Put in order the message types
