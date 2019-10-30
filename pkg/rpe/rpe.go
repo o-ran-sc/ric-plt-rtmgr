@@ -168,7 +168,7 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 	//E2 Termination -> E2 Manager
 	r.addRoute("E2_TERM_INIT", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable, -1)
-	r.addRoute("RIC_X2_SETUP_FAILURE", e2ManEp, e2TermEp, routeTable, -1)
+	r.addRoute("RIC_X2_SETUP_FAILURE", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_X2_RESET_REQ", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_X2_RESET_RESP", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_ENDC_X2_SETUP_RESP", e2TermEp, e2ManEp, routeTable, -1)
