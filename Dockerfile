@@ -56,12 +56,11 @@ RUN go install ./cmd/rtmgr.go
 # UT intermediate container
 FROM rtmgrbuild as rtmgrut
 RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -cover -race
-
 # Final, executable container
 FROM ubuntu:16.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
-RUN apt update && apt install -y iputils-ping net-tools curl tcpdump
+RUN apt-get update && apt-get install -y iputils-ping net-tools curl tcpdump
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
 RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh

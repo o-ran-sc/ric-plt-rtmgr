@@ -70,11 +70,15 @@ func GetNbi(nbiName string) (Engine, error) {
 
 func CreateSubReq(restUrl string, restPort string) *appmgr_model.SubscriptionRequest {
 	// TODO: parameterize function
-	subReq := appmgr_model.SubscriptionRequest{
-		TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
-		EventType:  swag.String("all"),
+	subData := appmgr_model.SubscriptionData{
+		TargetURL: swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
+		EventType: appmgr_model.EventTypeAll,
 		MaxRetries: swag.Int64(5),
 		RetryTimer: swag.Int64(10),
+	}
+
+	subReq := appmgr_model.SubscriptionRequest{
+		Data: &subData,
 	}
 
 	return &subReq
