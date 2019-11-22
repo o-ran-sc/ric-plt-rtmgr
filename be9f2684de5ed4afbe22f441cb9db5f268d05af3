@@ -1,0 +1,9 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Shashikumar Hn <shashikumar.hn@nokia.com>
+Code-Review+1: nithinsen k <nithinsen.k@nokia.com>
+Code-Review+2: Zoltán Koczka <zoltan.koczka@nokia.com>
+Submitted-by: Zoltán Koczka <zoltan.koczka@nokia.com>
+Submitted-at: Fri, 22 Nov 2019 10:50:55 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/1731
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
