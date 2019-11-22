@@ -55,30 +55,35 @@ func TestGetNbi(t *testing.T) {
 		}
 	}
 }
-
 func TestCreateSubReq(t *testing.T) {
-	var subReq = appmgr_model.SubscriptionRequest{
+	var subData = appmgr_model.SubscriptionData{
 		TargetURL:  swag.String("localhost:8000/ric/v1/handles/xapp-handle/"),
-		EventType:  swag.String("all"),
+		EventType:  appmgr_model.EventTypeAll,
 		MaxRetries: swag.Int64(5),
 		RetryTimer: swag.Int64(10),
 	}
+        subReq := appmgr_model.SubscriptionRequest{
+                Data: &subData,
+        }
 	subReq2 := CreateSubReq("localhost", "8000")
 	if reflect.TypeOf(subReq) != reflect.TypeOf(*subReq2) {
 		t.Errorf("Invalid type, got: %v, want: %v.", reflect.TypeOf(subReq), reflect.TypeOf(*subReq2))
 	}
-	if *(subReq.TargetURL) != *(subReq2.TargetURL) {
-		t.Errorf("Invalid TargetURL generated, got %v, want %v", *subReq.TargetURL, *subReq2.TargetURL)
+	if *(subReq.Data.TargetURL) != *(subReq2.Data.TargetURL) {
+		t.Errorf("Invalid TargetURL generated, got %v, want %v", *subReq.Data.TargetURL, *subReq2.Data.TargetURL)
 	}
-	if *(subReq.EventType) != *(subReq2.EventType) {
-		t.Errorf("Invalid EventType generated, got %v, want %v", *subReq.EventType, *subReq2.EventType)
+
+	if (subReq.Data.EventType) != (subReq2.Data.EventType) {
+		t.Errorf("Invalid EventType generated, got %v, want %v", subReq.Data.EventType, subReq2.Data.EventType)
 	}
-	if *(subReq.MaxRetries) != *(subReq2.MaxRetries) {
-		t.Errorf("Invalid MaxRetries generated, got %v, want %v", *subReq.MaxRetries, *subReq2.MaxRetries)
+
+	if *(subReq.Data.MaxRetries) != *(subReq2.Data.MaxRetries) {
+		t.Errorf("Invalid MaxRetries generated, got %v, want %v", *subReq.Data.MaxRetries, *subReq2.Data.MaxRetries)
 	}
-	if *(subReq.RetryTimer) != *(subReq2.RetryTimer) {
-		t.Errorf("Invalid RetryTimer generated, got %v, want %v", *subReq.RetryTimer, *subReq2.RetryTimer)
+	if *(subReq.Data.RetryTimer) != *(subReq2.Data.RetryTimer) {
+		t.Errorf("Invalid RetryTimer generated, got %v, want %v", *subReq.Data.RetryTimer, *subReq2.Data.RetryTimer)
 	}
+
 }
 
 func TestPostSubReq(t *testing.T) {

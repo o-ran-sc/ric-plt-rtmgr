@@ -136,7 +136,7 @@ func (r *Rpe) generateSubscriptionRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtm
 	}
 }
 
-func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, e2ManEp *rtmgr.Endpoint, ueManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
+func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, e2ManEp *rtmgr.Endpoint, ueManEp *rtmgr.Endpoint, rsmEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
 	rtmgr.Logger.Debug("rpe.generatePlatformRoutes invoked")
 	//Platform Routes --- Subscription Routes
 	//Subscription Manager -> E2 Termination
@@ -178,6 +178,15 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 	r.addRoute("RIC_ERROR_INDICATION", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_ENB_CONF_UPDATE", e2TermEp, e2ManEp, routeTable, -1)
 	r.addRoute("RIC_ENB_LOAD_INFORMATION", e2TermEp, e2ManEp, routeTable, -1)
+	//E2 Manager -> Resource Status Manager
+	r.addRoute("RAN_CONNECTED", e2ManEp, rsmEp, routeTable, -1)
+	r.addRoute("RAN_RESTARTED", e2ManEp, rsmEp, routeTable, -1)
+	r.addRoute("RAN_RECONFIGURED", e2ManEp, rsmEp, routeTable, -1)
+	//Resource Status Manager -> E2 Termination
+	r.addRoute("RIC_RES_STATUS_REQ", rsmEp, e2TermEp, routeTable, -1)
+	//E2 Termination -> Resource Status Manager
+	r.addRoute("RIC_RES_STATUS_RESP", e2TermEp, rsmEp, routeTable, -1)
+	r.addRoute("RIC_RES_STATUS_FAILURE", e2TermEp, rsmEp, routeTable, -1)
 }
 
 func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable {
@@ -204,7 +213,12 @@ func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable
 		rtmgr.Logger.Error("Platform component not found: %v", "UE Manger")
 		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
 	}
-	r.generatePlatformRoutes(e2TermEp, subManEp, e2ManEp, ueManEp, routeTable)
+	rsmEp := getEndpointByName(&endPointList, "RSM")
+	if rsmEp == nil {
+		rtmgr.Logger.Error("Platform component not found: %v", "Resource Status Manager")
+		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+	}
+	r.generatePlatformRoutes(e2TermEp, subManEp, e2ManEp, ueManEp, rsmEp, routeTable)
 
 	for _, endPoint := range endPointList {
 		rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", endPoint.Name, endPoint.XAppType)

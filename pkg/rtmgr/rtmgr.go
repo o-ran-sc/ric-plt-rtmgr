@@ -47,6 +47,9 @@ var (
 		"X2Setup":                               "6",
 		"Reset":                                 "7",
 		"E2_TERM_INIT":                       "1100",
+		"RAN_CONNECTED":                      "1200",
+		"RAN_RESTARTED":                      "1210",
+		"RAN_RECONFIGURED":                   "1220",
 		"RIC_SCTP_CLEAR_ALL":                 "1090",
 		"RIC_SCTP_CONNECTION_FAILURE":        "1080",
 		"RIC_X2_SETUP":                      "10000",
@@ -103,6 +106,7 @@ var (
 		"E2MAN":  {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}},
 		"SUBMAN": {"tx": []string{"RIC_SUB_REQ", "RIC_SUB_DEL_REQ"}, "rx": []string{"RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}},
 		"UEMAN":  {"tx": []string{"RIC_CONTROL_REQ"}, "rx": []string{}},
+		"RSM":    {"tx": []string{"RIC_RES_STATUS_REQ"}, "rx": []string{"RAN_CONNECTED", "RAN_RESTARTED", "RAN_RECONFIGURED"}},
 	}
 
 	Logger = lumber.NewConsoleLogger(lumber.INFO)
