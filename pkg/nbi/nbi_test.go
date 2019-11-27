@@ -14,6 +14,11 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+   This source code is part of the near-RT RIC (RAN Intelligent Controller)
+   platform project (RICP).
+
 ==================================================================================
 */
 /*
@@ -26,13 +31,14 @@ package nbi
 
 import (
 	"errors"
-	"github.com/go-openapi/swag"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"routing-manager/pkg/appmgr_model"
 	"testing"
+
+	"github.com/go-openapi/swag"
 )
 
 func TestGetNbi(t *testing.T) {
@@ -62,9 +68,9 @@ func TestCreateSubReq(t *testing.T) {
 		MaxRetries: swag.Int64(5),
 		RetryTimer: swag.Int64(10),
 	}
-        subReq := appmgr_model.SubscriptionRequest{
-                Data: &subData,
-        }
+	subReq := appmgr_model.SubscriptionRequest{
+		Data: &subData,
+	}
 	subReq2 := CreateSubReq("localhost", "8000")
 	if reflect.TypeOf(subReq) != reflect.TypeOf(*subReq2) {
 		t.Errorf("Invalid type, got: %v, want: %v.", reflect.TypeOf(subReq), reflect.TypeOf(*subReq2))

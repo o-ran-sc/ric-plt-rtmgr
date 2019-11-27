@@ -14,6 +14,11 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+   This source code is part of the near-RT RIC (RAN Intelligent Controller)
+   platform project (RICP).
+
 ==================================================================================
 */
 /*
@@ -30,8 +35,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-openapi/loads"
-	"github.com/go-openapi/runtime/middleware"
 	"net/url"
 	"os"
 	"routing-manager/pkg/models"
@@ -43,6 +46,9 @@ import (
 	"routing-manager/pkg/sdl"
 	"strconv"
 	"time"
+
+	"github.com/go-openapi/loads"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 //var myClient = &http.Client{Timeout: 1 * time.Second}
