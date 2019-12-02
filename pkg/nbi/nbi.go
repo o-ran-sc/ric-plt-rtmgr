@@ -14,6 +14,11 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+   This source code is part of the near-RT RIC (RAN Intelligent Controller)
+   platform project (RICP).
+
 ==================================================================================
 */
 /*
@@ -26,15 +31,16 @@ package nbi
 
 import (
 	"errors"
-	httptransport "github.com/go-openapi/runtime/client"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"net/url"
 	apiclient "routing-manager/pkg/appmgr_client"
 	"routing-manager/pkg/appmgr_client/operations"
 	"routing-manager/pkg/appmgr_model"
 	"routing-manager/pkg/rtmgr"
 	"time"
+
+	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 var (
@@ -71,8 +77,8 @@ func GetNbi(nbiName string) (Engine, error) {
 func CreateSubReq(restUrl string, restPort string) *appmgr_model.SubscriptionRequest {
 	// TODO: parameterize function
 	subData := appmgr_model.SubscriptionData{
-		TargetURL: swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
-		EventType: appmgr_model.EventTypeAll,
+		TargetURL:  swag.String(restUrl + ":" + restPort + "/ric/v1/handles/xapp-handle/"),
+		EventType:  appmgr_model.EventTypeAll,
 		MaxRetries: swag.Int64(5),
 		RetryTimer: swag.Int64(10),
 	}

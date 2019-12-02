@@ -14,6 +14,11 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+   This source code is part of the near-RT RIC (RAN Intelligent Controller)
+   platform project (RICP).
+
 ==================================================================================
 */
 /*
@@ -28,8 +33,8 @@ import (
 	"errors"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sbi"
-	"strconv"
 	"runtime"
+	"strconv"
 )
 
 var (
@@ -85,20 +90,20 @@ func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoin
 		rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
 		messageId := rtmgr.MessageTypes[messageType]
 		route := rtmgr.RouteTableEntry{
-				MessageType: messageId,
-				TxList:      txList,
-				RxGroups:    rxList,
-				SubID:       subId}
-				*routeTable = append(*routeTable, route)
-			rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
-			rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
-		} else {
-			pc,_,_,ok := runtime.Caller(1)
-			details := runtime.FuncForPC(pc)
-			if ok && details != nil {
-				rtmgr.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
-			}
+			MessageType: messageId,
+			TxList:      txList,
+			RxGroups:    rxList,
+			SubID:       subId}
+		*routeTable = append(*routeTable, route)
+		rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
+		rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
+	} else {
+		pc, _, _, ok := runtime.Caller(1)
+		details := runtime.FuncForPC(pc)
+		if ok && details != nil {
+			rtmgr.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
 		}
+	}
 }
 
 func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
