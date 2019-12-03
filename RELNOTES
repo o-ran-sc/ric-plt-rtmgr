@@ -1,3 +1,6 @@
+### v0.4.1
+* Fixed integration and subscription routes related issues for R3
+
 ### v0.3.9
 * Added RSM platform component routes for message types RAN_CONNECTED, RAN_RESTARTED, RAN_RECONFIGURED, RIC_RES_STATUS_REQ,RIC_RES_STATUS_RESP and RIC_RES_STATUS_FAILURE
 * xApp manager interface changes for Subscription Request API

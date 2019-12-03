@@ -35,6 +35,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-openapi/loads"
+	"github.com/go-openapi/runtime/middleware"
 	"net/url"
 	"os"
 	"routing-manager/pkg/models"
@@ -46,9 +48,6 @@ import (
 	"routing-manager/pkg/sdl"
 	"strconv"
 	"time"
-
-	"github.com/go-openapi/loads"
-	"github.com/go-openapi/runtime/middleware"
 )
 
 //var myClient = &http.Client{Timeout: 1 * time.Second}
@@ -217,6 +216,8 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewProvideXappSubscriptionHandleBadRequest()
 			} else {
+				//Delay the reponse as add subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
+				time.Sleep(1 * time.Second)
 				return handle.NewGetHandlesOK()
 			}
 		})
@@ -226,6 +227,8 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewDeleteXappSubscriptionHandleNoContent()
 			} else {
+				//Delay the reponse as delete subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
+				time.Sleep(1 * time.Second)
 				return handle.NewGetHandlesOK()
 			}
 		})
@@ -237,7 +240,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 }
 
 func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
-	rtmgr.Logger.Info("Invoked httpgetter.fetchXappList: " + xmurl)
+	rtmgr.Logger.Info("Invoked httprestful.httpGetXApps: " + xmurl)
 	r, err := myClient.Get(xmurl)
 	if err != nil {
 		return nil, err
@@ -252,10 +255,10 @@ func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
 			rtmgr.Logger.Warn("Json decode failed: " + err.Error())
 		}
 		rtmgr.Logger.Info("HTTP GET: OK")
-		rtmgr.Logger.Debug("httpgetter.fetchXappList returns: %v", xapps)
+		rtmgr.Logger.Debug("httprestful.httpGetXApps returns: %v", xapps)
 		return &xapps, err
 	}
-	rtmgr.Logger.Warn("httpgetter got an unexpected http status code: %v", r.StatusCode)
+	rtmgr.Logger.Warn("httprestful got an unexpected http status code: %v", r.StatusCode)
 	return nil, nil
 }
 
@@ -315,8 +318,12 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 			if err != nil {
 				rtmgr.Logger.Error("cannot get data from rest api dute to: " + err.Error())
 			} else if data != nil {
-				sdlEngine.WriteXApps(fileName, data)
-				triggerSBI <- true
+				rtmgr.Logger.Debug("Fetching all xApps deployed in xApp Manager through GET operation.")
+				alldata, err1 := httpGetXApps(xmurl)
+				if alldata != nil && err1 == nil {
+					sdlEngine.WriteXApps(fileName, alldata)
+					triggerSBI <- true
+				}
 			}
 		}
 	}()

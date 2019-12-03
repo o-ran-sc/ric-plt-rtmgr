@@ -64,6 +64,7 @@ type Sbi struct {
 }
 
 func (s *Sbi) pruneEndpointList(sbi Engine) {
+	rtmgr.Logger.Debug("pruneEndpointList invoked.")
 	for _, ep := range rtmgr.Eps {
 		if !ep.Keepalive {
 			rtmgr.Logger.Debug("deleting %v", ep)

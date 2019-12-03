@@ -47,7 +47,7 @@ import (
 )
 
 const SERVICENAME = "rtmgr"
-const INTERVAL time.Duration = 2
+const INTERVAL time.Duration = 60
 
 var (
 	args map[string]*string
@@ -123,7 +123,6 @@ func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpe
 	go serveSBI(triggerSBI, sbiEngine, sdlEngine, rpeEngine)
 
 	for {
-		time.Sleep(INTERVAL * time.Second)
 		if *args["nbi"] == "httpGetter" {
 			data, err := nbiEngine.(*nbi.HttpGetter).FetchAllXApps(*args["xm-url"])
 			if err != nil {
@@ -134,6 +133,9 @@ func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpe
 		}
 
 		triggerSBI <- true
+
+		time.Sleep(INTERVAL * time.Second)
+		rtmgr.Logger.Debug("Periodic loop timed out. Setting triggerSBI flag to distribute updated routes.")
 	}
 }
 

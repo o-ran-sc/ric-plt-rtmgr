@@ -30,12 +30,11 @@ package sbi
 
 import (
 	"errors"
-	"routing-manager/pkg/rtmgr"
-	"strconv"
-
 	"nanomsg.org/go/mangos/v2"
 	"nanomsg.org/go/mangos/v2/protocol/push"
 	_ "nanomsg.org/go/mangos/v2/transport/all"
+	"routing-manager/pkg/rtmgr"
+	"strconv"
 )
 
 type NngPush struct {
@@ -61,6 +60,7 @@ func createNewPushSocket() (NngSocket, error) {
 
 func pipeEventHandler(event mangos.PipeEvent, pipe mangos.Pipe) {
 	rtmgr.Logger.Debug("Invoked: pipeEventHandler()")
+	rtmgr.Logger.Debug("Received pipe event for " + pipe.Address() + " address")
 	for _, ep := range rtmgr.Eps {
 		uri := DefaultNngPipelineSocketPrefix + ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
 		if uri == pipe.Address() {
