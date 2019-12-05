@@ -35,9 +35,9 @@ import (
 	apiclient "routing-manager/pkg/appmgr_client"
 	"routing-manager/pkg/appmgr_client/operations"
 	"routing-manager/pkg/appmgr_model"
-	"routing-manager/pkg/rtmgr"
 	"time"
 
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -94,12 +94,12 @@ func PostSubReq(xmUrl string, nbiif string) error {
 	// setting up POST request to Xapp Manager
 	appmgrUrl, err := url.Parse(xmUrl)
 	if err != nil {
-		rtmgr.Logger.Error("Invalid XApp manager url/hostname: " + err.Error())
+		xapp.Logger.Error("Invalid XApp manager url/hostname: " + err.Error())
 		return err
 	}
 	nbiifUrl, err := url.Parse(nbiif)
 	if err != nil {
-		rtmgr.Logger.Error("Invalid NBI address/port: " + err.Error())
+		xapp.Logger.Error("Invalid NBI address/port: " + err.Error())
 		return err
 	}
 	transport := httptransport.New(appmgrUrl.Hostname()+":"+appmgrUrl.Port(), "/ric/v1", []string{"http"})
@@ -109,11 +109,11 @@ func PostSubReq(xmUrl string, nbiif string) error {
 	subReq := CreateSubReq(nbiifUrl.Scheme+"://"+nbiifUrl.Hostname(), nbiifUrl.Port())
 	resp, postErr := client.Operations.AddSubscription(addSubParams.WithSubscriptionRequest(subReq))
 	if postErr != nil {
-		rtmgr.Logger.Error("POST unsuccessful:" + postErr.Error())
+		xapp.Logger.Error("POST unsuccessful:" + postErr.Error())
 		return postErr
 	} else {
 		// TODO: use the received ID
-		rtmgr.Logger.Info("POST received: " + string(resp.Payload.ID))
+		xapp.Logger.Info("POST received: " + string(resp.Payload.ID))
 		return nil
 	}
 }

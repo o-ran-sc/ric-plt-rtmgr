@@ -56,4 +56,12 @@ data:
           "port": 4561
         }
       ]
+     "local":
+      "host": ":8080"
+     "logger":
+      "level": 3
+     "rmr":
+      "protPort": "tcp:4560"
+      "maxSize": 2072
+      "numWorkers": 1
     }

@@ -49,6 +49,7 @@ type Endpoint struct {
 	Port       uint16
 	TxMessages []string
 	RxMessages []string
+	Policies   []int32
 	Socket     interface{}
 	IsReady    bool
 	Keepalive  bool
@@ -75,6 +76,7 @@ type XAppInstance struct {
 	Port       uint16   `json:"port"`
 	TxMessages []string `json:"txMessages"`
 	RxMessages []string `json:"rxMessages"`
+	Policies   []int32  `json:"policies"`
 }
 
 type PlatformComponents []struct {

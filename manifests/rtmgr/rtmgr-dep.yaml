@@ -60,8 +60,6 @@ spec:
               value: "http://rtmgr:8888"
             - name: CFGFILE
               value: "/cfg/rtmgr-config.json"
-            - name: LOGLEVEL
-              value: "DEBUG"
           ports:
             - containerPort: 8888
             - containerPort: 4560

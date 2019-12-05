@@ -31,6 +31,7 @@ package sbi
 
 import (
 	"errors"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 )
@@ -64,10 +65,10 @@ type Sbi struct {
 }
 
 func (s *Sbi) pruneEndpointList(sbi Engine) {
-	rtmgr.Logger.Debug("pruneEndpointList invoked.")
+	xapp.Logger.Debug("pruneEndpointList invoked.")
 	for _, ep := range rtmgr.Eps {
 		if !ep.Keepalive {
-			rtmgr.Logger.Debug("deleting %v", ep)
+			xapp.Logger.Debug("deleting %v", ep)
 			sbi.DeleteEndpoint(ep)
 			delete(rtmgr.Eps, ep.Uuid)
 		} else {
@@ -77,8 +78,8 @@ func (s *Sbi) pruneEndpointList(sbi Engine) {
 }
 
 func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
-	for _, xapp := range (*rcs).XApps {
-		for _, instance := range xapp.Instances {
+	for _, xapps := range (*rcs).XApps {
+		for _, instance := range xapps.Instances {
 			uuid := instance.Ip + ":" + strconv.Itoa(int(instance.Port))
 			if _, ok := rtmgr.Eps[uuid]; ok {
 				rtmgr.Eps[uuid].Keepalive = true
@@ -86,17 +87,18 @@ func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
 				ep := &rtmgr.Endpoint{
 					Uuid:       uuid,
 					Name:       instance.Name,
-					XAppType:   xapp.Name,
+					XAppType:   xapps.Name,
 					Ip:         instance.Ip,
 					Port:       instance.Port,
 					TxMessages: instance.TxMessages,
 					RxMessages: instance.RxMessages,
+					Policies:   instance.Policies,
 					Socket:     nil,
 					IsReady:    false,
 					Keepalive:  true,
 				}
 				if err := sbi.AddEndpoint(ep); err != nil {
-					rtmgr.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
+					xapp.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
 					continue
 				}
 				rtmgr.Eps[uuid] = ep
@@ -108,7 +110,7 @@ func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
 }
 
 func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine) {
-	rtmgr.Logger.Debug("updatePlatformEndpoints invoked. PCS: %v", *pcs)
+	xapp.Logger.Debug("updatePlatformEndpoints invoked. PCS: %v", *pcs)
 	for _, pc := range *pcs {
 		uuid := pc.Fqdn + ":" + strconv.Itoa(int(pc.Port))
 		if _, ok := rtmgr.Eps[uuid]; ok {
@@ -126,9 +128,9 @@ func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine)
 				IsReady:    false,
 				Keepalive:  true,
 			}
-			rtmgr.Logger.Debug("ep created: %v", ep)
+			xapp.Logger.Debug("ep created: %v", ep)
 			if err := sbi.AddEndpoint(ep); err != nil {
-				rtmgr.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
+				xapp.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
 				continue
 			}
 			rtmgr.Eps[uuid] = ep

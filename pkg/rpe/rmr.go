@@ -31,6 +31,7 @@
 package rpe
 
 import (
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 )
@@ -80,12 +81,12 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 		rawrt = append(rawrt, rawrte+"\n")
 	}
 	rawrt = append(rawrt, key+"newrt|end\n")
-	rtmgr.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
+	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
 	return &rawrt
 }
 
 func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
-	rtmgr.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
+	xapp.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
 	return r.generateRMRPolicies(eps, "")
 }
 

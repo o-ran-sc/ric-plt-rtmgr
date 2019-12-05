@@ -35,6 +35,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"net/url"
@@ -75,9 +76,9 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	// Drain the channel as we are only looking for the latest value until
 	// xapp manager sends all xapp data with every request.
 	length := len(dataChannel)
-	//rtmgr.Logger.Info(length)
+	//xapp.Logger.Info(length)
 	for i := 0; i <= length; i++ {
-		rtmgr.Logger.Info("data received")
+		xapp.Logger.Info("data received")
 		// If no data received from the REST, it blocks.
 		xappData = <-dataChannel
 	}
@@ -86,10 +87,10 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 		err := json.Unmarshal([]byte(xappData.XApps), &xapps)
 		return &xapps, err
 	} else {
-		rtmgr.Logger.Info("No data")
+		xapp.Logger.Info("No data")
 	}
 
-	rtmgr.Logger.Debug("Nothing received on the Http interface")
+	xapp.Logger.Debug("Nothing received on the Http interface")
 	return nil, nil
 }
 
@@ -107,11 +108,11 @@ func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 
 func provideXappHandleHandlerImpl(datach chan<- *models.XappCallbackData, data *models.XappCallbackData) error {
 	if data != nil {
-		rtmgr.Logger.Debug("Received callback data")
+		xapp.Logger.Debug("Received callback data")
 	}
 	err := validateXappCallbackData(data)
 	if err != nil {
-		rtmgr.Logger.Warn("XApp callback data validation failed: " + err.Error())
+		xapp.Logger.Warn("XApp callback data validation failed: " + err.Error())
 		return err
 	} else {
 		datach <- data
@@ -132,15 +133,15 @@ func validateXappSubscriptionData(data *models.XappSubscriptionData) error {
 
 func provideXappSubscriptionHandleImpl(subchan chan<- *models.XappSubscriptionData,
 	data *models.XappSubscriptionData) error {
-	rtmgr.Logger.Debug("Invoked provideXappSubscriptionHandleImpl")
+	xapp.Logger.Debug("Invoked provideXappSubscriptionHandleImpl")
 	err := validateXappSubscriptionData(data)
 	if err != nil {
-		rtmgr.Logger.Error(err.Error())
+		xapp.Logger.Error(err.Error())
 		return err
 	}
 	subchan <- data
 	//var val = string(*data.Address + ":" + strconv.Itoa(int(*data.Port)))
-	rtmgr.Logger.Debug("Endpoints: %v", rtmgr.Eps)
+	xapp.Logger.Debug("Endpoints: %v", rtmgr.Eps)
 	return nil
 }
 
@@ -158,15 +159,15 @@ func subscriptionExists(data *models.XappSubscriptionData) bool {
 
 func deleteXappSubscriptionHandleImpl(subdelchan chan<- *models.XappSubscriptionData,
 	data *models.XappSubscriptionData) error {
-	rtmgr.Logger.Debug("Invoked deleteXappSubscriptionHandleImpl")
+	xapp.Logger.Debug("Invoked deleteXappSubscriptionHandleImpl")
 	err := validateXappSubscriptionData(data)
 	if err != nil {
-		rtmgr.Logger.Error(err.Error())
+		xapp.Logger.Error(err.Error())
 		return err
 	}
 
 	if !subscriptionExists(data) {
-		rtmgr.Logger.Warn("subscription not found: %d", *data.SubscriptionID)
+		xapp.Logger.Warn("subscription not found: %d", *data.SubscriptionID)
 		err := fmt.Errorf("subscription not found: %d", *data.SubscriptionID)
 		return err
 	}
@@ -180,12 +181,12 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
 	if err != nil {
 		//log.Fatalln(err)
-		rtmgr.Logger.Error(err.Error())
+		xapp.Logger.Error(err.Error())
 		os.Exit(1)
 	}
 	nbiUrl, err := url.Parse(*nbiif)
 	if err != nil {
-		rtmgr.Logger.Error(err.Error())
+		xapp.Logger.Error(err.Error())
 		os.Exit(1)
 	}
 	api := operations.NewRoutingManagerAPI(swaggerSpec)
@@ -194,17 +195,17 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 
 	server.Port, err = strconv.Atoi(nbiUrl.Port())
 	if err != nil {
-		rtmgr.Logger.Error("Invalid NBI RestAPI port")
+		xapp.Logger.Error("Invalid NBI RestAPI port")
 		os.Exit(1)
 	}
 	server.Host = "0.0.0.0"
 	// set handlers
 	api.HandleProvideXappHandleHandler = handle.ProvideXappHandleHandlerFunc(
 		func(params handle.ProvideXappHandleParams) middleware.Responder {
-			rtmgr.Logger.Info("Data received on Http interface")
+			xapp.Logger.Info("Data received on Http interface")
 			err := provideXappHandleHandlerImpl(datach, params.XappCallbackData)
 			if err != nil {
-				rtmgr.Logger.Error("Invalid XApp callback data: " + err.Error())
+				xapp.Logger.Error("Invalid XApp callback data: " + err.Error())
 				return handle.NewProvideXappHandleBadRequest()
 			} else {
 				return handle.NewGetHandlesOK()
@@ -233,14 +234,14 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			}
 		})
 	// start to serve API
-	rtmgr.Logger.Info("Starting the HTTP Rest service")
+	xapp.Logger.Info("Starting the HTTP Rest service")
 	if err := server.Serve(); err != nil {
-		rtmgr.Logger.Error(err.Error())
+		xapp.Logger.Error(err.Error())
 	}
 }
 
 func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
-	rtmgr.Logger.Info("Invoked httprestful.httpGetXApps: " + xmurl)
+	xapp.Logger.Info("Invoked httprestful.httpGetXApps: " + xmurl)
 	r, err := myClient.Get(xmurl)
 	if err != nil {
 		return nil, err
@@ -248,17 +249,17 @@ func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
 	defer r.Body.Close()
 
 	if r.StatusCode == 200 {
-		rtmgr.Logger.Debug("http client raw response: %v", r)
+		xapp.Logger.Debug("http client raw response: %v", r)
 		var xapps []rtmgr.XApp
 		err = json.NewDecoder(r.Body).Decode(&xapps)
 		if err != nil {
-			rtmgr.Logger.Warn("Json decode failed: " + err.Error())
+			xapp.Logger.Warn("Json decode failed: " + err.Error())
 		}
-		rtmgr.Logger.Info("HTTP GET: OK")
-		rtmgr.Logger.Debug("httprestful.httpGetXApps returns: %v", xapps)
+		xapp.Logger.Info("HTTP GET: OK")
+		xapp.Logger.Debug("httprestful.httpGetXApps returns: %v", xapps)
 		return &xapps, err
 	}
-	rtmgr.Logger.Warn("httprestful got an unexpected http status code: %v", r.StatusCode)
+	xapp.Logger.Warn("httprestful got an unexpected http status code: %v", r.StatusCode)
 	return nil, nil
 }
 
@@ -271,15 +272,15 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		if xappData != nil && err == nil {
 			pcData, confErr := rtmgr.GetPlatformComponents(configfile)
 			if confErr != nil {
-				rtmgr.Logger.Error(confErr.Error())
+				xapp.Logger.Error(confErr.Error())
 				return confErr
 			}
-			rtmgr.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
+			xapp.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
 			// Combine the xapps data and platform data before writing to the SDL
 			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData}
 			writeErr := sdlEngine.WriteAll(fileName, ricData)
 			if writeErr != nil {
-				rtmgr.Logger.Error(writeErr.Error())
+				xapp.Logger.Error(writeErr.Error())
 			}
 			// post subscription req to appmgr
 			readErr = PostSubReq(xmurl, nbiif)
@@ -289,7 +290,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		} else if err == nil {
 			readErr = errors.New("unexpected HTTP status code")
 		} else {
-			rtmgr.Logger.Warn("cannot get xapp data due to: " + err.Error())
+			xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
 			readErr = err
 		}
 	}
@@ -300,14 +301,14 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool) error {
 	err := r.RetrieveStartupData(xmurl, nbiif, fileName, configfile, sdlEngine)
 	if err != nil {
-		rtmgr.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
+		xapp.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
 		return err
 	}
 
 	datach := make(chan *models.XappCallbackData, 10)
 	subschan := make(chan *models.XappSubscriptionData, 10)
 	subdelchan := make(chan *models.XappSubscriptionData, 10)
-	rtmgr.Logger.Info("Launching Rest Http service")
+	xapp.Logger.Info("Launching Rest Http service")
 	go func() {
 		r.LaunchRest(&nbiif, datach, subschan, subdelchan)
 	}()
@@ -316,9 +317,9 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 		for {
 			data, err := r.RecvXappCallbackData(datach)
 			if err != nil {
-				rtmgr.Logger.Error("cannot get data from rest api dute to: " + err.Error())
+				xapp.Logger.Error("cannot get data from rest api dute to: " + err.Error())
 			} else if data != nil {
-				rtmgr.Logger.Debug("Fetching all xApps deployed in xApp Manager through GET operation.")
+				xapp.Logger.Debug("Fetching all xApps deployed in xApp Manager through GET operation.")
 				alldata, err1 := httpGetXApps(xmurl)
 				if alldata != nil && err1 == nil {
 					sdlEngine.WriteXApps(fileName, alldata)
@@ -331,7 +332,7 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	go func() {
 		for {
 			data := <-subschan
-			rtmgr.Logger.Debug("received XApp subscription data")
+			xapp.Logger.Debug("received XApp subscription data")
 			addSubscription(&rtmgr.Subs, data)
 			triggerSBI <- true
 		}
@@ -340,7 +341,7 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	go func() {
 		for {
 			data := <-subdelchan
-			rtmgr.Logger.Debug("received XApp subscription delete data")
+			xapp.Logger.Debug("received XApp subscription delete data")
 			delSubscription(&rtmgr.Subs, data)
 			triggerSBI <- true
 		}
@@ -358,7 +359,7 @@ func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 	sub := rtmgr.Subscription{SubID: *xappSubData.SubscriptionID, Fqdn: *xappSubData.Address, Port: *xappSubData.Port}
 	for _, elem := range *subs {
 		if elem == sub {
-			rtmgr.Logger.Warn("rtmgr.addSubscription: Subscription already present: %v", elem)
+			xapp.Logger.Warn("rtmgr.addSubscription: Subscription already present: %v", elem)
 			b = true
 		}
 	}
@@ -369,7 +370,7 @@ func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 }
 
 func delSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubscriptionData) bool {
-	rtmgr.Logger.Debug("Deleteing the subscription from the subscriptions list")
+	xapp.Logger.Debug("Deleteing the subscription from the subscriptions list")
 	var present = false
 	sub := rtmgr.Subscription{SubID: *xappSubData.SubscriptionID, Fqdn: *xappSubData.Address, Port: *xappSubData.Port}
 	for i, elem := range *subs {
@@ -383,7 +384,7 @@ func delSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 		}
 	}
 	if present == false {
-		rtmgr.Logger.Warn("rtmgr.delSubscription: Subscription = %v, not present in the existing subscriptions", xappSubData)
+		xapp.Logger.Warn("rtmgr.delSubscription: Subscription = %v, not present in the existing subscriptions", xappSubData)
 	}
 	return present
 }
