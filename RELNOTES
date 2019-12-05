@@ -1,3 +1,7 @@
+### v0.4.2
+* Added Routes when AC-xApp is deployed 
+* included xapp-framework. Using only config and Logger module for now.
+
 ### v0.4.1
 * Fixed integration and subscription routes related issues for R3
 

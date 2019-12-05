@@ -31,11 +31,10 @@ package rtmgr
 import (
 	"encoding/json"
 	"errors"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"os"
-	"strings"
-
-	"github.com/jcelliott/lumber"
 )
 
 var (
@@ -99,6 +98,9 @@ var (
 		"RIC_INDICATION":                   "12050",
 		"DC_ADM_INT_CONTROL":               "20000",
 		"DC_ADM_INT_CONTROL_ACK":           "20001",
+		"A1_POLICY_REQ":                    "20010",
+		"A1_POLICY_RESPONSE":               "20011",
+		"A1_POLICY_QUERY":                  "20012",
 		"RIC_CONTROL_XAPP_CONFIG_REQUEST":  "100000",
 		"RIC_CONTROL_XAPP_CONFIG_RESPONSE": "100001",
 	}
@@ -107,60 +109,38 @@ var (
 	// This implements static default routes needed by the RIC. Needs to be changed in case new components/message types needes to be added/updated.
 	// Representation : {"componentName1": {"tx": <tx message type list>, "rx": <rx message type list>}}
 	PLATFORMMESSAGETYPES = map[string]map[string][]string{
-		"E2TERM": {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_REQ", "RIC_SUB_DEL_REQ", "RIC_CONTROL_REQ"}},
-		"E2MAN":  {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}},
-		"SUBMAN": {"tx": []string{"RIC_SUB_REQ", "RIC_SUB_DEL_REQ"}, "rx": []string{"RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}},
-		"UEMAN":  {"tx": []string{"RIC_CONTROL_REQ"}, "rx": []string{}},
-		"RSM":    {"tx": []string{"RIC_RES_STATUS_REQ"}, "rx": []string{"RAN_CONNECTED", "RAN_RESTARTED", "RAN_RECONFIGURED"}},
+		"E2TERM":     {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE", "RIC_SUB_REQ", "RIC_SUB_DEL_REQ", "RIC_CONTROL_REQ"}},
+		"E2MAN":      {"tx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}, "rx": []string{"RIC_X2_SETUP_REQ", "RIC_X2_SETUP_RESP", "RIC_X2_SETUP_FAILURE", "RIC_X2_RESET", "RIC_X2_RESET_RESP", "RIC_ENDC_X2_SETUP_REQ", "RIC_ENDC_X2_SETUP_RESP", "RIC_ENDC_X2_SETUP_FAILURE"}},
+		"SUBMAN":     {"tx": []string{"RIC_SUB_REQ", "RIC_SUB_DEL_REQ"}, "rx": []string{"RIC_SUB_RESP", "RIC_SUB_FAILURE", "RIC_SUB_DEL_RESP", "RIC_SUB_DEL_FAILURE"}},
+		"UEMAN":      {"tx": []string{"RIC_CONTROL_REQ"}, "rx": []string{}},
+		"RSM":        {"tx": []string{"RIC_RES_STATUS_REQ"}, "rx": []string{"RAN_CONNECTED", "RAN_RESTARTED", "RAN_RECONFIGURED"}},
+		"A1MEDIATOR": {"tx": []string{}, "rx": []string{"A1_POLICY_QUERY", "A1_POLICY_RESPONSE"}},
 	}
 
-	Logger = lumber.NewConsoleLogger(lumber.INFO)
-	Eps    Endpoints
-	Subs   SubscriptionList
+	Eps  Endpoints
+	Subs SubscriptionList
 )
 
-func SetLogLevel(loglevel string) error {
-	switch strings.ToUpper(loglevel) {
-	case "INFO":
-		Logger.Level(lumber.INFO)
-		return nil
-	case "WARN":
-		Logger.Level(lumber.WARN)
-		return nil
-	case "ERROR":
-		Logger.Level(lumber.ERROR)
-		return nil
-	case "DEBUG":
-		Logger.Info("Debug mode")
-		Logger.Level(lumber.DEBUG)
-		return nil
-	case "TRACE":
-		Logger.Info("Trace mode")
-		Logger.Level(lumber.TRACE)
-		return nil
-	default:
-		Logger.Error("invalid log mode, setting info")
-		Logger.Level(lumber.INFO)
-		return errors.New("invalid log level, setting info")
-	}
-}
-
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
-	Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
+	xapp.Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
 	var rcfg ConfigRtmgr
-	jsonFile, err := os.Open(configfile)
+	yamlFile, err := os.Open(configfile)
 	if err != nil {
 		return nil, errors.New("cannot open the file due to: " + err.Error())
 	}
-	defer jsonFile.Close()
-	byteValue, err := ioutil.ReadAll(jsonFile)
+	defer yamlFile.Close()
+	byteValue, err := ioutil.ReadAll(yamlFile)
 	if err != nil {
 		return nil, errors.New("cannot read the file due to: " + err.Error())
 	}
-	err = json.Unmarshal(byteValue, &rcfg)
+	jsonByteValue, err := yaml.YAMLToJSON(byteValue)
+	if err != nil {
+		return nil, errors.New("cannot read the file due to: " + err.Error())
+	}
+	err = json.Unmarshal(jsonByteValue, &rcfg)
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())
 	}
-	Logger.Debug("Platform components read from the configfile:  %v", rcfg.Pcs)
+	xapp.Logger.Debug("Platform components read from the configfile:  %v", rcfg.Pcs)
 	return &(rcfg.Pcs), nil
 }

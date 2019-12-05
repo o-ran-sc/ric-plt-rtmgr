@@ -31,6 +31,7 @@ package sdl
 import (
 	"encoding/json"
 	"errors"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"io/ioutil"
 	"os"
 	"routing-manager/pkg/rtmgr"
@@ -52,7 +53,7 @@ func NewFile() *File {
 }
 
 func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
-	rtmgr.Logger.Debug("Invoked sdl.ReadAll(" + file + ")")
+	xapp.Logger.Debug("Invoked sdl.ReadAll(" + file + ")")
 	var rcs *rtmgr.RicComponents
 	jsonFile, err := os.Open(file)
 	if err != nil {
@@ -68,14 +69,14 @@ func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())
 	}
-	rtmgr.Logger.Debug("file.fileReadAll returns: %v", rcs)
+	xapp.Logger.Debug("file.fileReadAll returns: %v", rcs)
 	return rcs, nil
 }
 
 func (f *File) WriteAll(file string, rcs *rtmgr.RicComponents) error {
-	rtmgr.Logger.Debug("Invoked sdl.WriteAll")
-	rtmgr.Logger.Debug("file.fileWriteAll writes into file: " + file)
-	rtmgr.Logger.Debug("file.fileWriteAll writes data: %v", *rcs)
+	xapp.Logger.Debug("Invoked sdl.WriteAll")
+	xapp.Logger.Debug("file.fileWriteAll writes into file: " + file)
+	xapp.Logger.Debug("file.fileWriteAll writes data: %v", *rcs)
 	byteValue, err := json.Marshal(rcs)
 	if err != nil {
 		return errors.New("cannot convert data due to: " + err.Error())
@@ -88,13 +89,13 @@ func (f *File) WriteAll(file string, rcs *rtmgr.RicComponents) error {
 }
 
 func (f *File) WriteXApps(file string, xApps *[]rtmgr.XApp) error {
-	rtmgr.Logger.Debug("Invoked sdl.WriteXApps")
-	rtmgr.Logger.Debug("file.fileWriteXApps writes into file: " + file)
-	rtmgr.Logger.Debug("file.fileWriteXApps writes data: %v", *xApps)
+	xapp.Logger.Debug("Invoked sdl.WriteXApps")
+	xapp.Logger.Debug("file.fileWriteXApps writes into file: " + file)
+	xapp.Logger.Debug("file.fileWriteXApps writes data: %v", *xApps)
 
 	ricData, err := NewFile().ReadAll(file)
 	if err != nil {
-		rtmgr.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
 		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
 	}
 	ricData.XApps = *xApps

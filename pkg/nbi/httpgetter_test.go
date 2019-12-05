@@ -33,7 +33,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"routing-manager/pkg/rtmgr"
 	"testing"
 )
 
@@ -51,7 +50,6 @@ func TestFetchXappListInvalidData(t *testing.T) {
 
 func TestFetchXappListWithInvalidData(t *testing.T) {
 	var expected = 0
-	rtmgr.SetLogLevel("debug")
 	b := []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 	l, err := net.Listen("tcp", "127.0.0.1:3000")
 	if err != nil {

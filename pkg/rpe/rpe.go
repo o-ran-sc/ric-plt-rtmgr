@@ -31,10 +31,11 @@ package rpe
 
 import (
 	"errors"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sbi"
-	"strconv"
 	"runtime"
+	"strconv"
 )
 
 var (
@@ -64,8 +65,8 @@ type Rpe struct {
 func getEndpointByName(eps *rtmgr.Endpoints, name string) *rtmgr.Endpoint {
 	for _, ep := range *eps {
 		if ep.Name == name {
-			rtmgr.Logger.Debug("name: %s", ep.Name)
-			rtmgr.Logger.Debug("ep: %v", ep)
+			xapp.Logger.Debug("name: %s", ep.Name)
+			xapp.Logger.Debug("ep: %v", ep)
 			return ep
 		}
 	}
@@ -76,8 +77,8 @@ func getEndpointByUuid(uuid string) *rtmgr.Endpoint {
 	endPoints := rtmgr.Eps
 	for _, ep := range endPoints {
 		if ep.Uuid == uuid {
-			rtmgr.Logger.Debug("name: %s", ep.Uuid)
-			rtmgr.Logger.Debug("ep: %v", ep)
+			xapp.Logger.Debug("name: %s", ep.Uuid)
+			xapp.Logger.Debug("ep: %v", ep)
 			return ep
 		}
 	}
@@ -85,31 +86,33 @@ func getEndpointByUuid(uuid string) *rtmgr.Endpoint {
 }
 
 func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoint, routeTable *rtmgr.RouteTable, subId int32) {
-	if tx != nil && rx != nil {
-		txList := rtmgr.EndpointList{*tx}
+	var txList rtmgr.EndpointList
+	if rx != nil {
 		rxList := []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
+		if tx != nil {
+			txList = rtmgr.EndpointList{*tx}
+		}
 		messageId := rtmgr.MessageTypes[messageType]
 		route := rtmgr.RouteTableEntry{
-				MessageType: messageId,
-				TxList:      txList,
-				RxGroups:    rxList,
-				SubID:       subId}
-			*routeTable = append(*routeTable, route)
-			rtmgr.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
-			rtmgr.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
-		} else {
-			pc,_,_,ok := runtime.Caller(1)
-			details := runtime.FuncForPC(pc)
-			if ok && details != nil {
-				rtmgr.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
-			}
+			MessageType: messageId,
+			TxList:      txList,
+			RxGroups:    rxList,
+			SubID:       subId}
+		*routeTable = append(*routeTable, route)
+		xapp.Logger.Debug("Route added: MessageTyp: %v,  Rx: %v, SubId: %v", messageId, rx.Uuid, subId)
+	} else {
+		pc, _, _, ok := runtime.Caller(1)
+		details := runtime.FuncForPC(pc)
+		if ok && details != nil {
+			xapp.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
 		}
+	}
 }
 
 func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
-	rtmgr.Logger.Debug("rpe.generateXappRoutes invoked")
-	rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", xAppEp.Name, xAppEp.XAppType)
-	if xAppEp.XAppType != sbi.PlatformType && ( len(xAppEp.TxMessages) > 0 || len(xAppEp.RxMessages) > 0 ) {
+	xapp.Logger.Debug("rpe.generateXappRoutes invoked")
+	xapp.Logger.Debug("Endpoint: %v, xAppType: %v", xAppEp.Name, xAppEp.XAppType)
+	if xAppEp.XAppType != sbi.PlatformType && (len(xAppEp.TxMessages) > 0 || len(xAppEp.RxMessages) > 0) {
 		//xApp -> Subscription Manager
 		r.addRoute("RIC_SUB_REQ", xAppEp, subManEp, routeTable, -1)
 		r.addRoute("RIC_SUB_DEL_REQ", xAppEp, subManEp, routeTable, -1)
@@ -119,18 +122,26 @@ func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoin
 		r.addRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, -1)
 		r.addRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, -1)
 	}
+	//xApp->A1Mediator
+	if xAppEp.XAppType != sbi.PlatformType && len(xAppEp.Policies) > 0 {
+		xapp.Logger.Debug("rpe.generateXappRoutes found policies section")
+		for _, policy := range xAppEp.Policies {
+			r.addRoute("A1_POLICY_REQ", nil, xAppEp, routeTable, policy)
+		}
+	}
+
 }
 
 func (r *Rpe) generateSubscriptionRoutes(selectedxAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
-	rtmgr.Logger.Debug("rpe.addSubscriptionRoutes invoked")
+	xapp.Logger.Debug("rpe.addSubscriptionRoutes invoked")
 	subscriptionList := &rtmgr.Subs
 	for _, subscription := range *subscriptionList {
-		rtmgr.Logger.Debug("Subscription: %v", subscription)
+		xapp.Logger.Debug("Subscription: %v", subscription)
 		xAppUuid := subscription.Fqdn + ":" + strconv.Itoa(int(subscription.Port))
-		rtmgr.Logger.Debug("xApp UUID: %v", xAppUuid)
+		xapp.Logger.Debug("xApp UUID: %v", xAppUuid)
 		xAppEp := getEndpointByUuid(xAppUuid)
-		if xAppEp.Uuid == selectedxAppEp.Uuid { 
-			rtmgr.Logger.Debug("xApp UUID is matched for selected xApp.UUID: %v and xApp.Name: %v", selectedxAppEp.Uuid, selectedxAppEp.Name)
+		if xAppEp.Uuid == selectedxAppEp.Uuid {
+			xapp.Logger.Debug("xApp UUID is matched for selected xApp.UUID: %v and xApp.Name: %v", selectedxAppEp.Uuid, selectedxAppEp.Name)
 			//Subscription Manager -> xApp
 			r.addRoute("RIC_SUB_RESP", subManEp, xAppEp, routeTable, subscription.SubID)
 			r.addRoute("RIC_SUB_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID)
@@ -144,8 +155,8 @@ func (r *Rpe) generateSubscriptionRoutes(selectedxAppEp *rtmgr.Endpoint, e2TermE
 	}
 }
 
-func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, e2ManEp *rtmgr.Endpoint, ueManEp *rtmgr.Endpoint, rsmEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
-	rtmgr.Logger.Debug("rpe.generatePlatformRoutes invoked")
+func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, e2ManEp *rtmgr.Endpoint, ueManEp *rtmgr.Endpoint, rsmEp *rtmgr.Endpoint, a1mediatorEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
+	xapp.Logger.Debug("rpe.generatePlatformRoutes invoked")
 	//Platform Routes --- Subscription Routes
 	//Subscription Manager -> E2 Termination
 	r.addRoute("RIC_SUB_REQ", subManEp, e2TermEp, routeTable, -1)
@@ -195,42 +206,51 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp *rtmgr.Endpoint, subManEp *rtmgr.E
 	//E2 Termination -> Resource Status Manager
 	r.addRoute("RIC_RES_STATUS_RESP", e2TermEp, rsmEp, routeTable, -1)
 	r.addRoute("RIC_RES_STATUS_FAILURE", e2TermEp, rsmEp, routeTable, -1)
+	//ACxapp -> A1 Mediator
+	r.addRoute("A1_POLICY_QUERY", nil, a1mediatorEp, routeTable, -1)
+	r.addRoute("A1_POLICY_RESPONSE", nil, a1mediatorEp, routeTable, -1)
 }
 
 func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable {
-	rtmgr.Logger.Debug("rpe.generateRouteTable invoked")
-	rtmgr.Logger.Debug("Endpoint List:  %v", endPointList)
+	xapp.Logger.Debug("rpe.generateRouteTable invoked")
+	xapp.Logger.Debug("Endpoint List:  %v", endPointList)
 	routeTable := &rtmgr.RouteTable{}
 	e2TermEp := getEndpointByName(&endPointList, "E2TERM")
 	if e2TermEp == nil {
-		rtmgr.Logger.Error("Platform component not found: %v", "E2 Termination")
-		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+		xapp.Logger.Error("Platform component not found: %v", "E2 Termination")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
 	subManEp := getEndpointByName(&endPointList, "SUBMAN")
 	if subManEp == nil {
-		rtmgr.Logger.Error("Platform component not found: %v", "Subscription Manager")
-		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+		xapp.Logger.Error("Platform component not found: %v", "Subscription Manager")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
 	e2ManEp := getEndpointByName(&endPointList, "E2MAN")
 	if e2ManEp == nil {
-		rtmgr.Logger.Error("Platform component not found: %v", "E2 Manager")
-		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+		xapp.Logger.Error("Platform component not found: %v", "E2 Manager")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
 	ueManEp := getEndpointByName(&endPointList, "UEMAN")
 	if ueManEp == nil {
-		rtmgr.Logger.Error("Platform component not found: %v", "UE Manger")
-		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+		xapp.Logger.Error("Platform component not found: %v", "UE Manger")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
 	rsmEp := getEndpointByName(&endPointList, "RSM")
 	if rsmEp == nil {
-		rtmgr.Logger.Error("Platform component not found: %v", "Resource Status Manager")
-		rtmgr.Logger.Debug("Endpoints: %v", endPointList)
+		xapp.Logger.Error("Platform component not found: %v", "Resource Status Manager")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
-	r.generatePlatformRoutes(e2TermEp, subManEp, e2ManEp, ueManEp, rsmEp, routeTable)
+	A1MediatorEp := getEndpointByName(&endPointList, "A1MEDIATOR")
+	if A1MediatorEp == nil {
+		xapp.Logger.Error("Platform component not found: %v", "A1Mediator")
+		xapp.Logger.Debug("Endpoints: %v", endPointList)
+	}
+
+	r.generatePlatformRoutes(e2TermEp, subManEp, e2ManEp, ueManEp, rsmEp, A1MediatorEp, routeTable)
 
 	for _, endPoint := range endPointList {
-		rtmgr.Logger.Debug("Endpoint: %v, xAppType: %v", endPoint.Name, endPoint.XAppType)
-		if endPoint.XAppType != sbi.PlatformType && ( len(endPoint.TxMessages) > 0 || len(endPoint.RxMessages) > 0 ) {
+		xapp.Logger.Debug("Endpoint: %v, xAppType: %v", endPoint.Name, endPoint.XAppType)
+		if endPoint.XAppType != sbi.PlatformType && (len(endPoint.TxMessages) > 0 || len(endPoint.RxMessages) > 0) {
 			r.generateXappRoutes(endPoint, e2TermEp, subManEp, routeTable)
 			r.generateSubscriptionRoutes(endPoint, e2TermEp, subManEp, routeTable)
 		}

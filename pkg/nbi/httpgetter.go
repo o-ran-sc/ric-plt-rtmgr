@@ -32,6 +32,7 @@ package nbi
 
 import (
 	"encoding/json"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"net/http"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
@@ -53,7 +54,7 @@ func NewHttpGetter() *HttpGetter {
 var myClient = &http.Client{Timeout: 5 * time.Second}
 
 func fetchAllXApps(xmurl string) (*[]rtmgr.XApp, error) {
-	rtmgr.Logger.Info("Invoked httpGetter.fetchXappList: " + xmurl)
+	xapp.Logger.Info("Invoked httpGetter.fetchXappList: " + xmurl)
 	r, err := myClient.Get(xmurl)
 	if err != nil {
 		return nil, err
@@ -61,17 +62,17 @@ func fetchAllXApps(xmurl string) (*[]rtmgr.XApp, error) {
 	defer r.Body.Close()
 
 	if r.StatusCode == 200 {
-		rtmgr.Logger.Debug("http client raw response: %v", r)
+		xapp.Logger.Debug("http client raw response: %v", r)
 		var xApps []rtmgr.XApp
 		err = json.NewDecoder(r.Body).Decode(&xApps)
 		if err != nil {
-			rtmgr.Logger.Warn("Json decode failed: " + err.Error())
+			xapp.Logger.Warn("Json decode failed: " + err.Error())
 		}
-		rtmgr.Logger.Info("HTTP GET: OK")
-		rtmgr.Logger.Debug("httpGetter.fetchXappList returns: %v", xApps)
+		xapp.Logger.Info("HTTP GET: OK")
+		xapp.Logger.Debug("httpGetter.fetchXappList returns: %v", xApps)
 		return &xApps, err
 	}
-	rtmgr.Logger.Warn("httpGetter got an unexpected http status code: %v", r.StatusCode)
+	xapp.Logger.Warn("httpGetter got an unexpected http status code: %v", r.StatusCode)
 	return nil, nil
 }
 

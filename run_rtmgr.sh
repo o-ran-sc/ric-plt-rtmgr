@@ -26,4 +26,5 @@
 #	Abstract:	Runs the rtmgr executable with proper arguments
 #	Date:		19 March 2019
 #
-exec ./rtmgr  -xm-url=$XMURL -nbi=$NBI -nbi-if=$NBIURL -sbi=$SBI -sbi-if=$SBIURL -filename=$RTFILE -rpe=$RPE -loglevel=$LOGLEVEL -configfile=$CFGFILE 
+#exec ./rtmgr  -xm-url=$XMURL -nbi=$NBI -nbi-if=$NBIURL -sbi=$SBI -sbi-if=$SBIURL -filename=$RTFILE -rpe=$RPE -loglevel=$LOGLEVEL -configfile=$CFGFILE 
+exec ./rtmgr -f $CFGFILE

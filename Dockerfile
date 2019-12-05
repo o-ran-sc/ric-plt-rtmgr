@@ -13,21 +13,36 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+#
+#   This source code is part of the near-RT RIC (RAN Intelligent Controller)
+#   platform project (RICP).
 #==================================================================================
 
 # The CI system creates and publishes the rtmgr Docker image
 # from the last step in this multi-stage build and applies 
 # a Docker tag from the string in file container-tag.yaml
 
-FROM golang:1.12 as rtmgrbuild
-ENV GOPATH /go
-RUN apt-get update \
-    && apt-get install -y golang-glide git wget
+#FROM golang:1.12.1 as rtmgrbuild
+FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:2-u18.04-nng as rtmgrbuild
 
+
+# Install RMr shared library
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_1.9.0_amd64.deb/download.deb && dpkg -i rmr_1.9.0_amd64.deb && rm -rf rmr_1.9.0_amd64.deb
+# Install RMr development header files
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_1.9.0_amd64.deb/download.deb && dpkg -i rmr-dev_1.9.0_amd64.deb && rm -rf rmr-dev_1.9.0_amd64.deb
+
+ENV GOLANG_VERSION 1.12.1
+RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
+     && tar xvzf go$GOLANG_VERSION.linux-amd64.tar.gz -C /usr/local 
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH /go
+
+RUN mkdir -p /go/bin
 RUN cd /go/bin \
     && wget --quiet https://github.com/go-swagger/go-swagger/releases/download/v0.19.0/swagger_linux_amd64 \
     && mv swagger_linux_amd64 swagger \
     && chmod +x swagger
+
 
 WORKDIR /go/src/routing-manager
 COPY api/ /go/src/routing-manager/api
@@ -38,29 +53,37 @@ RUN git clone "https://gerrit.o-ran-sc.org/r/ric-plt/appmgr" \
     && cp appmgr/api/appmgr_rest_api.yaml api/ \
     && rm -rf appmgr
 
-RUN swagger generate server -f api/routing_manager.yaml -t pkg/ --exclude-main -r LICENSE
-RUN swagger generate client -f api/appmgr_rest_api.yaml -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
+RUN /go/bin/swagger generate server -f api/routing_manager.yaml -t pkg/ --exclude-main -r LICENSE
+RUN /go/bin/swagger generate client -f api/appmgr_rest_api.yaml -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
 
-COPY glide.lock glide.lock
-COPY glide.yaml glide.yaml
-
-RUN glide install --strip-vendor
-
+ENV GO111MODULE=on 
+ENV GOPATH ""
+COPY go.sum go.sum
+COPY go.mod go.mod
 COPY pkg pkg
 COPY cmd cmd
 COPY run_rtmgr.sh /run_rtmgr.sh
+#RUN go mod download 
+#RUN /usr/local/go/bin/go mod tidy
+ENV GOPATH /go
 
 ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
 FROM rtmgrbuild as rtmgrut
-RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -cover -race
+RUN ldconfig
+RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "./manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+
 # Final, executable container
 FROM ubuntu:16.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
-RUN apt-get update && apt-get install -y iputils-ping net-tools curl tcpdump
+COPY --from=rtmgrbuild /usr/local/include /usr/local/include
+COPY --from=rtmgrbuild /usr/local/lib /usr/local/lib
+RUN ldconfig
+
+RUN apt update && apt install -y iputils-ping net-tools curl tcpdump
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
 RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh
