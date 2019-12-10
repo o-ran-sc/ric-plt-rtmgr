@@ -44,4 +44,5 @@ type Engine interface {
 	ReadAll(string) (*rtmgr.RicComponents, error)
 	WriteAll(string, *rtmgr.RicComponents) error
 	WriteXApps(string, *[]rtmgr.XApp) error
+	WriteNewE2TInstance(string, *rtmgr.E2TInstance) error
 }

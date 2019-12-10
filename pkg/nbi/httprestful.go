@@ -57,6 +57,8 @@ type HttpRestful struct {
 	Engine
 	LaunchRest                   LaunchRestHandler
 	RecvXappCallbackData         RecvXappCallbackDataHandler
+        RecvNewE2Tdata               RecvNewE2TdataHandler
+
 	ProvideXappHandleHandlerImpl ProvideXappHandleHandlerImpl
 	RetrieveStartupData          RetrieveStartupDataHandler
 }
@@ -65,6 +67,7 @@ func NewHttpRestful() *HttpRestful {
 	instance := new(HttpRestful)
 	instance.LaunchRest = launchRest
 	instance.RecvXappCallbackData = recvXappCallbackData
+        instance.RecvNewE2Tdata = recvNewE2Tdata
 	instance.ProvideXappHandleHandlerImpl = provideXappHandleHandlerImpl
 	instance.RetrieveStartupData = retrieveStartupData
 	return instance
@@ -93,6 +96,28 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	xapp.Logger.Debug("Nothing received on the Http interface")
 	return nil, nil
 }
+
+func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, error) {
+        var e2tData *models.E2tData
+        xapp.Logger.Info("data received")
+
+        e2tData = <-dataChannel
+
+        if nil != e2tData {
+                var e2tinst rtmgr.E2TInstance
+                e2tinst.Fqdn = *e2tData.E2TAddress
+                e2tinst.Name = "E2TERMINST"
+                return &e2tinst,nil
+        } else {
+                xapp.Logger.Info("No data")
+        }
+
+        xapp.Logger.Debug("Nothing received on the Http interface")
+        return nil, nil
+}
+
+
+
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 	if len(callbackData.XApps) == 0 {
@@ -129,6 +154,21 @@ func validateXappSubscriptionData(data *models.XappSubscriptionData) error {
 		}
 	}
 	return err
+}
+
+func validateE2tData(data *models.E2tData) error {
+        var err = fmt.Errorf("E2T E2TAddress is not proper: %v", *data.E2TAddress)
+/*      for _, ep := range rtmgr.Eps {
+                if ep.Ip == *data.Address && ep.Port == *data.Port {
+                        err = nil
+                        break
+                }
+        }*/
+
+        if (*data.E2TAddress != "") {
+                err = nil
+        }
+        return err
 }
 
 func provideXappSubscriptionHandleImpl(subchan chan<- *models.XappSubscriptionData,
@@ -176,8 +216,21 @@ func deleteXappSubscriptionHandleImpl(subdelchan chan<- *models.XappSubscription
 	return nil
 }
 
+func createNewE2tHandleHandlerImpl(e2taddchan chan<- *models.E2tData,
+        data *models.E2tData) error {
+        xapp.Logger.Debug("Invoked createNewE2tHandleHandlerImpl")
+        err := validateE2tData(data)
+        if err != nil {
+                xapp.Logger.Error(err.Error())
+                return err
+        }
+
+        e2taddchan <- data
+        return nil
+}
+
 func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData,
-	subdelchan chan<- *models.XappSubscriptionData) {
+	subdelchan chan<- *models.XappSubscriptionData, e2taddchan chan<- *models.E2tData) {
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
 	if err != nil {
 		//log.Fatalln(err)
@@ -233,6 +286,17 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				return handle.NewGetHandlesOK()
 			}
 		})
+       api.HandleCreateNewE2tHandleHandler = handle.CreateNewE2tHandleHandlerFunc(
+                func(params handle.CreateNewE2tHandleParams) middleware.Responder {
+                        err := createNewE2tHandleHandlerImpl(e2taddchan, params.E2tData)
+                        if err != nil {
+                                return handle.NewCreateNewE2tHandleBadRequest()
+                        } else {
+				time.Sleep(1 * time.Second)
+                                return handle.NewCreateNewE2tHandleCreated()
+                        }
+                })
+
 	// start to serve API
 	xapp.Logger.Info("Starting the HTTP Rest service")
 	if err := server.Serve(); err != nil {
@@ -277,7 +341,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			}
 			xapp.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
 			// Combine the xapps data and platform data before writing to the SDL
-			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData}
+			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts:  make(map[string]rtmgr.E2TInstance)}
 			writeErr := sdlEngine.WriteAll(fileName, ricData)
 			if writeErr != nil {
 				xapp.Logger.Error(writeErr.Error())
@@ -308,9 +372,10 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	datach := make(chan *models.XappCallbackData, 10)
 	subschan := make(chan *models.XappSubscriptionData, 10)
 	subdelchan := make(chan *models.XappSubscriptionData, 10)
+	e2taddchan := make(chan *models.E2tData, 10)
 	xapp.Logger.Info("Launching Rest Http service")
 	go func() {
-		r.LaunchRest(&nbiif, datach, subschan, subdelchan)
+		r.LaunchRest(&nbiif, datach, subschan, subdelchan, e2taddchan)
 	}()
 
 	go func() {
@@ -346,6 +411,20 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 			triggerSBI <- true
 		}
 	}()
+
+        go func() {
+                for {
+                        xapp.Logger.Debug("received create New E2T data")
+
+                        data, err := r.RecvNewE2Tdata(e2taddchan)
+                        if err != nil {
+                                xapp.Logger.Error("cannot get data from rest api dute to: " + err.Error())
+                        } else if data != nil {
+                                sdlEngine.WriteNewE2TInstance(fileName, data)
+                                triggerSBI <- true
+                        }
+                }
+        }()
 
 	return nil
 }

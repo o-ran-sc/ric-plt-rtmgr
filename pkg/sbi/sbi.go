@@ -34,6 +34,7 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
+	"strings"
 )
 
 const DefaultNngPipelineSocketPrefix = "tcp://"
@@ -106,6 +107,7 @@ func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
 		}
 	}
 	s.updatePlatformEndpoints(&((*rcs).Pcs), sbi)
+        s.updateE2TEndpoints(&((*rcs).E2Ts), sbi)
 	s.pruneEndpointList(sbi)
 }
 
@@ -136,4 +138,36 @@ func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine)
 			rtmgr.Eps[uuid] = ep
 		}
 	}
+}
+
+func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine) {
+        xapp.Logger.Debug("updateE2TEndpoints invoked. E2T: %v", *E2Ts)
+        for _, e2t := range *E2Ts {
+                uuid := e2t.Fqdn
+                stringSlice := strings.Split(e2t.Fqdn, ":")
+                ipaddress := stringSlice[0]
+                port, _ := strconv.Atoi(stringSlice[1])
+                if _, ok := rtmgr.Eps[uuid]; ok {
+                        rtmgr.Eps[uuid].Keepalive = true
+                } else {
+                        ep := &rtmgr.Endpoint{
+                                Uuid:       uuid,
+                                Name:       e2t.Name,
+                                XAppType:   PlatformType,
+                                Ip:         ipaddress,
+                                Port:       uint16(port),
+                                TxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["tx"],
+                                RxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["rx"],
+                                Socket:     nil,
+                                IsReady:    false,
+                                Keepalive:  true,
+                        }
+                        xapp.Logger.Debug("ep created: %v", ep)
+                        if err := sbi.AddEndpoint(ep); err != nil {
+                                xapp.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
+                                continue
+                        }
+                        rtmgr.Eps[uuid] = ep
+                }
+        }
 }

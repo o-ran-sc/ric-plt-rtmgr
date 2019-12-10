@@ -78,9 +78,19 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 			}
 		}
 		rawrte += group
+
+                if (rte.RouteType == "%meid") {
+                        rawrte += group + rte.RouteType
+                }
+
 		rawrt = append(rawrt, rawrte+"\n")
 	}
 	rawrt = append(rawrt, key+"newrt|end\n")
+
+        count := 0
+        rawrt = append(rawrt, key+"meid_map|start\n")
+        rawrt = append(rawrt, key+"meid_map|end|" + strconv.Itoa(count) +"\n")
+
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
 	return &rawrt
 }
