@@ -25,11 +25,10 @@
 #FROM golang:1.12.1 as rtmgrbuild
 FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:2-u18.04-nng as rtmgrbuild
 
-
 # Install RMr shared library
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_1.9.0_amd64.deb/download.deb && dpkg -i rmr_1.9.0_amd64.deb && rm -rf rmr_1.9.0_amd64.deb
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_1.10.2_amd64.deb/download.deb && dpkg -i rmr_1.10.2_amd64.deb && rm -rf rmr_1.10.2_amd64.deb
 # Install RMr development header files
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_1.9.0_amd64.deb/download.deb && dpkg -i rmr-dev_1.9.0_amd64.deb && rm -rf rmr-dev_1.9.0_amd64.deb
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_1.10.2_amd64.deb/download.deb && dpkg -i rmr-dev_1.10.2_amd64.deb && rm -rf rmr-dev_1.10.2_amd64.deb
 
 ENV GOLANG_VERSION 1.12.1
 RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
@@ -83,7 +82,7 @@ COPY --from=rtmgrbuild /usr/local/include /usr/local/include
 COPY --from=rtmgrbuild /usr/local/lib /usr/local/lib
 RUN ldconfig
 
-RUN apt update && apt install -y iputils-ping net-tools curl tcpdump
+RUN apt-get update && apt-get install -y iputils-ping net-tools curl tcpdump
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
 RUN chmod 755 /run_rtmgr.sh
 CMD /run_rtmgr.sh

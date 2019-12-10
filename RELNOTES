@@ -1,3 +1,6 @@
+### v0.4.3
+* Included RMR changes that has MEID implementation
+
 ### v0.4.2
 * Added Routes when AC-xApp is deployed 
 * included xapp-framework. Using only config and Logger module for now.
