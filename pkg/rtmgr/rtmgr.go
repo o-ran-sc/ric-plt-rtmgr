@@ -51,6 +51,8 @@ var (
 		"X2Setup":                          "6",
 		"Reset":                            "7",
 		"E2_TERM_INIT":                     "1100",
+		"E2_TERM_KEEP_ALIVE_REQ":            "1101",
+		"E2_TERM_KEEP_ALIVE_RESP":           "1102",
 		"RAN_CONNECTED":                    "1200",
 		"RAN_RESTARTED":                    "1210",
 		"RAN_RECONFIGURED":                 "1220",

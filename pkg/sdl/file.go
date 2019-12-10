@@ -110,3 +110,26 @@ func (f *File) WriteXApps(file string, xApps *[]rtmgr.XApp) error {
 	}
 	return nil
 }
+
+func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance) error {
+        xapp.Logger.Debug("Invoked sdl.WriteNewE2TInstance")
+        xapp.Logger.Debug("file.WriteNewE2TInstance writes into file: " + file)
+        xapp.Logger.Debug("file.WriteNewE2TInstance writes data: %v", *E2TInst)
+
+        ricData, err := NewFile().ReadAll(file)
+        if err != nil {
+                xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+                return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+        }
+        ricData.E2Ts[E2TInst.Fqdn] = *E2TInst
+
+        byteValue, err := json.Marshal(ricData)
+        if err != nil {
+                return errors.New("cannot convert data due to: " + err.Error())
+        }
+        err = ioutil.WriteFile(file, byteValue, 0644)
+        if err != nil {
+                return errors.New("cannot write file due to: " + err.Error())
+        }
+        return nil
+}

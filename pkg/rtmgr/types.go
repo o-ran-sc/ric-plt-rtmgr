@@ -60,6 +60,7 @@ type RouteTableEntry struct {
 	TxList      EndpointList
 	RxGroups    []EndpointList
 	SubID       int32
+	RouteType   string
 }
 
 type XApp struct {
@@ -85,12 +86,19 @@ type PlatformComponents []struct {
 	Port uint16 `json:"port"`
 }
 
+type E2TInstance struct {
+        Name string `json:"name"`
+        Fqdn string `json:"fqdn"`
+        Ranlist []string `json:"ranlist"`
+}
+
 type ConfigRtmgr struct {
 	Pcs PlatformComponents `json:"PlatformComponents"`
 }
 
 type RicComponents struct {
 	XApps []XApp
+	E2Ts  map [string]E2TInstance
 	Pcs   PlatformComponents
 }
 
