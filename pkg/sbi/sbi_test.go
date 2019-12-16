@@ -31,6 +31,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"routing-manager/pkg/rtmgr"
 )
 
 func TestGetSbi(t *testing.T) {
@@ -52,4 +53,32 @@ func TestGetSbi(t *testing.T) {
 			t.Errorf("GetSbi("+arg+") was incorrect, got: %v, want: %v.", reflect.TypeOf(err), reflect.TypeOf(errtype))
 		}
 	}
+}
+
+func TestUpdateE2TendPoint(t *testing.T) {
+	var err error
+	var sbi = Sbi{}
+	sbii, err := GetSbi("nngpush")
+	var E2map = make(map[string]rtmgr.E2TInstance)
+
+	E2map["1.2.3.4:100"] = rtmgr.E2TInstance{
+		 Name: "E2Tinstance1",
+	        Fqdn: "1.2.3.4:100",
+		Ranlist: []string{"1","2"},
+	}
+
+	sbi.updateE2TEndpoints(&E2map,sbii)
+	t.Log(err)
+}
+
+func TestpruneEndpointList(t *testing.T) {
+	var sbi = Sbi{}
+	var err error
+        sbii, err := GetSbi("nngpush")
+
+	var EP = make(map[string]*rtmgr.Endpoint)
+	EP["10.0.0.1:0"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
+	rtmgr.Eps = EP
+	sbi.pruneEndpointList(sbii)
+	t.Log(err)
 }
