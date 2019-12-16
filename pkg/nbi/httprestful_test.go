@@ -38,6 +38,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"routing-manager/pkg/models"
+	"routing-manager/pkg/rpe"
+	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
 	"routing-manager/pkg/stub"
 	"testing"
@@ -65,6 +67,172 @@ var BasicXAppLists = []byte(`[
 var SubscriptionResp = []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 
 var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
+
+func TestValidateXappCallbackData_1(t *testing.T) {
+	data := models.XappCallbackData{
+		XApps:   *swag.String("[]"),
+		Version: *swag.Int64(1),
+		Event:   *swag.String("someevent"),
+		ID:      *swag.String("123456")}
+
+	err := validateXappCallbackData(&data)
+	if err != nil {
+		t.Error("Invalid XApp callback data: " + err.Error())
+	}
+}
+
+func TestValidateXappSubscriptionsData(t *testing.T) {
+
+	ep := make(map[string]*rtmgr.Endpoint)
+	ep["dummy"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
+	p := uint16(1234)
+	data := models.XappSubscriptionData{
+		Address:        swag.String("10.1.1.1"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(123456)}
+
+	var err error
+	err = validateXappSubscriptionData(&data)
+	t.Log(err)
+
+	rtmgr.Eps = ep
+	p = uint16(0)
+	data1 := models.XappSubscriptionData{
+		Address:        swag.String(""),
+		Port:           &p,
+		SubscriptionID: swag.Int32(123456)}
+	err = validateXappSubscriptionData(&data1)
+	t.Log(err)
+
+	//Validate E2tData
+	data2 := models.E2tData{
+		E2TAddress: swag.String(""),
+	}
+	err = validateE2tData(&data2)
+
+	e2tchannel := make(chan *models.E2tData, 10)
+	_ = createNewE2tHandleHandlerImpl(e2tchannel, &data2)
+	defer close(e2tchannel)
+
+	//test case for provideXappSubscriptionHandleImp
+	datachannel := make(chan *models.XappSubscriptionData, 10)
+	_ = provideXappSubscriptionHandleImpl(datachannel, &data1)
+	defer close(datachannel)
+
+	//test case for deleteXappSubscriptionHandleImpl
+	_ = deleteXappSubscriptionHandleImpl(datachannel, &data1)
+}
+
+func TestvalidateE2tData(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String(""),
+	}
+	err := validateE2tData(&data)
+	t.Log(err)
+}
+
+func TestSubscriptionExists(t *testing.T) {
+	p := uint16(0)
+	data := models.XappSubscriptionData{
+		Address:        swag.String("10.0.0.0"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(1234)}
+
+	rtmgr.Subs = *stub.ValidSubscriptions
+
+	yes_no := subscriptionExists(&data)
+	yes_no = addSubscription(&rtmgr.Subs, &data)
+	yes_no = addSubscription(&rtmgr.Subs, &data)
+	yes_no = delSubscription(&rtmgr.Subs, &data)
+	yes_no = delSubscription(&rtmgr.Subs, &data)
+	t.Log(yes_no)
+}
+
+func TestaddSubscriptions(t *testing.T) {
+	p := uint16(1)
+	subdata := models.XappSubscriptionData{
+		Address:        swag.String("10.0.0.0"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(1234)}
+
+	rtmgr.Subs = *stub.ValidSubscriptions
+	yes_no := addSubscription(&rtmgr.Subs, &subdata)
+	t.Log(yes_no)
+}
+
+func TestHttpInstance(t *testing.T) {
+	sdlEngine, _ := sdl.GetSdl("file")
+	rpeEngine, _ := rpe.GetRpe("rmrpush")
+	httpinstance := NewHttpRestful()
+	err := httpinstance.Terminate()
+	t.Log(err)
+
+	triggerSBI := make(chan bool)
+	createMockPlatformComponents()
+	//ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
+	//ts.Start()
+	//defer ts.Close()
+	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine, rpeEngine, triggerSBI)
+}
+
+func TestXappCallbackDataChannelwithdata(t *testing.T) {
+	data := models.XappCallbackData{
+		XApps:   *swag.String("[]"),
+		Version: *swag.Int64(1),
+		Event:   *swag.String("someevent"),
+		ID:      *swag.String("123456")}
+	datach := make(chan *models.XappCallbackData, 1)
+	go func() { _, _ = recvXappCallbackData(datach) }()
+	defer close(datach)
+	datach <- &data
+}
+func TestXappCallbackDataChannelNodata(t *testing.T) {
+	datach := make(chan *models.XappCallbackData, 1)
+	go func() { _, _ = recvXappCallbackData(datach) }()
+	defer close(datach)
+}
+
+func TestE2TChannelwithData(t *testing.T) {
+	data2 := models.E2tData{
+		E2TAddress: swag.String(""),
+	}
+	dataChannel := make(chan *models.E2tData, 10)
+	go func() { _, _ = recvNewE2Tdata(dataChannel) }()
+	defer close(dataChannel)
+	dataChannel <- &data2
+}
+
+func TestE2TChannelwithNoData(t *testing.T) {
+	dataChannel := make(chan *models.E2tData, 10)
+	go func() { _, _ = recvNewE2Tdata(dataChannel) }()
+	defer close(dataChannel)
+}
+
+func TestprovideXappSubscriptionHandleImpl(t *testing.T) {
+	p := uint16(0)
+	data := models.XappSubscriptionData{
+		Address:        swag.String("10.0.0.0"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(1234)}
+	datachannel := make(chan *models.XappSubscriptionData, 10)
+	go func() { _ = provideXappSubscriptionHandleImpl(datachannel, &data) }()
+	defer close(datachannel)
+	datachannel <- &data
+
+	//subdel test
+}
+
+func TestdeleteXappSubscriptionHandleImpl(t *testing.T) {
+	p := uint16(1)
+	subdeldata := models.XappSubscriptionData{
+		Address:        swag.String("10.0.0.0"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(1234)}
+	subdelchannel := make(chan *models.XappSubscriptionData, 10)
+	go func() { _ = deleteXappSubscriptionHandleImpl(subdelchannel, &subdeldata) }()
+	defer close(subdelchannel)
+	subdelchannel <- &subdeldata
+}
 
 func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 	l, err := net.Listen("tcp", url)
@@ -196,7 +364,6 @@ func TestHttpGetXAppsWithValidData(t *testing.T) {
 		}
 	}
 }
-
 func TestRetrieveStartupDataTimeout(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	createMockPlatformComponents()
@@ -237,4 +404,21 @@ func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
+}
+
+func TestrecvXappCallbackData(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String("123456")}
+
+	var err error
+
+	e2tch := make(chan *models.E2tData)
+	go func() { e2tch <- &data }()
+	time.Sleep(1 * time.Second)
+	t.Log(string(len(e2tch)))
+	defer close(e2tch)
+
+	var httpRestful, _ = GetNbi("httpRESTful")
+	_, err = httpRestful.(*HttpRestful).RecvNewE2Tdata(e2tch)
+	t.Log(err)
 }

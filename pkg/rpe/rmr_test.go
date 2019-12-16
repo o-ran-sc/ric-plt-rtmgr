@@ -48,7 +48,28 @@ RmrPush.GeneratePolicies() method is tested for happy path case
 func TestRmrPushGeneratePolicies(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestDataset(stub.ValidEndpoints)
+        stub.ValidPlatformComponents = nil
+        rtmgr.Subs =  *stub.ValidSubscriptions
 
 	rawrt := rmrpush.GeneratePolicies(rtmgr.Eps)
 	t.Log(rawrt)
 }
+
+/*
+getEndpointByUuid: Pass empty and valid values
+*/
+func TestRmrgetEndpointByUuid(t *testing.T) {
+        var ep *rtmgr.Endpoint
+        ep = getEndpointByUuid("")
+        t.Logf("getEndpointByUuid() return was correct, got: %v, want: %v.", ep, "<nil>")
+        ep = getEndpointByUuid("10.0.0.1:0")
+}
+
+/*
+GetRpe Instance with empty and valid values
+*/
+func TestRmrGetRpe(t *testing.T) {
+        _,_ = GetRpe("")
+        _,_ = GetRpe("rmrpush")
+}
+

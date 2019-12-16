@@ -31,6 +31,9 @@ import (
 	"errors"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/stub"
+	//"nanomsg.org/go/mangos/v2"
+	//_ "nanomsg.org/go/mangos/v2/transport/all"
+	//"nanomsg.org/go/mangos/v2/protocol/push"
 	"testing"
 )
 
@@ -226,3 +229,28 @@ func TestNngPushDeleteEndpointWithSocketCloseError(t *testing.T) {
 		t.Errorf("nngpush.DeleteEndpoint() was incorrect, got: %v, want: %v.", nil, "error")
 	}
 }
+
+/*
+Initialize and send policies
+*/
+func TestNngPushInitializeandsendPolicies(t *testing.T) {
+        var nngpush = NngPush{}
+        _,_ = createNewPushSocket()
+        policies := []string{"hello","welcome"}
+        nngpush.send(rtmgr.Eps["10.1.1.1:0"],&policies)
+}
+
+/*
+func TestPipeEventHandler(t *testing.T) {
+	var sock mangos.Socket
+	var event mangos.PipeEvent
+	var pipe mangos.Pipe
+
+	var err error
+	sock, err = push.NewSocket()
+	sock.Dial("tcp://127.0.0.1:4555")
+	sock.SetPipeEventHook(pipeEventHandler)
+        pipeEventHandler(event,pipe)
+      t.Log(err)
+}
+*/

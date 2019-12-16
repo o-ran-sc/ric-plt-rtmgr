@@ -41,6 +41,9 @@ func TestFileWriteAll(t *testing.T) {
 
 	err = file.WriteAll("ut.rt", &stub.ValidRicComponents)
 	t.Log(err)
+	/* This test is for empty file */
+	err = file.WriteAll("", &stub.ValidRicComponents)
+	t.Log(err)
 }
 
 /*
@@ -52,5 +55,47 @@ func TestFileReadAll(t *testing.T) {
 
 	data, err := file.ReadAll("ut.rt")
 	t.Log(data)
+	t.Log(err)
+	/* Test to read a Directory */
+	data, err = file.ReadAll("/tmp")
+	t.Log(data)
+	t.Log(err)
+}
+
+/*
+WriteXApps
+*/
+func TestFileWriteXApps(t *testing.T) {
+	var err error
+	var file = File{}
+
+	err = file.WriteXApps("ut.rt", stub.ValidXApps)
+	t.Log(err)
+	/*Write data to a file that doesn't exist */
+	err = file.WriteXApps("ut.rtx", stub.ValidXApps)
+	t.Log(err)
+
+}
+
+/*
+GetSdl instance with correct and incorrect arguments
+*/
+func TestFileGetSdl(t *testing.T) {
+	var err error
+	_, err = GetSdl("")
+	t.Log(err)
+	_, err = GetSdl("file")
+	t.Log(err)
+}
+
+/*
+WriteNewE2TInstance
+*/
+func TestWriteNewE2TInstance(t *testing.T) {
+	var err error
+	var file = File{}
+	file.WriteNewE2TInstance("", &stub.ValidE2TInstance)
+	t.Log(err)
+	file.WriteNewE2TInstance("ut.rt", &stub.ValidE2TInstance)
 	t.Log(err)
 }
