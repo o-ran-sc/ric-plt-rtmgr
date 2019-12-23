@@ -35,6 +35,7 @@ import (
 	"io/ioutil"
 	"os"
 	"routing-manager/pkg/rtmgr"
+	"routing-manager/pkg/models"
 )
 
 /*
@@ -60,11 +61,11 @@ func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
 		return nil, errors.New("cannot open the file due to: " + err.Error())
 	}
 	defer jsonFile.Close()
-
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
 		return nil, errors.New("cannot read the file due to: " + err.Error())
 	}
+
 	err = json.Unmarshal(byteValue, &rcs)
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())
@@ -132,4 +133,128 @@ func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance) erro
                 return errors.New("cannot write file due to: " + err.Error())
         }
         return nil
+}
+
+func (f *File) WriteAssRANToE2TInstance(file string, rane2tmap models.RanE2tMap) error {
+        xapp.Logger.Debug("Invoked sdl.WriteAssRANToE2TInstance")
+        xapp.Logger.Debug("file.WriteAssRANToE2TInstance writes into file: " + file)
+        xapp.Logger.Debug("file.WriteAssRANToE2TInstance writes data: %v", rane2tmap)
+
+        ricData, err := NewFile().ReadAll(file)
+        if err != nil {
+                xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+                return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+        }
+	for _, element := range rane2tmap {
+		xapp.Logger.Info("data received")
+		for key, _ := range ricData.E2Ts {
+			if key == *element.E2TAddress {
+				var estObj rtmgr.E2TInstance
+				estObj = ricData.E2Ts[key]
+				estObj.Ranlist = append(ricData.E2Ts[key].Ranlist, element.RanNamelist...)
+				ricData.E2Ts[key]= estObj
+			}
+		}
+	}
+
+	byteValue, err := json.Marshal(ricData)
+        if err != nil {
+                return errors.New("cannot convert data due to: " + err.Error())
+        }
+        err = ioutil.WriteFile(file, byteValue, 0644)
+        if err != nil {
+                return errors.New("cannot write file due to: " + err.Error())
+        }
+        return nil
+}
+
+func (f *File) WriteDisAssRANFromE2TInstance(file string, disassranmap models.RanE2tMap) error {
+        xapp.Logger.Debug("Invoked sdl.WriteDisAssRANFromE2TInstance")
+        xapp.Logger.Debug("file.WriteDisAssRANFromE2TInstance writes into file: " + file)
+        xapp.Logger.Debug("file.WriteDisAssRANFromE2TInstance writes data: %v", disassranmap)
+
+        ricData, err := NewFile().ReadAll(file)
+        if err != nil {
+                xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+                return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+        }
+	for _, element := range disassranmap {
+		xapp.Logger.Info("data received")
+		e2taddress_key := *element.E2TAddress
+		//Check whether the provided E2T Address is available in SDL as a key. 
+		//If exist, proceed further to check RAN list, Otherwise move to next E2T Instance
+		if _, exist := ricData.E2Ts[e2taddress_key]; exist {
+			var estObj rtmgr.E2TInstance
+			estObj = ricData.E2Ts[e2taddress_key]
+			// If RAN list is empty, then routing manager assumes that all RANs attached associated to the particular E2T Instance to be removed.
+			if len(element.RanNamelist) == 0 {
+				xapp.Logger.Debug("RAN List is empty. So disassociating all RANs from the E2T Instance: %v ", *element.E2TAddress)
+				estObj.Ranlist = []string{}
+			} else {
+				xapp.Logger.Debug("Remove only selected rans from E2T Instance: %v and %v ", ricData.E2Ts[e2taddress_key].Ranlist, element.RanNamelist)
+				for _, disRanValue := range element.RanNamelist {
+					for ranIndex, ranValue := range ricData.E2Ts[e2taddress_key].Ranlist {
+						if disRanValue == ranValue {
+							estObj.Ranlist[ranIndex] = estObj.Ranlist[len(estObj.Ranlist)-1]
+							estObj.Ranlist[len(estObj.Ranlist)-1] = ""
+							estObj.Ranlist = estObj.Ranlist[:len(estObj.Ranlist)-1]
+						}
+					}
+				}
+			}
+			ricData.E2Ts[e2taddress_key]= estObj
+		}
+	}
+
+	xapp.Logger.Debug("Final data after disassociate: %v", ricData)
+
+	byteValue, err := json.Marshal(ricData)
+        if err != nil {
+                return errors.New("cannot convert data due to: " + err.Error())
+        }
+        err = ioutil.WriteFile(file, byteValue, 0644)
+        if err != nil {
+                return errors.New("cannot write file due to: " + err.Error())
+        }
+	return nil
+}
+
+func (f *File) WriteDeleteE2TInstance(file string, E2TInst *models.E2tDeleteData) error {
+	xapp.Logger.Debug("Invoked sdl.WriteDeleteE2TInstance")
+	xapp.Logger.Debug("file.WriteDeleteE2TInstance writes into file: " + file)
+	xapp.Logger.Debug("file.WriteDeleteE2TInstance writes data: %v", *E2TInst)
+
+	ricData, err := NewFile().ReadAll(file)
+	if err != nil {
+	        xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
+	        return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+	}
+
+	delete(ricData.E2Ts, *E2TInst.E2TAddress)
+
+
+	for _, element := range E2TInst.RanAssocList {
+		xapp.Logger.Info("data received")
+		key := *element.E2TAddress
+
+		if val, ok := ricData.E2Ts[key]; ok {
+			var estObj rtmgr.E2TInstance
+			estObj = val
+			estObj.Ranlist = append(ricData.E2Ts[key].Ranlist, element.RanNamelist...)
+			ricData.E2Ts[key]= estObj
+		} else {
+			xapp.Logger.Error("file.WriteDeleteE2TInstance E2T instance is not found for provided E2TAddress : %v", errors.New(key).Error())
+		}
+
+	}
+
+	byteValue, err := json.Marshal(ricData)
+	if err != nil {
+	        return errors.New("cannot convert data due to: " + err.Error())
+	}
+	err = ioutil.WriteFile(file, byteValue, 0644)
+	if err != nil {
+	        return errors.New("cannot write file due to: " + err.Error())
+	}
+	return nil
 }
