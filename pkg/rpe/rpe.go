@@ -163,10 +163,13 @@ func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, e2TermEp *rtmgr.Endpoin
 		r.addRoute("RIC_SUB_REQ", xAppEp, subManEp, routeTable, -1, "")
 		r.addRoute("RIC_SUB_DEL_REQ", xAppEp, subManEp, routeTable, -1, "")
 		//xApp -> E2 Termination
-		r.addRoute("RIC_CONTROL_REQ", xAppEp, e2TermEp, routeTable, -1, "")
+//		r.addRoute("RIC_CONTROL_REQ", xAppEp, e2TermEp, routeTable, -1, "")
+		r.addRoute("RIC_CONTROL_REQ", xAppEp, nil, routeTable, -1, "%meid")
 		//E2 Termination -> xApp
-		r.addRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, -1, "")
-		r.addRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, -1, "")
+///		r.addRoute("RIC_CONTROL_ACK", e2TermEp, xAppEp, routeTable, -1, "")
+///		r.addRoute("RIC_CONTROL_FAILURE", e2TermEp, xAppEp, routeTable, -1, "")
+		r.addRoute("RIC_CONTROL_ACK", nil, xAppEp, routeTable, -1, "")
+		r.addRoute("RIC_CONTROL_FAILURE", nil, xAppEp, routeTable, -1, "")
 	}
 	//xApp->A1Mediator
 	if xAppEp.XAppType != sbi.PlatformType && len(xAppEp.Policies) > 0 {

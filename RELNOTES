@@ -1,3 +1,6 @@
+### v0.4.5
+* Multiple E2T instance Feature: Introduced APIs Delete E2T Instance, associate RANs to E2T and disassociate RANs from E2T Instance.
+
 ### v0.4.4
 * Create E2T Instance API introduced for Multiple E2T Feature
 

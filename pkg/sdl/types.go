@@ -28,6 +28,7 @@
 package sdl
 
 import "routing-manager/pkg/rtmgr"
+import "routing-manager/pkg/models" 
 
 //type readAll func(string) (*rtmgr.RicComponents, error)
 //type writeAll func(string, *rtmgr.RicComponents) error
@@ -45,4 +46,7 @@ type Engine interface {
 	WriteAll(string, *rtmgr.RicComponents) error
 	WriteXApps(string, *[]rtmgr.XApp) error
 	WriteNewE2TInstance(string, *rtmgr.E2TInstance) error
+	WriteAssRANToE2TInstance(string, models.RanE2tMap) error
+	WriteDisAssRANFromE2TInstance(string, models.RanE2tMap) error
+	WriteDeleteE2TInstance(string, *models.E2tDeleteData) error
 }
