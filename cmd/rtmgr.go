@@ -45,6 +45,7 @@ import (
 	"routing-manager/pkg/sdl"
 	"syscall"
 	"time"
+	"sync"
 )
 
 const SERVICENAME = "rtmgr"
@@ -63,16 +64,18 @@ func initRtmgr() (nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engi
 	return nil, nil, nil, nil, err
 }
 
-func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine) {
+func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
 	for {
 		if <-triggerSBI {
+			m.Lock()
 			data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+			m.Unlock()
 			if err != nil || data == nil {
 				xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
 				continue
 			}
 			sbiEngine.UpdateEndpoints(data)
-			policies := rpeEngine.GeneratePolicies(rtmgr.Eps)
+			policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
 			err = sbiEngine.DistributeAll(policies)
 			if err != nil {
 				xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
@@ -81,12 +84,12 @@ func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine
 	}
 }
 
-func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine) {
+func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
 
 	triggerSBI := make(chan bool)
 
 	nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"),
-		sdlEngine, rpeEngine, triggerSBI)
+		sdlEngine, rpeEngine, triggerSBI, m)
 	if nbiErr != nil {
 		xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
 		return
@@ -101,7 +104,7 @@ func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpe
 	defer sbiEngine.Terminate()
 
 	// This SBI Go routine is trtiggered by periodic main loop and when data is recieved on REST interface.
-	go serveSBI(triggerSBI, sbiEngine, sdlEngine, rpeEngine)
+	go serveSBI(triggerSBI, sbiEngine, sdlEngine, rpeEngine, m)
 
 	for {
 		if xapp.Config.GetString("nbi") == "httpGetter" {
@@ -139,6 +142,9 @@ func main() {
 	SetupCloseHandler()
 	xapp.Logger.Info("Start " + SERVICENAME + " service")
 	rtmgr.Eps = make(rtmgr.Endpoints)
-	serve(nbiEngine, sbiEngine, sdlEngine, rpeEngine)
+
+	var m sync.Mutex
+
+	serve(nbiEngine, sbiEngine, sdlEngine, rpeEngine, &m)
 	os.Exit(0)
 }

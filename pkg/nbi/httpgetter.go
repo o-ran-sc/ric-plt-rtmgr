@@ -38,6 +38,7 @@ import (
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
 	"time"
+	"sync"
 )
 
 type HttpGetter struct {
@@ -77,7 +78,7 @@ func fetchAllXApps(xmurl string) (*[]rtmgr.XApp, error) {
 }
 
 func (g *HttpGetter) Initialize(xmurl string, nbiif string, fileName string, configfile string,
-	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool) error {
+	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool, m *sync.Mutex) error {
 	return nil
 }
 

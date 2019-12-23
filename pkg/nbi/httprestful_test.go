@@ -44,6 +44,7 @@ import (
 	"routing-manager/pkg/stub"
 	"testing"
 	"time"
+	"sync"
 
 	"github.com/go-openapi/swag"
 )
@@ -172,7 +173,8 @@ func TestHttpInstance(t *testing.T) {
 	//ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
 	//ts.Start()
 	//defer ts.Close()
-	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine, rpeEngine, triggerSBI)
+	var m sync.Mutex
+	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine, rpeEngine, triggerSBI, &m)
 }
 
 func TestXappCallbackDataChannelwithdata(t *testing.T) {

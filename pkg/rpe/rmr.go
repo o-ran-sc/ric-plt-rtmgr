@@ -34,6 +34,7 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
+	"strings"
 )
 
 type Rmr struct {
@@ -52,7 +53,7 @@ func NewRmrPush() *RmrPush {
 /*
 Produces the raw route message consumable by RMR
 */
-func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
+func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents, key string) *[]string {
 	rawrt := []string{key + "newrt|start\n"}
 	rt := r.generateRouteTable(eps)
 	for _, rte := range *rt {
@@ -86,18 +87,31 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, key string) *[]string {
 		rawrt = append(rawrt, rawrte+"\n")
 	}
 	rawrt = append(rawrt, key+"newrt|end\n")
-
         count := 0
-        rawrt = append(rawrt, key+"meid_map|start\n")
-        rawrt = append(rawrt, key+"meid_map|end|" + strconv.Itoa(count) +"\n")
+	meidrt := key +"meid_map|start\n"
+	for e2tkey, value := range rcs.E2Ts {
+		xapp.Logger.Debug("rmr.E2T Key: %v", e2tkey)
+		xapp.Logger.Debug("rmr.E2T Value: %v", value)
+		xapp.Logger.Debug("rmr.E2T RAN List: %v", rcs.E2Ts[e2tkey].Ranlist)
+		if ( len(rcs.E2Ts[e2tkey].Ranlist) != 0 ) {
+			ranList := strings.Join(rcs.E2Ts[e2tkey].Ranlist, " ")
+			meidrt += key + "mme_ar|" + e2tkey + "|" + ranList + "\n"
+			count++
+		} else {
+		xapp.Logger.Debug("rmr.E2T Empty RAN LIST for FQDN: %v", e2tkey)
+		}
+	}
+        meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n"
 
+	rawrt = append(rawrt, meidrt)
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
+	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rcs)
 	return &rawrt
 }
 
-func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints) *[]string {
+func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents) *[]string {
 	xapp.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
-	return r.generateRMRPolicies(eps, "")
+	return r.generateRMRPolicies(eps, rcs, "")
 }
 
 func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {

@@ -34,12 +34,13 @@ import (
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
+	"sync"
 )
 
 type FetchAllXAppsHandler func(string) (*[]rtmgr.XApp, error)
 type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
 type RecvNewE2TdataHandler func(<-chan *models.E2tData) (*rtmgr.E2TInstance, error)
-type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *models.XappSubscriptionData, chan<- *models.E2tData)
+type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *models.XappSubscriptionData, chan<- *models.E2tData, chan<- models.RanE2tMap, chan<- models.RanE2tMap, chan<- *models.E2tDeleteData)
 type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
 type RetrieveStartupDataHandler func(string, string, string, string, sdl.Engine) error
 
@@ -52,6 +53,6 @@ type EngineConfig struct {
 }
 
 type Engine interface {
-	Initialize(string, string, string, string, sdl.Engine, rpe.Engine, chan<- bool) error
+	Initialize(string, string, string, string, sdl.Engine, rpe.Engine, chan<- bool, *sync.Mutex) error
 	Terminate() error
 }
