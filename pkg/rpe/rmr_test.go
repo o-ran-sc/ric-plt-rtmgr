@@ -47,10 +47,13 @@ RmrPush.GeneratePolicies() method is tested for happy path case
 */
 func TestRmrPushGeneratePolicies(t *testing.T) {
 	var rmrpush = RmrPush{}
-        var pcs rtmgr.RicComponents
+	var pcs rtmgr.RicComponents
 	resetTestDataset(stub.ValidEndpoints)
-        stub.ValidPlatformComponents = nil
-        rtmgr.Subs =  *stub.ValidSubscriptions
+	stub.ValidPlatformComponents = nil
+	rtmgr.Subs = *stub.ValidSubscriptions
+	rtmgr.PrsCfg = stub.DummyRoutes
+	stub.E2map["E2instance1.com"] = stub.ValidE2TInstance
+	pcs = stub.ValidRicComponents
 
 	rawrt := rmrpush.GeneratePolicies(rtmgr.Eps, &pcs)
 	t.Log(rawrt)
@@ -60,17 +63,16 @@ func TestRmrPushGeneratePolicies(t *testing.T) {
 getEndpointByUuid: Pass empty and valid values
 */
 func TestRmrgetEndpointByUuid(t *testing.T) {
-        var ep *rtmgr.Endpoint
-        ep = getEndpointByUuid("")
-        t.Logf("getEndpointByUuid() return was correct, got: %v, want: %v.", ep, "<nil>")
-        ep = getEndpointByUuid("10.0.0.1:0")
+	var ep *rtmgr.Endpoint
+	ep = getEndpointByUuid("")
+	t.Logf("getEndpointByUuid() return was correct, got: %v, want: %v.", ep, "<nil>")
+	ep = getEndpointByUuid("10.0.0.1:0")
 }
 
 /*
 GetRpe Instance with empty and valid values
 */
 func TestRmrGetRpe(t *testing.T) {
-        _,_ = GetRpe("")
-        _,_ = GetRpe("rmrpush")
+	_, _ = GetRpe("")
+	_, _ = GetRpe("rmrpush")
 }
-

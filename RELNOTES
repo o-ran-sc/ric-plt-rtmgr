@@ -1,3 +1,6 @@
+### v0.4.6
+* Static platform routes can be configured via configuration file
+
 ### v0.4.5
 * Multiple E2T instance Feature: Introduced APIs Delete E2T Instance, associate RANs to E2T and disassociate RANs from E2T Instance.
 

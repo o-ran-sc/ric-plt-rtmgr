@@ -121,11 +121,13 @@ var (
 
 	Eps  Endpoints
 	Subs SubscriptionList
+	PrsCfg  *PlatformRoutes
 )
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	xapp.Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
 	var rcfg ConfigRtmgr
+	var rtroutes RtmgrRoutes
 	yamlFile, err := os.Open(configfile)
 	if err != nil {
 		return nil, errors.New("cannot open the file due to: " + err.Error())
@@ -139,6 +141,12 @@ func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	if err != nil {
 		return nil, errors.New("cannot read the file due to: " + err.Error())
 	}
+	err = json.Unmarshal(jsonByteValue,&rtroutes)
+        if err != nil {
+               return nil, errors.New("cannot parse data due to: " + err.Error())
+        }
+        PrsCfg = &(rtroutes.Prs)
+
 	err = json.Unmarshal(jsonByteValue, &rcfg)
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())
