@@ -107,3 +107,17 @@ type Subscription struct {
 	Fqdn  string
 	Port  uint16
 }
+
+type PlatformRoutes []struct {
+       MessageType     string `json:"messagetype"`
+       SenderEndPoint  string `json:"senderendpoint"`
+       SubscriptionId  int32  `json:"subscriptionid"`
+       EndPoint        string `json:"endpoint"`
+       Meid            string `json:"meid"`
+}
+
+type RtmgrRoutes struct {
+       Prs PlatformRoutes      `json:"PlatformRoutes"`
+}
+
+

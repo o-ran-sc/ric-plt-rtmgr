@@ -29,6 +29,9 @@ package sdl
 
 import (
 	"routing-manager/pkg/stub"
+	"github.com/go-openapi/swag"
+	"routing-manager/pkg/models"
+	"routing-manager/pkg/rtmgr"
 	"testing"
 )
 
@@ -98,4 +101,70 @@ func TestWriteNewE2TInstance(t *testing.T) {
 	t.Log(err)
 	file.WriteNewE2TInstance("ut.rt", &stub.ValidE2TInstance)
 	t.Log(err)
+}
+
+/*
+WriteAssRANToE2TInstance
+*/
+func TestWriteAssRANToE2TInstance(t *testing.T) {
+	var err error
+        var file = File{}
+	// File is not provided as argument
+	file.WriteAssRANToE2TInstance("",stub.Rane2tmap)
+	t.Log(err)
+	file.WriteNewE2TInstance("ut.rt", &stub.ValidE2TInstance)
+	file.WriteAssRANToE2TInstance("ut.rt",stub.Rane2tmap)
+	t.Log(err)
+}
+
+/*
+WriteDisAssRANFromE2TInstance 
+*/
+func TestWriteDisAssRANFromE2TInstance(t *testing.T) {
+	var err error
+        var file = File{}
+	// File is not provided as argument
+	file.WriteDisAssRANFromE2TInstance("",stub.Rane2tmap)
+	t.Log(err)
+	//RAN list is empty
+	file.WriteNewE2TInstance("ut.rt", &stub.ValidE2TInstance)
+        file.WriteAssRANToE2TInstance("ut.rt",stub.Rane2tmap)
+	file.WriteDisAssRANFromE2TInstance("ut.rt",stub.Rane2tmaponlyE2t)
+	//RAN list is present
+	file.WriteNewE2TInstance("ut.rt", &stub.ValidE2TInstance)
+        file.WriteAssRANToE2TInstance("ut.rt",stub.Rane2tmap)
+	file.WriteDisAssRANFromE2TInstance("ut.rt",stub.Rane2tmap)
+	t.Log(err)
+}
+
+/*
+WriteDeleteE2TInstance E2TInst *models.E2tDeleteData) error
+*/
+func TestWriteDeleteE2TInstance(t *testing.T) {
+	var err error
+        var file = File{}
+	e2deldata := &models.E2tDeleteData{}
+	// File is not provided as argument
+	file.WriteDeleteE2TInstance("",e2deldata)
+	//Delete E2t Instance,associate new rans and dissociate some rans
+	file.WriteNewE2TInstance("ut.rt", &rtmgr.E2TInstance{
+		Name:    "E2Tinstance1",
+		Fqdn:    "10.10.10.10:100",
+		Ranlist: []string{"1", "2"},
+			},
+		)
+	file.WriteNewE2TInstance("ut.rt", &rtmgr.E2TInstance{
+		Name:    "E2Tinstance2",
+		Fqdn:    "11.11.11.11:100",
+		Ranlist: []string{"3", "4"},
+			},
+		)
+	file.WriteDeleteE2TInstance("ut.rt",&models.E2tDeleteData{
+		E2TAddress: swag.String("10.10.10.10:100"),
+		RanAssocList: models.RanE2tMap{ 
+				{E2TAddress: swag.String("11.11.11.11:100"),RanNamelist: []string{"5","6"}},
+				{E2TAddress: swag.String("doesntexist"),RanNamelist: []string{}}, },
+			})
+	t.Log(err)
+
 }
