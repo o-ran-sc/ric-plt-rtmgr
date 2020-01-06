@@ -45,7 +45,6 @@ import (
 	"testing"
 	"time"
 	"sync"
-
 	"github.com/go-openapi/swag"
 )
 
@@ -109,7 +108,7 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	data2 := models.E2tData{
 		E2TAddress: swag.String(""),
 	}
-	err = validateE2tData(&data2)
+	/*err = validateE2tData(&data2)*/
 
 	e2tchannel := make(chan *models.E2tData, 10)
 	_ = createNewE2tHandleHandlerImpl(e2tchannel, &data2)
@@ -122,14 +121,293 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 
 	//test case for deleteXappSubscriptionHandleImpl
 	_ = deleteXappSubscriptionHandleImpl(datachannel, &data1)
+
+	data3 := models.XappSubscriptionData{
+		Address:        swag.String("10.55.55.5"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(123456)}
+	//test case for deleteXappSubscriptionHandleImpl
+	_ = deleteXappSubscriptionHandleImpl(datachannel, &data3)
 }
 
-func TestvalidateE2tData(t *testing.T) {
+func TestValidateE2tDataEmpty(t *testing.T) {
 	data := models.E2tData{
 		E2TAddress: swag.String(""),
 	}
 	err := validateE2tData(&data)
 	t.Log(err)
+}
+
+func TestValidateE2tDataInvalid(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String("10.101.01.1"),
+	}
+	err := validateE2tData(&data)
+	t.Log(err)
+}
+
+func TestValidateE2tDatavalid(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String("10.101.01.1:8098"),
+	}
+
+
+	err := validateE2tData(&data)
+	t.Log(err)
+
+}
+
+func TestValidateE2tDatavalidEndpointPresent(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String("10.101.01.1:8098"),
+	}
+
+	// insert endpoint for testing purpose
+	uuid := "10.101.01.1:8098"
+	ep := &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+
+	err := validateE2tData(&data)
+	t.Log(err)
+
+	// delete endpoint for at end of test case 
+    delete(rtmgr.Eps, uuid);
+
+}
+
+
+func TestValidateDeleteE2tData(t *testing.T) {
+
+// test-1		
+	data := models.E2tDeleteData{
+		E2TAddress: swag.String(""),
+	}
+
+	err := validateDeleteE2tData(&data)
+	if (err.Error() != "E2TAddress is empty!!!") {
+		t.Log(err)
+	}
+
+
+// test-2
+	data = models.E2tDeleteData{
+		E2TAddress: swag.String("10.101.01.1:8098"),
+	}
+
+	err = validateDeleteE2tData(&data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+// test-3
+//################ Create End Point dummy entry  
+	uuid := "10.101.01.1:8098"
+	ep := &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+//#####################
+
+	data = models.E2tDeleteData{
+		E2TAddress: swag.String("10.101.01.1:8098"),
+		RanAssocList: models.RanE2tMap{
+			{E2TAddress: swag.String("10.101.01.1:8098")},
+		},
+	}
+
+	err = validateDeleteE2tData(&data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+	// delete endpoint for at end of test case 
+//################ Delete End Point dummy entry  
+    delete(rtmgr.Eps, uuid);
+//#####################
+
+// test-4
+
+//################ Create End Point dummy entry  
+	uuid = "10.101.01.1:9991"
+	ep = &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+
+	uuid = "10.101.01.1:9992"
+	ep = &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+//#####################
+
+	data = models.E2tDeleteData{
+		E2TAddress: swag.String("10.101.01:8098"),
+		RanAssocList: models.RanE2tMap{
+			{E2TAddress: swag.String("10.101.01.1:9991")},
+			{E2TAddress: swag.String("10.101.01.1:9992")},
+		},
+	}
+
+	err = validateDeleteE2tData(&data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+//################ Delete End Point dummy entry  
+    delete(rtmgr.Eps, "10.101.01.1:9991")
+    delete(rtmgr.Eps, "10.101.01.1:9992")
+//#####################
+
+// test-5
+
+	data = models.E2tDeleteData{
+		E2TAddress: swag.String("10.101.01:8098"),
+		RanAssocList: models.RanE2tMap{
+			{E2TAddress: swag.String("10.101.01.19991")},
+		},
+	}
+
+	err = validateDeleteE2tData(&data)
+	if ( err.Error() != "E2T Delete - RanAssocList E2TAddress is not a proper format like ip:port, 10.101.01.19991") {
+		t.Log(err)
+	}
+}
+
+
+func TestValidateE2TAddressRANListData(t *testing.T) {
+
+	data := models.RanE2tMap{
+				{
+					E2TAddress: swag.String(""),
+			},
+	}
+	err := validateE2TAddressRANListData(data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+	data = models.RanE2tMap{
+				{
+					E2TAddress: swag.String("10.101.01.1:8098"),
+			},
+	}
+	err = validateE2TAddressRANListData(data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+}
+
+func TestAssociateRanToE2THandlerImpl(t *testing.T) {
+
+	associateranchan := make(chan models.RanE2tMap, 10)
+	data := models.RanE2tMap{
+				{
+					E2TAddress: swag.String("10.101.01.1:8098"),
+			},
+	}
+	err := associateRanToE2THandlerImpl(associateranchan, data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+//################ Create End Point dummy entry  
+	uuid := "10.101.01.1:8098"
+	ep := &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+//#####################
+
+	data = models.RanE2tMap{
+				{
+					E2TAddress: swag.String("10.101.01.1:8098"),
+			},
+	}
+	err = associateRanToE2THandlerImpl(associateranchan, data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+	data1 := <-associateranchan
+
+	fmt.Println(data1)
+//################ Delete End Point dummy entry  
+    delete(rtmgr.Eps, uuid);
+//#####################
+}
+
+func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
+
+	disassranchan  := make(chan models.RanE2tMap, 10)
+
+	data := models.RanE2tMap{
+				{
+					E2TAddress: swag.String("10.101.01.1:8098"),
+			},
+	}
+	err := disassociateRanToE2THandlerImpl(disassranchan, data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+//################ Create End Point dummy entry  
+	uuid := "10.101.01.1:8098"
+	ep := &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+//#####################
+
+	data = models.RanE2tMap{
+				{
+					E2TAddress: swag.String("10.101.01.1:8098"),
+			},
+	}
+	err = disassociateRanToE2THandlerImpl(disassranchan, data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+	data1 := <-disassranchan
+
+	fmt.Println(data1)
+//################ Delete End Point dummy entry  
+    delete(rtmgr.Eps, uuid);
+//#####################
+}
+
+func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
+
+	e2tdelchan := make(chan *models.E2tDeleteData, 10)
+	data := models.E2tDeleteData{
+		E2TAddress: swag.String(""),
+	}
+	err := deleteE2tHandleHandlerImpl(e2tdelchan, &data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+
+//################ Create End Point dummy entry  
+	uuid := "10.101.01.1:8098"
+	ep := &rtmgr.Endpoint{
+		Uuid:       uuid,
+	}
+	rtmgr.Eps[uuid] = ep
+//#####################
+
+	data = models.E2tDeleteData{
+		E2TAddress: swag.String("10.101.01.1:8098"),
+	}
+	err = deleteE2tHandleHandlerImpl(e2tdelchan, &data)
+	if (err != nil ) {
+		t.Log(err)
+	}
+	data1 := <-e2tdelchan
+
+	fmt.Println(data1)
+//################ Delete End Point dummy entry  
+    delete(rtmgr.Eps, uuid);
+//#####################
 }
 
 func TestSubscriptionExists(t *testing.T) {
@@ -149,7 +427,7 @@ func TestSubscriptionExists(t *testing.T) {
 	t.Log(yes_no)
 }
 
-func TestaddSubscriptions(t *testing.T) {
+func TestAddSubscriptions(t *testing.T) {
 	p := uint16(1)
 	subdata := models.XappSubscriptionData{
 		Address:        swag.String("10.0.0.0"),
@@ -210,7 +488,7 @@ func TestE2TChannelwithNoData(t *testing.T) {
 	defer close(dataChannel)
 }
 
-func TestprovideXappSubscriptionHandleImpl(t *testing.T) {
+func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
 	p := uint16(0)
 	data := models.XappSubscriptionData{
 		Address:        swag.String("10.0.0.0"),
@@ -222,18 +500,6 @@ func TestprovideXappSubscriptionHandleImpl(t *testing.T) {
 	datachannel <- &data
 
 	//subdel test
-}
-
-func TestdeleteXappSubscriptionHandleImpl(t *testing.T) {
-	p := uint16(1)
-	subdeldata := models.XappSubscriptionData{
-		Address:        swag.String("10.0.0.0"),
-		Port:           &p,
-		SubscriptionID: swag.Int32(1234)}
-	subdelchannel := make(chan *models.XappSubscriptionData, 10)
-	go func() { _ = deleteXappSubscriptionHandleImpl(subdelchannel, &subdeldata) }()
-	defer close(subdelchannel)
-	subdelchannel <- &subdeldata
 }
 
 func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
@@ -406,21 +672,4 @@ func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
-}
-
-func TestrecvXappCallbackData(t *testing.T) {
-	data := models.E2tData{
-		E2TAddress: swag.String("123456")}
-
-	var err error
-
-	e2tch := make(chan *models.E2tData)
-	go func() { e2tch <- &data }()
-	time.Sleep(1 * time.Second)
-	t.Log(string(len(e2tch)))
-	defer close(e2tch)
-
-	var httpRestful, _ = GetNbi("httpRESTful")
-	_, err = httpRestful.(*HttpRestful).RecvNewE2Tdata(e2tch)
-	t.Log(err)
 }
