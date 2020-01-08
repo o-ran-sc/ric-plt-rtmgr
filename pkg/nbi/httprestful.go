@@ -39,6 +39,7 @@ import (
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"net/url"
+	"net"
 	"os"
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/restapi"
@@ -171,6 +172,11 @@ func validateE2tData(data *models.E2tData) error {
 	if (len(stringSlice) == 1) {
 		return fmt.Errorf("E2T E2TAddress is not a proper format like ip:port, %v", e2taddress_key )
 	}
+
+	_, err := net.LookupIP(stringSlice[0])
+	if err != nil {
+		return fmt.Errorf("E2T E2TAddress DNS look up failed, E2TAddress: %v", stringSlice[0])
+        }
 
 	if checkValidaE2TAddress(e2taddress_key) {
 		return fmt.Errorf("E2TAddress already exist!!!, E2TAddress: %v",e2taddress_key)

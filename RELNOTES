@@ -1,3 +1,6 @@
+### v0.4.7
+* Check DNS lookup for E2T address, RED Button and KEEP alive message routes added for new E2T Address 
+
 ### v0.4.6
 * Static platform routes can be configured via configuration file
 
