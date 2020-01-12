@@ -477,14 +477,14 @@ func TestE2TChannelwithData(t *testing.T) {
 		E2TAddress: swag.String(""),
 	}
 	dataChannel := make(chan *models.E2tData, 10)
-	go func() { _, _ = recvNewE2Tdata(dataChannel) }()
+	go func() { _, _,_ = recvNewE2Tdata(dataChannel) }()
 	defer close(dataChannel)
 	dataChannel <- &data2
 }
 
 func TestE2TChannelwithNoData(t *testing.T) {
 	dataChannel := make(chan *models.E2tData, 10)
-	go func() { _, _ = recvNewE2Tdata(dataChannel) }()
+	go func() { _, _ ,_= recvNewE2Tdata(dataChannel) }()
 	defer close(dataChannel)
 }
 

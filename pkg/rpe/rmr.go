@@ -34,7 +34,7 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
-	"strings"
+	//"strings"
 )
 
 type Rmr struct {
@@ -88,7 +88,7 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 	}
 	rawrt = append(rawrt, key+"newrt|end\n")
         count := 0
-	meidrt := key +"meid_map|start\n"
+/*	meidrt := key +"meid_map|start\n"
 	for e2tkey, value := range rcs.E2Ts {
 		xapp.Logger.Debug("rmr.E2T Key: %v", e2tkey)
 		xapp.Logger.Debug("rmr.E2T Value: %v", value)
@@ -101,6 +101,12 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 		xapp.Logger.Debug("rmr.E2T Empty RAN LIST for FQDN: %v", e2tkey)
 		}
 	}
+        meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n" */
+	meidrt := key +"meid_map|start\n"
+        for _, value := range rcs.MeidMap {
+            meidrt += key + value + "\n"
+            count++
+        }
         meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n"
 
 	rawrt = append(rawrt, meidrt)

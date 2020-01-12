@@ -34,6 +34,7 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"io/ioutil"
 	"os"
+	"strings"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/models"
 )
@@ -112,7 +113,7 @@ func (f *File) WriteXApps(file string, xApps *[]rtmgr.XApp) error {
 	return nil
 }
 
-func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance) error {
+func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance,meiddata string) error {
         xapp.Logger.Debug("Invoked sdl.WriteNewE2TInstance")
         xapp.Logger.Debug("file.WriteNewE2TInstance writes into file: " + file)
         xapp.Logger.Debug("file.WriteNewE2TInstance writes data: %v", *E2TInst)
@@ -123,6 +124,12 @@ func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance) erro
                 return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
         }
         ricData.E2Ts[E2TInst.Fqdn] = *E2TInst
+	if (len(meiddata) > 0){
+	    ricData.MeidMap = []string {meiddata}
+        } else {
+	    ricData.MeidMap = []string {}
+	}
+
 
         byteValue, err := json.Marshal(ricData)
         if err != nil {
@@ -145,8 +152,17 @@ func (f *File) WriteAssRANToE2TInstance(file string, rane2tmap models.RanE2tMap)
                 xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
                 return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
         }
+
+	ricData.MeidMap = []string{}
 	for _, element := range rane2tmap {
 		xapp.Logger.Info("data received")
+		var str,meidar string
+		for _, meid := range element.RanNamelist {
+		    meidar += meid + " "
+		}
+		str = "mme_ar|" + *element.E2TAddress + "|" + strings.TrimSuffix(meidar," ")
+		ricData.MeidMap = append(ricData.MeidMap,str)
+
 		for key, _ := range ricData.E2Ts {
 			if key == *element.E2TAddress {
 				var estObj rtmgr.E2TInstance
@@ -178,8 +194,18 @@ func (f *File) WriteDisAssRANFromE2TInstance(file string, disassranmap models.Ra
                 xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
                 return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
         }
+
+	var str,meiddel,meiddisdel string
+	ricData.MeidMap = []string{}
 	for _, element := range disassranmap {
 		xapp.Logger.Info("data received")
+		for _, meid := range element.RanNamelist {
+		    meiddisdel += meid + " "
+		}
+		if ( len(element.RanNamelist) > 0 ) {
+		    str = "mme_del|" + strings.TrimSuffix(meiddisdel," ")
+		    ricData.MeidMap = append(ricData.MeidMap,str)
+	        }
 		e2taddress_key := *element.E2TAddress
 		//Check whether the provided E2T Address is available in SDL as a key. 
 		//If exist, proceed further to check RAN list, Otherwise move to next E2T Instance
@@ -189,7 +215,13 @@ func (f *File) WriteDisAssRANFromE2TInstance(file string, disassranmap models.Ra
 			// If RAN list is empty, then routing manager assumes that all RANs attached associated to the particular E2T Instance to be removed.
 			if len(element.RanNamelist) == 0 {
 				xapp.Logger.Debug("RAN List is empty. So disassociating all RANs from the E2T Instance: %v ", *element.E2TAddress)
-				estObj.Ranlist = []string{}
+			for _, meid := range estObj.Ranlist {
+			meiddel += meid + " "
+			}
+			str = "mme_del|" + strings.TrimSuffix(meiddel," ")
+			ricData.MeidMap = append(ricData.MeidMap,str)
+
+			estObj.Ranlist = []string{}
 			} else {
 				xapp.Logger.Debug("Remove only selected rans from E2T Instance: %v and %v ", ricData.E2Ts[e2taddress_key].Ranlist, element.RanNamelist)
 				for _, disRanValue := range element.RanNamelist {
@@ -230,11 +262,35 @@ func (f *File) WriteDeleteE2TInstance(file string, E2TInst *models.E2tDeleteData
 	        return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
 	}
 
+
+	ricData.MeidMap = []string {}
+	var delrow,meiddel string
+	if(len(E2TInst.RanNamelistTobeDissociated)>0) {
+	    for _, meid := range E2TInst.RanNamelistTobeDissociated {
+			meiddel += meid + " "
+		}
+	    delrow = "mme_del|" + strings.TrimSuffix(meiddel," ")
+	    ricData.MeidMap = append(ricData.MeidMap,delrow)
+	} else {
+	      if(len(ricData.E2Ts[*E2TInst.E2TAddress].Ranlist) > 0) {
+	          for _, meid := range ricData.E2Ts[*E2TInst.E2TAddress].Ranlist {
+			meiddel += meid + " "
+	          }
+	          delrow = "mme_del|" + strings.TrimSuffix(meiddel," ")
+	          ricData.MeidMap = append(ricData.MeidMap,delrow)
+	      }
+	}
+
 	delete(ricData.E2Ts, *E2TInst.E2TAddress)
 
-
 	for _, element := range E2TInst.RanAssocList {
+		var str,meidar string
 		xapp.Logger.Info("data received")
+		for _, meid := range element.RanNamelist {
+			meidar = meid + " "
+		}
+		str = "mme_ar|" + *element.E2TAddress + "|" + strings.TrimSuffix(meidar," ")
+		ricData.MeidMap = append(ricData.MeidMap,str)
 		key := *element.E2TAddress
 
 		if val, ok := ricData.E2Ts[key]; ok {
