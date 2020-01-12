@@ -99,6 +99,7 @@ type ConfigRtmgr struct {
 type RicComponents struct {
 	XApps []XApp
 	E2Ts  map [string]E2TInstance
+	MeidMap  []string
 	Pcs   PlatformComponents
 }
 

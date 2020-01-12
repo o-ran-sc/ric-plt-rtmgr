@@ -45,7 +45,7 @@ type Engine interface {
 	ReadAll(string) (*rtmgr.RicComponents, error)
 	WriteAll(string, *rtmgr.RicComponents) error
 	WriteXApps(string, *[]rtmgr.XApp) error
-	WriteNewE2TInstance(string, *rtmgr.E2TInstance) error
+	WriteNewE2TInstance(string, *rtmgr.E2TInstance,string) error
 	WriteAssRANToE2TInstance(string, models.RanE2tMap) error
 	WriteDisAssRANFromE2TInstance(string, models.RanE2tMap) error
 	WriteDeleteE2TInstance(string, *models.E2tDeleteData) error

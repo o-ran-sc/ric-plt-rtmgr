@@ -1,3 +1,6 @@
+### v0.4.8
+* Entry in meid map will only contain the delta change 
+
 ### v0.4.7
 * Check DNS lookup for E2T address, RED Button and KEEP alive message routes added for new E2T Address 
 

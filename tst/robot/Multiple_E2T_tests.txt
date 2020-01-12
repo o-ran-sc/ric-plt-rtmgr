@@ -1,0 +1,433 @@
+*** Settings ***
+Suite Setup       Suite Setup
+Suite Teardown    Suite Teardown
+Test Timeout      6 minutes
+Library           SSHLibrary
+Library           String
+Library           Collections
+
+*** Variables ***
+${NEAR_RT_RIC_PLT_VM_USERNAME}    root    # User name of Near-RT RIC Platform VM
+${NEAR_RT_RIC_PLT_VM_PASSWORD}    root    # Password of Near-RT RIC Platform VM
+${NEAR_RT_RIC_PLT_VM_IP}    10.53.73.29    # IP Address of the Near-RT RIC Platform VM
+${NEAR_RT_RIC_PLT_HOST_IP}    10.43.8.136
+${NEAR_RT_RIC_PLT_RTMGR_POD_NAME}    deployment-ricplt-rtmgr-994cd9b46-x4bf2
+${NEAR_RT_RIC_PLT_E2MGR_POD_NAME}    deployment-ricplt-e2mgr-7596586d98-vpxbp
+${NEAR_RT_RIC_PLT_RTMGR_SERVICE_NAME}    service-ricplt-rtmgr-http
+${NEAR_RT_RIC_PLT_E2MGR_SERVICE_NAME}    service-ricplt-e2mgr-http
+
+*** Test Cases ***
+r3_multiple_e2t_instances_support_scenario1
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 1 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create a standalone E2T instance and verify whether its added in datastore(SDL file)
+    ...              Check also routes for 1090 and 1101 are mapped
+    ...
+    ...    Step2 : \ Associate R1,R2 and R3 to newly created E2T instance one and verify whether its updated in RanList.
+    ...
+    ...    Step3 : \ Disassociate R1 and R3 only from E2T instance and verify R2 exists & R1 and R3 removed from RanList
+    ...
+    ...    Step4 : \ Delete E2T instance once and verify the instance and R2 is removed from datastore(SDL file)
+    ...             Check also routes are demapped for message types 1090 and 1101
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create one E2T instance "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    log    ${cmd_output}
+    ##2: Verify the file /db/rt.json file whether E2T instance is updated with proper details.
+    Log    "2. Verify the file /db/rt.json file whether E2T instance is updated with proper details."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json | json_pp
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name" : "E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist" : []
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn" : "10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+	Run Keyword    Should Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|0
+
+    ##3: Associate R1,R2,R3 to E2T1
+    Log    "3. Associate R1,R2,R3 to E2T1"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R1\\", \\"R2\\", \\"R3\\" ] }]"
+    log    ${cmd_output}
+    ##4: Verify the file /db/rt.json whether RANs are associated succsessfully.
+    Log    "4. Verify the file /db/rt.json whether RANs are associated succsessfully. "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME}  --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R1","R2","R3"]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R1 R2 R3
+	Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##5: Disassociate R1, R3 from E2T1
+    Log    "5. Disassociate R1 and R3 from E2T1"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/dissociate-ran" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R1\\", \\"R3\\" ] }]"
+    log    ${cmd_output}
+    ##6: Verify the file /db/rt.json whether R1 and R3 are removed & R2 exists in Ran List.
+    Log    "6: Verify the file /db/rt.json whether R1 and R3 are removed & R2 exists in Ran List."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12  | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R2"]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R1 R3
+	Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1 
+    ##7: Delete E2T Instance
+    Log    "7. Delete E2T instance "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ##8: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "8. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json | json_pp
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Not Contain    ${cmd_output}    "ranlist" : []
+    Run Keyword    Should Not Contain    ${cmd_output}    "fqdn" : "10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R2
+	Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1 
+    Run Keyword    Should Not Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+	Run Keyword    Should Not Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+
+r3_multiple_e2t_instances_support_scenario2
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 2 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create an E2T instance along with RANList R1,R2 and verify whether its added in datastore(SDL file)
+    ...
+    ...    Step2 : \ Associate R3 and R4 to newly created E2T instance one and verify whether its updated in RanList.
+    ...
+    ...    Step3 : \ Disassociate all the RAN's from E2T instance and verify the same
+    ...
+    ...    Step4 : \ Delete E2T instance once and verify the instance removed from datastore(SDL file)
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create one E2T instance "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R1\\", \\"R2\\" ]}"
+    log    ${cmd_output}
+    ##2: Verify the file /db/rt.json file whether E2T instance is updated with proper details.
+    Log    "2. Verify the file /db/rt.json file whether E2T instance is updated with proper details."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R1","R2"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+	Run Keyword    Should Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R1 R2
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##3.Associate new RAN's R3,R4 to E2T1"
+    Log    "3. Associate R3,R4 to E2T1"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R3\\", \\"R4\\" ] }]"
+    log    ${cmd_output}
+    ##4: Verify the file /db/rt.json whether RANs are associated succsessfully.
+    Log    "4. Verify the file /db/rt.json whether RANs are associated succsessfully. "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R1","R2","R3","R4"]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R3 R4
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##5: Disassociate all RAN's from E2T1
+	Log    "5. Disassociate all RAN's from E2T1"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/dissociate-ran" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\" }]"
+    log    ${cmd_output}
+    ##6: Verify the file /db/rt.json whether R1,R2,R3 and R4 are removed.
+    Log    "6: Verify the file /db/rt.json whether R1 R2 R3 and R4 are removed in Ran List."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":[]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R1 R2 R3 R4
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##7: Delete E2T Instance
+    Log    "7. Delete E2T instance "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ##8: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "8. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json | json_pp
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Not Contain    ${cmd_output}    "ranlist" : []
+    Run Keyword    Should Not Contain    ${cmd_output}    "fqdn" : "10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|0
+    Run Keyword    Should Not Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+	Run Keyword    Should Not Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+
+r3_multiple_e2t_instances_support_scenario3
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 3 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create an E2T instance along with RANList R1,R2 and verify whether its added in datastore(SDL file)
+    ...
+    ...    Step2 : \ Delete E2T instance by providing the RAN list and verify the instance removed from datastore(SDL file)
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create one E2T instance "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\":\\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R1\\", \\"R2\\" ]}"
+    log    ${cmd_output}
+    ##2: Verify the file /db/rt.json file whether E2T instance is updated with proper details.
+    Log    "2. Verify the file /db/rt.json file whether E2T instance is updated with proper details."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R1","R2"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R1 R2
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##3: Delete E2T Instance
+    Log    "7. Delete E2T instance "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelistTobeDissociated\\": [ \\"R1\\", \\"R2\\" ]}"
+    ##8: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "8. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json | json_pp
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Not Contain    ${cmd_output}    "ranlist" : []
+    Run Keyword    Should Not Contain    ${cmd_output}    "fqdn" : "10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R1 R2
+    Run Keyword    Should Not Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+	Run Keyword    Should Not Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38000
+
+
+r3_multiple_e2t_instances_support_scenario4
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 4 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create two E2T instances E2T1 and E2T2 along with RANList R11 and R21 respectively, verify whether its added in datastore(SDL file)
+    ...
+    ...    Step2 : \ Associate R12 and R22 to newly created E2T1 and E2T2 instance respectively and verify whether its updated in RanList.
+    ...
+    ...    Step3 : \ Disassociate all the RAN's from E2T1 instance and R23  R21 from E2T2 instance and verify the same
+    ...
+    ...    Step4 : \ Delete E2T2 instance and associate R22 to E2T1 instance and verify the from datastore(SDL file)
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create E2T instances "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R11\\" ]}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\", \\"ranNamelist\\": [ \\"R21\\" ]}"
+    log    ${cmd_output}
+    ##2: Verify the file /db/rt.json file whether E2T instance is updated with proper details.
+    Log    "2. Verify the file /db/rt.json file whether E2T instance is updated with proper details."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=35 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R11"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R21"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38001"
+#Run Keyword    Should Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38001,10.105.143.108:38000
+#Run Keyword    Should Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38001,10.105.143.108:38000
+    Run Keyword    Should Contain X Times    ${cmd_output1}    10.105.143.108:38000    4
+	Run Keyword    Should Contain X Times   ${cmd_output1}    10.105.143.108:38001    6
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38001|R21
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ##3.Associate RAN's R12 to E2T1 and R22 to E2T2"
+    Log    "3. Associate R12 to E2T1 and R22 to E2T2"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R12\\" ] }]"
+    log    ${cmd_output}
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38001\\", \\"ranNamelist\\": [ \\"R22\\" ] }]"
+    log    ${cmd_output}
+    ##4: Verify the file /db/rt.json whether RANs are associated succsessfully.
+    Log    "4. Verify the file /db/rt.json whether RANs are associated succsessfully. "
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ##5. Associate R13 and R23 in a single curl command to E2T1 and E2T2 respectively
+    Log    "5. Associate R13 and R23 in a single curl command to E2T1 and E2T2 respectively"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R13\\"] }, { \\"E2TAddress\\": \\"10.105.143.108:38001\\",\\"ranNamelist\\": [ \\"R23\\"] }]"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=25 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R11","R12","R13"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R21","R22","R23"]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38001"
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R13
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38001|R23
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|2
+    ##6: Disassociate all RAN's from E2T1 R21 and R23 from E2T2
+	Log    "6: Disassociate all RAN's from E2T1 R21 and R23 from E2T2"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/dissociate-ran" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\" } ,{ \\"E2TAddress\\": \\"10.105.143.108:38001\\", \\"ranNamelist\\": [ \\"R21\\", \\"R23\\" ] }]"
+    log    ${cmd_output}
+    ##7: Verify the file /db/rt.json whether R1,R2,R3 and R4 are removed.
+    Log    "7: Verify the file /db/rt.json whether R1 R2 R3 and R4 are removed in Ran List."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=20 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    "name":"E2TERMINST"
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":[]
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38001"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R22"]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R11 R12 R13
+	Run Keyword    Should Contain    ${cmd_output1}    mme_del|R21 R23
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|2
+    ##8: Delete E2T2 Instance and Associate R22 to E2T1
+    Log    "8. Delete E2T2 instance and Associate R22 to E2T1"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\", \\"ranAssocList\\": [ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R22\\" ] } ]}" 
+	sleep    1
+    ##9: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "9. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Not Contain    ${cmd_output}    "ranlist" : []
+    Run Keyword    Should Contain    ${cmd_output}    "fqdn":"10.105.143.108:38000"
+    Run Keyword    Should Not Contain    ${cmd_output}    "fqdn" : "10.105.143.108:38001"
+    Run Keyword    Should Contain    ${cmd_output}    "ranlist":["R22"]
+    Run Keyword    Should Contain    ${cmd_output1}    mme_del|R22
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R22
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|2
+
+
+r3_multiple_e2t_instances_support_scenario5
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 5 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create two E2T instance and verify whether its added in datastore(SDL file)
+    ...              Check also routes for 1090 and 1101 are mapped
+    ...
+    ...    Step2 : \ Remove one E2T instance and check that message types 1090 and 1101 still present.
+    ...
+    ...    Step3 : \ Remove second E2T and verify message types 1090 and 1101 are also removed 
+    ...
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create E2T instances "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\" }"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\" }"
+    log    ${cmd_output}
+    ##2: Verify the file /db/rt.json file whether E2T instance is updated with proper details.
+    Log    "2. Verify the file /db/rt.json file whether E2T instance is updated with proper details."
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=35 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain X Times    ${cmd_output1}    10.105.143.108:38000    4
+	Run Keyword    Should Contain X Times   ${cmd_output1}    10.105.143.108:38001    4
+    ##3: Delete E2T1 Instance 
+    Log    "3. Delete E2T1 instance"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}" 
+    ##4: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "3. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output1}    mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38001
+	Run Keyword    Should Contain    ${cmd_output1}    mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.105.143.108:38001
+    ##4: Delete E2T2 Instance 
+    Log    "4. Delete E2T2 instance"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38001\\"}" 
+    ##4: Verify the file /db/rt.json file whether E2T instance is removed.
+    Log    "4. Verify the file /db/rt.json file whether E2T instance is removed"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} cat /db/rt.json 
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Not Contain    ${cmd_output1}    mse|1090
+	Run Keyword    Should Not Contain    ${cmd_output1}    mse|1101
+
+r3_multiple_e2t_instances_support_scenario6
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 6 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create of  E2T instance with invalid fqdn fails
+	...
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instnace
+    Log    "1. Create E2T instances "
+    ##Delete If it exists already
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"dummy.e2t.com:12345\\" }"
+    log    ${cmd_output}
+    Run Keyword    Should Contain    ${cmd_output}    400 Bad Request 
+
+*** Keywords ***
+Login_RIC_Platform_VM
+    [Arguments]    ${alias_name}=ricplt
+    SSHLibrary.Open Connection    ${NEAR_RT_RIC_PLT_VM_IP}    22
+    SSHLibrary.Login    ${NEAR_RT_RIC_PLT_VM_USERNAME}    ${NEAR_RT_RIC_PLT_VM_PASSWORD}
+
+Suite Setup
+    ##Added place holder now
+    Login_RIC_Platform_VM
+	check_ric_platform_services
+
+Suite Teardown
+    Close Connection
+
+Wait For routing manager service
+    [Arguments]    ${maxcount}=10    ${count}=1
+    FOR    ${count}    IN RANGE    1    ${maxcount}
+    ${cmd_output}    Execute command    kubectl get pod -n ricplt | grep -i deployment-ricplt-rtmgr
+    ${status}=    Run Keyword And Ignore Error    Should Contain    ${cmd_output}    Running
+    ${ready}=    Run Keyword And Ignore Error    Should Contain    ${cmd_output}    1/1
+    Log    ${status}
+    Log    ${ready}
+    Run Keyword If    ("${status[0]}" == "PASS") and ("${ready[0]}" == "PASS")    Exit For Loop
+    ##Run Keyword And Ignore Error    Execute command
+    Sleep    2
+    END
+    Log    "Max retry count reached, seems routing manager is not running successfully"
+    Run Keyword    Should Contain    ${cmd_output}    Running
+    Run Keyword    Should Contain    ${cmd_output}    1/1
+
+check_ric_platform_services
+    ##check whether required servcies are up and running.
+    Log    "Checking the status of Routing manager POD"
+    Wait For routing manager service    10    1
+    ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME}    Execute command    kubectl get pod -n ricplt | grep -i deployment-ricplt-rtmgr | awk '{ print $1}'
+    ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME}    Execute command    kubectl get pod -n ricplt | grep -i deployment-ricplt-e2mgr | awk '{ print $1}'
+    Set Suite Variable    ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME}
+	Set Suite Variable    ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME}
+

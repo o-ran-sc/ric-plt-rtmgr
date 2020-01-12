@@ -99,8 +99,9 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	return nil, nil
 }
 
-func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, error) {
+func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance,string,error) {
         var e2tData *models.E2tData
+	var str string
         xapp.Logger.Info("data received")
 
         e2tData = <-dataChannel
@@ -111,18 +112,24 @@ func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, err
 				 Ranlist : make([]string, len(e2tData.RanNamelist)),
 			}
 
-            e2tinst.Fqdn = *e2tData.E2TAddress
-            e2tinst.Name = "E2TERMINST"
-		    copy(e2tinst.Ranlist, e2tData.RanNamelist)
-
-            return &e2tinst,nil
+        e2tinst.Fqdn = *e2tData.E2TAddress
+        e2tinst.Name = "E2TERMINST"
+	copy(e2tinst.Ranlist, e2tData.RanNamelist)
+	if (len(e2tData.RanNamelist) > 0) {
+	    var meidar string
+	    for _, meid := range e2tData.RanNamelist {
+		meidar += meid + " "
+	    }
+	    str = "mme_ar|" + *e2tData.E2TAddress + "|" + strings.TrimSuffix(meidar," ")
+	}
+        return &e2tinst,str,nil
 
         } else {
                 xapp.Logger.Info("No data")
         }
 
         xapp.Logger.Debug("Nothing received on the Http interface")
-        return nil, nil
+        return nil,str,nil
 }
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
@@ -552,10 +559,10 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
                 for {
                         xapp.Logger.Debug("received create New E2T data")
 
-                        data, _ := r.RecvNewE2Tdata(e2taddchan)
+                        data, meiddata,_ := r.RecvNewE2Tdata(e2taddchan)
                         if data != nil {
 				m.Lock()
-                                sdlEngine.WriteNewE2TInstance(fileName, data)
+                                sdlEngine.WriteNewE2TInstance(fileName, data,meiddata)
 				m.Unlock()
                                 triggerSBI <- true
                         }
