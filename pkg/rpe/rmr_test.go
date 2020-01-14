@@ -76,3 +76,11 @@ func TestRmrGetRpe(t *testing.T) {
 	_, _ = GetRpe("")
 	_, _ = GetRpe("rmrpush")
 }
+
+/*
+generateRouteTable with empty Platform components
+*/
+func TestGenerateRouteTableRmrGetRpe(t *testing.T) {
+	rpe := Rpe{}
+	_ = rpe.generateRouteTable(stub.ValidEndPointsEmpty)
+}

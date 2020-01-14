@@ -81,6 +81,13 @@ func TestValidateXappCallbackData_1(t *testing.T) {
 	}
 }
 
+func TestValidateXappCallbackDataInvalid (t *testing.T) {
+	data := models.XappCallbackData{}
+	err := validateXappCallbackData(&data)
+	t.Log(err)
+}
+
+
 func TestValidateXappSubscriptionsData(t *testing.T) {
 
 	ep := make(map[string]*rtmgr.Endpoint)
@@ -133,6 +140,14 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 func TestValidateE2tDataEmpty(t *testing.T) {
 	data := models.E2tData{
 		E2TAddress: swag.String(""),
+	}
+	err := validateE2tData(&data)
+	t.Log(err)
+}
+
+func TestValidateE2tDataDNSLookUPfails(t *testing.T) {
+	data := models.E2tData{
+		E2TAddress: swag.String("e2t.1com:1234"),
 	}
 	err := validateE2tData(&data)
 	t.Log(err)
@@ -439,6 +454,7 @@ func TestAddSubscriptions(t *testing.T) {
 	t.Log(yes_no)
 }
 
+
 func TestHttpInstance(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	rpeEngine, _ := rpe.GetRpe("rmrpush")
@@ -474,7 +490,8 @@ func TestXappCallbackDataChannelNodata(t *testing.T) {
 
 func TestE2TChannelwithData(t *testing.T) {
 	data2 := models.E2tData{
-		E2TAddress: swag.String(""),
+		E2TAddress: swag.String("1.2.3.4"),
+		RanNamelist: []string{"ran1","ran2"},
 	}
 	dataChannel := make(chan *models.E2tData, 10)
 	go func() { _, _,_ = recvNewE2Tdata(dataChannel) }()
@@ -582,6 +599,10 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 			}
 		}
 	}
+
+	//Empty XappCallbackdata
+	data1 := models.XappCallbackData{}
+	err = httpRestful.(*HttpRestful).ProvideXappHandleHandlerImpl(datach, &data1)
 }
 
 func TestValidateXappCallbackData(t *testing.T) {
@@ -632,6 +653,8 @@ func TestHttpGetXAppsWithValidData(t *testing.T) {
 		}
 	}
 }
+
+
 func TestRetrieveStartupDataTimeout(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	createMockPlatformComponents()
@@ -672,4 +695,9 @@ func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 	}
 	os.Remove("rt.json")
 	os.Remove("config.json")
+}
+
+func TestInvalidarguments(t *testing.T) {
+	_ = PostSubReq("\n","nbifinterface")
+	_ = PostSubReq("xmurl","\n")
 }

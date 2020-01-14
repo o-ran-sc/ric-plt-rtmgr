@@ -29,11 +29,10 @@
 package stub
 
 import (
-	"routing-manager/pkg/rtmgr"
-	"routing-manager/pkg/models"
 	"github.com/go-openapi/swag"
+	"routing-manager/pkg/models"
+	"routing-manager/pkg/rtmgr"
 )
-
 
 var ValidXApps = &[]rtmgr.XApp{
 	{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2TERM", Status: "unknown", Ip: "10.0.0.1", Port: 0, TxMessages: []string{"HandoverPreparation", "HandoverCancel"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
@@ -65,9 +64,10 @@ var ValidE2TInstance = rtmgr.E2TInstance{
 
 var E2map = make(map[string]rtmgr.E2TInstance)
 
+var ValidEndPointsEmpty = rtmgr.Endpoints{}
 
 var ValidRicComponents = rtmgr.RicComponents{
-	XApps: *ValidXApps, Pcs: *ValidPlatformComponents, E2Ts: E2map,
+	XApps: *ValidXApps, Pcs: *ValidPlatformComponents, E2Ts: E2map, MeidMap: []string{"mme_ar|e2t.com:1234"},
 }
 
 var ValidPolicies = &[]string{"", ""}
@@ -79,22 +79,21 @@ var ValidSubscriptions = &[]rtmgr.Subscription{
 	{SubID: 1237, Fqdn: "10.2.2.1", Port: 0},
 }
 
-var DummyRoutes = &rtmgr.PlatformRoutes {
-       {MessageType: "12000",SenderEndPoint: "SUBMAN",SubscriptionId: 123,EndPoint: "UEMAN", Meid: ""},
-        {MessageType: "12001",SenderEndPoint: "RSM",SubscriptionId: 123,EndPoint: "A1MEDIATOR", Meid: ""},
-        {MessageType: "12002",SenderEndPoint: "E2MAN",SubscriptionId: 123,EndPoint: "E2TERMINST", Meid: ""},
-        {MessageType: "12003",SenderEndPoint: "E2TERMINST",SubscriptionId: 123,EndPoint: "E2MAN", Meid: ""},
-        {MessageType: "12004",SenderEndPoint: "A1MEDIATOR",SubscriptionId: 123,EndPoint: "RSM", Meid: ""},
-        {MessageType: "12005",SenderEndPoint: "UEMAN",SubscriptionId: 123,EndPoint: "SUBMAN", Meid: ""},
+var DummyRoutes = &rtmgr.PlatformRoutes{
+	{MessageType: "12000", SenderEndPoint: "SUBMAN", SubscriptionId: 123, EndPoint: "UEMAN", Meid: ""},
+	{MessageType: "12001", SenderEndPoint: "RSM", SubscriptionId: 123, EndPoint: "A1MEDIATOR", Meid: ""},
+	{MessageType: "12002", SenderEndPoint: "E2MAN", SubscriptionId: 123, EndPoint: "E2TERMINST", Meid: ""},
+	{MessageType: "12003", SenderEndPoint: "E2TERMINST", SubscriptionId: 123, EndPoint: "E2MAN", Meid: ""},
+	{MessageType: "12004", SenderEndPoint: "A1MEDIATOR", SubscriptionId: 123, EndPoint: "RSM", Meid: ""},
+	{MessageType: "12005", SenderEndPoint: "UEMAN", SubscriptionId: 123, EndPoint: "SUBMAN", Meid: ""},
 }
 
 var Rane2tmap = models.RanE2tMap{
-        {E2TAddress: swag.String("10.10.10.10:100"),RanNamelist: []string{"1","2"}},
-        {E2TAddress: swag.String("11.11.11.11:101"),RanNamelist: []string{"3","4"}},
-        {E2TAddress: swag.String("12.12.12.12:101"),RanNamelist: []string{}},
+	{E2TAddress: swag.String("10.10.10.10:100"), RanNamelist: []string{"1", "2"}},
+	{E2TAddress: swag.String("11.11.11.11:101"), RanNamelist: []string{"3", "4"}},
+	{E2TAddress: swag.String("12.12.12.12:101"), RanNamelist: []string{}},
 }
 
 var Rane2tmaponlyE2t = models.RanE2tMap{
-        {E2TAddress: swag.String("10.10.10.10:100"),RanNamelist: []string{}},
+	{E2TAddress: swag.String("10.10.10.10:100"), RanNamelist: []string{}},
 }
-

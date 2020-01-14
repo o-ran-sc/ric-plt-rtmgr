@@ -30,8 +30,8 @@ package sbi
 import (
 	"errors"
 	"reflect"
-	"testing"
 	"routing-manager/pkg/rtmgr"
+	"testing"
 )
 
 func TestGetSbi(t *testing.T) {
@@ -62,23 +62,27 @@ func TestUpdateE2TendPoint(t *testing.T) {
 	var E2map = make(map[string]rtmgr.E2TInstance)
 
 	E2map["1.2.3.4:100"] = rtmgr.E2TInstance{
-		 Name: "E2Tinstance1",
-	        Fqdn: "1.2.3.4:100",
-		Ranlist: []string{"1","2"},
+		Name:    "E2Tinstance1",
+		Fqdn:    "1.2.3.4:100",
+		Ranlist: []string{"1", "2"},
 	}
 
-	sbi.updateE2TEndpoints(&E2map,sbii)
+	sbi.updateE2TEndpoints(&E2map, sbii)
 	t.Log(err)
 }
 
-func TestpruneEndpointList(t *testing.T) {
+func TestPruneEndpointList(t *testing.T) {
 	var sbi = Sbi{}
 	var err error
-        sbii, err := GetSbi("nngpush")
-
+	sbii, err := GetSbi("nngpush")
 	var EP = make(map[string]*rtmgr.Endpoint)
-	EP["10.0.0.1:0"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
+	EP["10.0.0.1:0"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "10.20.30.40", Port: 1234, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
 	rtmgr.Eps = EP
+
+	var nngpush = NngPush{}
+	nngpush.NewSocket = createNewStubPushSocket
+	nngpush.AddEndpoint(rtmgr.Eps["10.0.0.1:0"])
+
 	sbi.pruneEndpointList(sbii)
 	t.Log(err)
 }

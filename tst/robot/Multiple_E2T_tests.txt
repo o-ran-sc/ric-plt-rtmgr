@@ -388,9 +388,58 @@ r3_multiple_e2t_instances_support_scenario6
     ##1: Create one E2T Instnace
     Log    "1. Create E2T instances "
     ##Delete If it exists already
-    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"dummy.e2t.com:12345\\" }"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"dummy.e2t.com:12345\\" }"
     log    ${cmd_output}
     Run Keyword    Should Contain    ${cmd_output}    400 Bad Request 
+
+r3_multiple_e2t_instances_support_scenario7
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 7 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create of  10 E2T instance 
+	...
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instance
+    Log    "1. Create E2T instances "
+    ##Delete If it exists already
+	:FOR     ${INDEX}    IN RANGE     1    11
+    \    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.20.30.${INDEX}:12345\\" }"
+    \    log    ${cmd_output}
+    \    Run Keyword    Should Contain    ${cmd_output}    201  
+    ##2: Delete the created E2T instances
+	:FOR     ${INDEX}    IN RANGE     1    11
+    \    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.20.30.${INDEX}:12345\\" }"
+    \    log    ${cmd_output}
+    \    Run Keyword    Should Contain    ${cmd_output}    201  
+
+
+r3_multiple_e2t_instances_support_scenario8
+    [Documentation]    This Test case covers the checks of Multiple E2T instance support feature
+    ...
+    ...    Scenario 8 [ Positive Case] :
+    ...
+    ...    Step1 : \ Create of  10 E2T instance 
+	...
+    [Tags]    RICPLT_MultipleE2T
+    ##Scenario1 execution
+    ##1: Create one E2T Instance
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\"}"
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\" }"
+    log    ${cmd_output}
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} -- curl -X POST "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/associate-ran-to-e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "[ { \\"E2TAddress\\": \\"10.105.143.108:38000\\", \\"ranNamelist\\": [ \\"R1\\", \\"R2\\", \\"R3\\", \\"R4\\", \\"R5\\", \\"R6\\", \\"R7\\", \\"R8\\", \\"R9\\", \\"R10\\"] }]"
+    log    ${cmd_output}
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output1}    mme_ar|10.105.143.108:38000|R1 R2 R3 R4 R5 R6 R7 R8 R9 R10
+    Run Keyword    Should Contain    ${cmd_output1}    meid_map|end|1
+    ${cmd_output}    Execute command    kubectl exec -n ricplt ${NEAR_RT_RIC_PLT_E2MGR_POD_NAME} \ -- curl -i -X DELETE "http://service-ricplt-rtmgr-http:3800/ric/v1/handles/e2t" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \\"E2TAddress\\": \\"10.105.143.108:38000\\" }"
+    ${cmd_output1}    Execute command    kubectl logs -n ricplt ${NEAR_RT_RIC_PLT_RTMGR_POD_NAME} --tail=12 | grep meid
+    log    ${cmd_output1}
+    Run Keyword    Should Contain    ${cmd_output}    201  
+    Run Keyword    Should Contain    ${cmd_output1}   mme_del|R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 
+
 
 *** Keywords ***
 Login_RIC_Platform_VM
