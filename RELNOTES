@@ -1,3 +1,6 @@
+### v0.4.10
+* Added E2TERM_KEEP_ALIVE_RESP to Route Table during Create E2T
+
 ### v0.4.8
 * Entry in meid map will only contain the delta change 
 
