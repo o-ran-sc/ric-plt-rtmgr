@@ -36,6 +36,7 @@ import (
 	_ "nanomsg.org/go/mangos/v2/transport/all"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
+	"time"
 )
 
 type NngPush struct {
@@ -129,14 +130,40 @@ func (c *NngPush) dial(ep *rtmgr.Endpoint) error {
 	return nil
 }
 
+/*
 func (c *NngPush) DistributeAll(policies *[]string) error {
 	xapp.Logger.Debug("Invoked: sbi.DistributeAll")
 	xapp.Logger.Debug("args: %v", *policies)
 	for _, ep := range rtmgr.Eps {
-		if ep.IsReady {
-			go c.send(ep, policies)
-		} else {
-			xapp.Logger.Warn("Endpoint " + ep.Uuid + " is not ready")
+			if ep.IsReady {
+				go c.send(ep, policies)
+			} else {
+				xapp.Logger.Warn("Endpoint " + ep.Uuid + " is not ready")
+			}
+		}
+	}
+	return nil
+}
+
+*/
+
+/*
+	Temporary solution for R3 - E2M -> E2T issue
+*/
+func (c *NngPush) DistributeAll(policies *[]string) error {
+	xapp.Logger.Debug("Invoked: sbi.DistributeAll")
+	xapp.Logger.Debug("args: %v", *policies)
+	for _, ep := range rtmgr.Eps {
+		i := 1
+		for i< 5 {
+			if ep.IsReady {
+				go c.send(ep, policies)
+				break
+			} else {
+				xapp.Logger.Warn("Endpoint " + ep.Uuid + " is not ready" + " Retry count " + strconv.Itoa(i))
+				time.Sleep(10 * time.Millisecond)
+				i++
+			}
 		}
 	}
 	return nil

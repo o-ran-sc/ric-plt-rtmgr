@@ -1,3 +1,6 @@
+### v0.4.10
+* Temporary Fix for R3 (E2M->E2T issue) - retrying when is_Ready flag in socket handle is false 
+
 ### v0.4.8
 * Entry in meid map will only contain the delta change 
 
