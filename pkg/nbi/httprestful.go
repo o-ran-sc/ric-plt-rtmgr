@@ -38,8 +38,8 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
-	"net/url"
 	"net"
+	"net/url"
 	"os"
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/restapi"
@@ -49,9 +49,9 @@ import (
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
 	"strconv"
-	"time"
-	"sync"
 	"strings"
+	"sync"
+	"time"
 )
 
 //var myClient = &http.Client{Timeout: 1 * time.Second}
@@ -60,7 +60,7 @@ type HttpRestful struct {
 	Engine
 	LaunchRest                   LaunchRestHandler
 	RecvXappCallbackData         RecvXappCallbackDataHandler
-        RecvNewE2Tdata               RecvNewE2TdataHandler 
+	RecvNewE2Tdata               RecvNewE2TdataHandler
 	ProvideXappHandleHandlerImpl ProvideXappHandleHandlerImpl
 	RetrieveStartupData          RetrieveStartupDataHandler
 }
@@ -69,7 +69,7 @@ func NewHttpRestful() *HttpRestful {
 	instance := new(HttpRestful)
 	instance.LaunchRest = launchRest
 	instance.RecvXappCallbackData = recvXappCallbackData
-        instance.RecvNewE2Tdata = recvNewE2Tdata
+	instance.RecvNewE2Tdata = recvNewE2Tdata
 	instance.ProvideXappHandleHandlerImpl = provideXappHandleHandlerImpl
 	instance.RetrieveStartupData = retrieveStartupData
 	return instance
@@ -99,37 +99,37 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	return nil, nil
 }
 
-func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance,string,error) {
-        var e2tData *models.E2tData
+func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, string, error) {
+	var e2tData *models.E2tData
 	var str string
-        xapp.Logger.Info("data received")
+	xapp.Logger.Info("data received")
 
-        e2tData = <-dataChannel
+	e2tData = <-dataChannel
 
-        if nil != e2tData {
+	if nil != e2tData {
 
-			e2tinst :=  rtmgr.E2TInstance {
-				 Ranlist : make([]string, len(e2tData.RanNamelist)),
+		e2tinst := rtmgr.E2TInstance{
+			Ranlist: make([]string, len(e2tData.RanNamelist)),
+		}
+
+		e2tinst.Fqdn = *e2tData.E2TAddress
+		e2tinst.Name = "E2TERMINST"
+		copy(e2tinst.Ranlist, e2tData.RanNamelist)
+		if len(e2tData.RanNamelist) > 0 {
+			var meidar string
+			for _, meid := range e2tData.RanNamelist {
+				meidar += meid + " "
 			}
+			str = "mme_ar|" + *e2tData.E2TAddress + "|" + strings.TrimSuffix(meidar, " ")
+		}
+		return &e2tinst, str, nil
 
-        e2tinst.Fqdn = *e2tData.E2TAddress
-        e2tinst.Name = "E2TERMINST"
-	copy(e2tinst.Ranlist, e2tData.RanNamelist)
-	if (len(e2tData.RanNamelist) > 0) {
-	    var meidar string
-	    for _, meid := range e2tData.RanNamelist {
-		meidar += meid + " "
-	    }
-	    str = "mme_ar|" + *e2tData.E2TAddress + "|" + strings.TrimSuffix(meidar," ")
+	} else {
+		xapp.Logger.Info("No data")
 	}
-        return &e2tinst,str,nil
 
-        } else {
-                xapp.Logger.Info("No data")
-        }
-
-        xapp.Logger.Debug("Nothing received on the Http interface")
-        return nil,str,nil
+	xapp.Logger.Debug("Nothing received on the Http interface")
+	return nil, str, nil
 }
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
@@ -172,21 +172,21 @@ func validateXappSubscriptionData(data *models.XappSubscriptionData) error {
 func validateE2tData(data *models.E2tData) error {
 
 	e2taddress_key := *data.E2TAddress
-        if (e2taddress_key == "") {
-                return fmt.Errorf("E2TAddress is empty!!!")
-        }
+	if e2taddress_key == "" {
+		return fmt.Errorf("E2TAddress is empty!!!")
+	}
 	stringSlice := strings.Split(e2taddress_key, ":")
-	if (len(stringSlice) == 1) {
-		return fmt.Errorf("E2T E2TAddress is not a proper format like ip:port, %v", e2taddress_key )
+	if len(stringSlice) == 1 {
+		return fmt.Errorf("E2T E2TAddress is not a proper format like ip:port, %v", e2taddress_key)
 	}
 
 	_, err := net.LookupIP(stringSlice[0])
 	if err != nil {
 		return fmt.Errorf("E2T E2TAddress DNS look up failed, E2TAddress: %v", stringSlice[0])
-        }
+	}
 
 	if checkValidaE2TAddress(e2taddress_key) {
-		return fmt.Errorf("E2TAddress already exist!!!, E2TAddress: %v",e2taddress_key)
+		return fmt.Errorf("E2TAddress already exist!!!, E2TAddress: %v", e2taddress_key)
 	}
 
 	return nil
@@ -194,21 +194,20 @@ func validateE2tData(data *models.E2tData) error {
 
 func validateDeleteE2tData(data *models.E2tDeleteData) error {
 
-        if (*data.E2TAddress == "") {
-                return fmt.Errorf("E2TAddress is empty!!!")
-        }
+	if *data.E2TAddress == "" {
+		return fmt.Errorf("E2TAddress is empty!!!")
+	}
 
 	for _, element := range data.RanAssocList {
 		e2taddress_key := *element.E2TAddress
 		stringSlice := strings.Split(e2taddress_key, ":")
 
-		if (len(stringSlice) == 1) {
+		if len(stringSlice) == 1 {
 			return fmt.Errorf("E2T Delete - RanAssocList E2TAddress is not a proper format like ip:port, %v", e2taddress_key)
 		}
 
-
 		if !checkValidaE2TAddress(e2taddress_key) {
-				return fmt.Errorf("E2TAddress doesn't exist!!!, E2TAddress: %v",e2taddress_key)
+			return fmt.Errorf("E2TAddress doesn't exist!!!, E2TAddress: %v", e2taddress_key)
 		}
 
 	}
@@ -267,16 +266,41 @@ func deleteXappSubscriptionHandleImpl(subdelchan chan<- *models.XappSubscription
 	return nil
 }
 
+func updateXappSubscriptionHandleImpl(subupdatechan chan<- *rtmgr.XappList, data *models.XappList, subid uint16) error {
+	xapp.Logger.Debug("Invoked updateXappSubscriptionHandleImpl")
+
+	var fqdnlist []rtmgr.FqDn
+	for _, item := range *data {
+		fqdnlist = append(fqdnlist, rtmgr.FqDn(*item))
+	}
+	xapplist := rtmgr.XappList{SubscriptionID: subid, FqdnList: fqdnlist}
+	var subdata models.XappSubscriptionData
+	var id int32
+	id = int32(subid)
+	subdata.SubscriptionID = &id
+	for _, items := range fqdnlist {
+		subdata.Address = items.Address
+		subdata.Port = items.Port
+		err := validateXappSubscriptionData(&subdata)
+		if err != nil {
+			xapp.Logger.Error(err.Error())
+			return err
+		}
+	}
+	subupdatechan <- &xapplist
+	return nil
+}
+
 func createNewE2tHandleHandlerImpl(e2taddchan chan<- *models.E2tData,
-        data *models.E2tData) error {
-        xapp.Logger.Debug("Invoked createNewE2tHandleHandlerImpl")
-        err := validateE2tData(data)
-        if err != nil {
-                xapp.Logger.Error(err.Error())
-                return err
-        }
-        e2taddchan <- data
-        return nil
+	data *models.E2tData) error {
+	xapp.Logger.Debug("Invoked createNewE2tHandleHandlerImpl")
+	err := validateE2tData(data)
+	if err != nil {
+		xapp.Logger.Error(err.Error())
+		return err
+	}
+	e2taddchan <- data
+	return nil
 }
 
 func validateE2TAddressRANListData(assRanE2tData models.RanE2tMap) error {
@@ -290,7 +314,7 @@ func validateE2TAddressRANListData(assRanE2tData models.RanE2tMap) error {
 
 		e2taddress_key := *element.E2TAddress
 		if !checkValidaE2TAddress(e2taddress_key) {
-			return fmt.Errorf("E2TAddress doesn't exist!!!, E2TAddress: %v",e2taddress_key)
+			return fmt.Errorf("E2TAddress doesn't exist!!!, E2TAddress: %v", e2taddress_key)
 		}
 
 	}
@@ -298,44 +322,44 @@ func validateE2TAddressRANListData(assRanE2tData models.RanE2tMap) error {
 }
 
 func associateRanToE2THandlerImpl(assranchan chan<- models.RanE2tMap,
-        data models.RanE2tMap) error {
-        xapp.Logger.Debug("Invoked associateRanToE2THandlerImpl")
+	data models.RanE2tMap) error {
+	xapp.Logger.Debug("Invoked associateRanToE2THandlerImpl")
 	err := validateE2TAddressRANListData(data)
 	if err != nil {
 		xapp.Logger.Warn(" Association of RAN to E2T Instance data validation failed: " + err.Error())
 		return err
 	}
 	assranchan <- data
-        return nil
+	return nil
 }
 
 func disassociateRanToE2THandlerImpl(disassranchan chan<- models.RanE2tMap,
-        data models.RanE2tMap) error {
-        xapp.Logger.Debug("Invoked disassociateRanToE2THandlerImpl")
+	data models.RanE2tMap) error {
+	xapp.Logger.Debug("Invoked disassociateRanToE2THandlerImpl")
 	err := validateE2TAddressRANListData(data)
 	if err != nil {
 		xapp.Logger.Warn(" Disassociation of RAN List from E2T Instance data validation failed: " + err.Error())
 		return err
 	}
 	disassranchan <- data
-        return nil
+	return nil
 }
 
 func deleteE2tHandleHandlerImpl(e2tdelchan chan<- *models.E2tDeleteData,
-        data *models.E2tDeleteData) error {
-        xapp.Logger.Debug("Invoked deleteE2tHandleHandlerImpl")
+	data *models.E2tDeleteData) error {
+	xapp.Logger.Debug("Invoked deleteE2tHandleHandlerImpl")
 
-        err := validateDeleteE2tData(data)
-        if err != nil {
-                xapp.Logger.Error(err.Error())
-                return err
-        }
+	err := validateDeleteE2tData(data)
+	if err != nil {
+		xapp.Logger.Error(err.Error())
+		return err
+	}
 
-        e2tdelchan <- data
-        return nil
+	e2tdelchan <- data
+	return nil
 }
 
-func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData,
+func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData, subupdatechan chan<- *rtmgr.XappList,
 	subdelchan chan<- *models.XappSubscriptionData, e2taddchan chan<- *models.E2tData, assranchan chan<- models.RanE2tMap, disassranchan chan<- models.RanE2tMap, e2tdelchan chan<- *models.E2tDeleteData) {
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
 	if err != nil {
@@ -392,49 +416,60 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				return handle.NewGetHandlesOK()
 			}
 		})
-       api.HandleCreateNewE2tHandleHandler = handle.CreateNewE2tHandleHandlerFunc(
-                func(params handle.CreateNewE2tHandleParams) middleware.Responder {
-                        err := createNewE2tHandleHandlerImpl(e2taddchan, params.E2tData)
-                        if err != nil {
-                                return handle.NewCreateNewE2tHandleBadRequest()
-                        } else {
-				time.Sleep(1 * time.Second)
-                                return handle.NewCreateNewE2tHandleCreated()
-                        }
-                })
-
-       api.HandleAssociateRanToE2tHandleHandler = handle.AssociateRanToE2tHandleHandlerFunc(
-		func(params handle.AssociateRanToE2tHandleParams) middleware.Responder {
-                        err := associateRanToE2THandlerImpl(assranchan, params.RanE2tList)
+	api.HandleUpdateXappSubscriptionHandleHandler = handle.UpdateXappSubscriptionHandleHandlerFunc(
+		func(params handle.UpdateXappSubscriptionHandleParams) middleware.Responder {
+			err := updateXappSubscriptionHandleImpl(subupdatechan, &params.XappList, params.SubscriptionID)
 			if err != nil {
-                                return handle.NewAssociateRanToE2tHandleBadRequest()
-                        } else {
+				return handle.NewUpdateXappSubscriptionHandleBadRequest()
+			} else {
+				//Delay the reponse as delete subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
 				time.Sleep(1 * time.Second)
-                                return handle.NewAssociateRanToE2tHandleCreated()
-                        }
-                })
+				return handle.NewUpdateXappSubscriptionHandleCreated()
+			}
+		})
+	api.HandleCreateNewE2tHandleHandler = handle.CreateNewE2tHandleHandlerFunc(
+		func(params handle.CreateNewE2tHandleParams) middleware.Responder {
+			err := createNewE2tHandleHandlerImpl(e2taddchan, params.E2tData)
+			if err != nil {
+				return handle.NewCreateNewE2tHandleBadRequest()
+			} else {
+				time.Sleep(1 * time.Second)
+				return handle.NewCreateNewE2tHandleCreated()
+			}
+		})
 
-       api.HandleDissociateRanHandler = handle.DissociateRanHandlerFunc(
-	        func(params handle.DissociateRanParams) middleware.Responder {
+	api.HandleAssociateRanToE2tHandleHandler = handle.AssociateRanToE2tHandleHandlerFunc(
+		func(params handle.AssociateRanToE2tHandleParams) middleware.Responder {
+			err := associateRanToE2THandlerImpl(assranchan, params.RanE2tList)
+			if err != nil {
+				return handle.NewAssociateRanToE2tHandleBadRequest()
+			} else {
+				time.Sleep(1 * time.Second)
+				return handle.NewAssociateRanToE2tHandleCreated()
+			}
+		})
+
+	api.HandleDissociateRanHandler = handle.DissociateRanHandlerFunc(
+		func(params handle.DissociateRanParams) middleware.Responder {
 			err := disassociateRanToE2THandlerImpl(disassranchan, params.DissociateList)
 			if err != nil {
-                                return handle.NewDissociateRanBadRequest()
-                        } else {
+				return handle.NewDissociateRanBadRequest()
+			} else {
 				time.Sleep(1 * time.Second)
-                                return handle.NewDissociateRanCreated()
-                        }
-                })
+				return handle.NewDissociateRanCreated()
+			}
+		})
 
-       api.HandleDeleteE2tHandleHandler = handle.DeleteE2tHandleHandlerFunc(
-                func(params handle.DeleteE2tHandleParams) middleware.Responder {
-                        err := deleteE2tHandleHandlerImpl(e2tdelchan, params.E2tData)
-                        if err != nil {
-                                return handle.NewDeleteE2tHandleBadRequest()
-                        } else {
+	api.HandleDeleteE2tHandleHandler = handle.DeleteE2tHandleHandlerFunc(
+		func(params handle.DeleteE2tHandleParams) middleware.Responder {
+			err := deleteE2tHandleHandlerImpl(e2tdelchan, params.E2tData)
+			if err != nil {
+				return handle.NewDeleteE2tHandleBadRequest()
+			} else {
 				time.Sleep(1 * time.Second)
-                                return handle.NewDeleteE2tHandleCreated()
-                        }
-                })
+				return handle.NewDeleteE2tHandleCreated()
+			}
+		})
 	// start to serve API
 	xapp.Logger.Info("Starting the HTTP Rest service")
 	if err := server.Serve(); err != nil {
@@ -479,7 +514,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			}
 			xapp.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
 			// Combine the xapps data and platform data before writing to the SDL
-			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts:  make(map[string]rtmgr.E2TInstance)}
+			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts: make(map[string]rtmgr.E2TInstance)}
 			writeErr := sdlEngine.WriteAll(fileName, ricData)
 			if writeErr != nil {
 				xapp.Logger.Error(writeErr.Error())
@@ -510,13 +545,14 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	datach := make(chan *models.XappCallbackData, 10)
 	subschan := make(chan *models.XappSubscriptionData, 10)
 	subdelchan := make(chan *models.XappSubscriptionData, 10)
+	subupdatechan := make(chan *rtmgr.XappList, 10)
 	e2taddchan := make(chan *models.E2tData, 10)
 	associateranchan := make(chan models.RanE2tMap, 10)
 	disassociateranchan := make(chan models.RanE2tMap, 10)
 	e2tdelchan := make(chan *models.E2tDeleteData, 10)
 	xapp.Logger.Info("Launching Rest Http service")
 	go func() {
-		r.LaunchRest(&nbiif, datach, subschan, subdelchan, e2taddchan, associateranchan, disassociateranchan, e2tdelchan)
+		r.LaunchRest(&nbiif, datach, subschan, subupdatechan, subdelchan, e2taddchan, associateranchan, disassociateranchan, e2tdelchan)
 	}()
 
 	go func() {
@@ -555,56 +591,65 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 		}
 	}()
 
-        go func() {
-                for {
-                        xapp.Logger.Debug("received create New E2T data")
+	go func() {
+		for {
+			data := <-subupdatechan
+			xapp.Logger.Debug("received XApp subscription Merge data")
+			updateSubscription(data)
+			triggerSBI <- true
+		}
+	}()
 
-                        data, meiddata,_ := r.RecvNewE2Tdata(e2taddchan)
-                        if data != nil {
+	go func() {
+		for {
+
+			data, meiddata, _ := r.RecvNewE2Tdata(e2taddchan)
+			if data != nil {
+				xapp.Logger.Debug("received create New E2T data")
 				m.Lock()
-                                sdlEngine.WriteNewE2TInstance(fileName, data,meiddata)
+				sdlEngine.WriteNewE2TInstance(fileName, data, meiddata)
 				m.Unlock()
-                                triggerSBI <- true
-                        }
-                }
-        }()
+				triggerSBI <- true
+			}
+		}
+	}()
 
-        go func() {
-                for {
+	go func() {
+		for {
 			data := <-associateranchan
-                        xapp.Logger.Debug("received associate RAN list to E2T instance mapping from E2 Manager")
+			xapp.Logger.Debug("received associate RAN list to E2T instance mapping from E2 Manager")
 			m.Lock()
-                        sdlEngine.WriteAssRANToE2TInstance(fileName, data)
+			sdlEngine.WriteAssRANToE2TInstance(fileName, data)
 			m.Unlock()
-                        triggerSBI <- true
-                }
-        }()
+			triggerSBI <- true
+		}
+	}()
 
-        go func() {
-                for {
+	go func() {
+		for {
 
 			data := <-disassociateranchan
-                        xapp.Logger.Debug("received disassociate RANs from E2T instance")
+			xapp.Logger.Debug("received disassociate RANs from E2T instance")
 			m.Lock()
-                        sdlEngine.WriteDisAssRANFromE2TInstance(fileName, data)
+			sdlEngine.WriteDisAssRANFromE2TInstance(fileName, data)
 			m.Unlock()
-                        triggerSBI <- true
-                }
-        }()
+			triggerSBI <- true
+		}
+	}()
 
-        go func() {
-                for {
-                        xapp.Logger.Debug("received Delete E2T data")
+	go func() {
+		for {
 
 			data := <-e2tdelchan
-                        if data != nil {
+			xapp.Logger.Debug("received Delete E2T data")
+			if data != nil {
 				m.Lock()
-                                sdlEngine.WriteDeleteE2TInstance(fileName, data)
+				sdlEngine.WriteDeleteE2TInstance(fileName, data)
 				m.Unlock()
-                                triggerSBI <- true
-                        }
-                }
-        }()
+				triggerSBI <- true
+			}
+		}
+	}()
 
 	return nil
 }
@@ -614,6 +659,7 @@ func (r *HttpRestful) Terminate() error {
 }
 
 func addSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubscriptionData) bool {
+	xapp.Logger.Debug("Adding the subscription into the subscriptions list")
 	var b = false
 	sub := rtmgr.Subscription{SubID: *xappSubData.SubscriptionID, Fqdn: *xappSubData.Address, Port: *xappSubData.Port}
 	for _, elem := range *subs {
@@ -646,4 +692,40 @@ func delSubscription(subs *rtmgr.SubscriptionList, xappSubData *models.XappSubsc
 		xapp.Logger.Warn("rtmgr.delSubscription: Subscription = %v, not present in the existing subscriptions", xappSubData)
 	}
 	return present
+}
+
+func updateSubscription(data *rtmgr.XappList) {
+
+	var subdata models.XappSubscriptionData
+	var id int32
+	var matchingsubid, deletecount uint8
+	id = int32(data.SubscriptionID)
+	subdata.SubscriptionID = &id
+	for _, subs := range rtmgr.Subs {
+		if int32(data.SubscriptionID) == subs.SubID {
+			matchingsubid++
+		}
+	}
+
+	for deletecount < matchingsubid {
+		for _, subs := range rtmgr.Subs {
+			if int32(data.SubscriptionID) == subs.SubID {
+				subdata.SubscriptionID = &subs.SubID
+				subdata.Address = &subs.Fqdn
+				subdata.Port = &subs.Port
+				xapp.Logger.Debug("Deletion Subscription List has %v", subdata)
+				delSubscription(&rtmgr.Subs, &subdata)
+				break
+			}
+		}
+		deletecount++
+	}
+
+	for _, items := range data.FqdnList {
+		subdata.Address = items.Address
+		subdata.Port = items.Port
+		xapp.Logger.Debug("Adding Subscription List has %v", subdata)
+		addSubscription(&rtmgr.Subs, &subdata)
+	}
+
 }

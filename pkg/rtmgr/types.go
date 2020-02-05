@@ -105,8 +105,8 @@ type RicComponents struct {
 
 type Subscription struct {
 	SubID int32
-	Fqdn  string
-	Port  uint16
+	Fqdn string
+	Port uint16
 }
 
 type PlatformRoutes []struct {
@@ -121,4 +121,12 @@ type RtmgrRoutes struct {
        Prs PlatformRoutes      `json:"PlatformRoutes"`
 }
 
+type FqDn struct {
+	Address *string
+        Port *uint16
+}
 
+type XappList struct {
+        SubscriptionID  uint16
+	FqdnList []FqDn
+}

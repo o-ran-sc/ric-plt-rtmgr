@@ -1,3 +1,6 @@
+### v0.4.11
+* Added code for subscription merge and added RMR from xapp-framework 
+
 ### v0.4.10
 * Temporary Fix for R3 (E2M->E2T issue) - retrying when is_Ready flag in socket handle is false 
 

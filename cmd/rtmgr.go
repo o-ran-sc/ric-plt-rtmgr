@@ -145,6 +145,9 @@ func main() {
 
 	var m sync.Mutex
 
+	c := sbi.NewControl()
+	go c.Run()
+
 	serve(nbiEngine, sbiEngine, sdlEngine, rpeEngine, &m)
 	os.Exit(0)
 }
