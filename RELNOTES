@@ -1,3 +1,6 @@
+### v0.4.12
+* Added debug API to request route and configuration details in routing manager 
+
 ### v0.4.11
 * Added code for subscription merge and added RMR from xapp-framework 
 

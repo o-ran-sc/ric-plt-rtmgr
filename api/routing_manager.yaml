@@ -1,4 +1,3 @@
-#
 #==================================================================================
 #   Copyright (c) 2019 AT&T Intellectual Property.
 #   Copyright (c) 2019 Nokia
@@ -38,6 +37,8 @@ tags:
 #    url: "http://127.0.0.1"
 - name: "health"
   description: "Health of the system"
+- name: "debug"
+  description: "Debug Information"
 schemes:
 #- "https"
 - "http"
@@ -60,6 +61,24 @@ paths:
           description: "The health of the system"
           schema:
             "$ref": "#/definitions/health-status"
+  /getdebuginfo:
+    get:
+      tags:
+      - "debug"
+      summary: "Get Information for debugging"
+      description: "By performing a GET method, API caller is able to get the dump of routes tables, subcription list and E2T's"
+      operationId: "get_debuginfo"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Debug Info from routing manager"
+          schema:
+            "$ref": "#/definitions/debuginfo"
+        201:
+          description: "Error while fetching Debug data"    
   /handles:
     get:
       tags:
@@ -368,10 +387,31 @@ definitions:
         $ref: '#/definitions/ranNamelist'
       ranAssocList:
         $ref: "#/definitions/ran-e2t-map"
-          
+  endpoint:
+    type: "object"
+    properties:
+      EndPointName:
+        type: "string"
+      EndPointFqdn:
+        type: "string"
+      EndPointPort:
+        type: "integer"
+        format: "uint16"
+        minimum: 0
+        maximum: 65535
+    
+  debuginfo:
+    type: "object"
+    required:
+      - "RouteTable"
+    properties:
+      RouteTable:
+        type: "array"
+        items:
+          type: "string"
+      RouteConfigs:
+        type: "string"
 
 externalDocs:
   description: "Routing Manager"
   url: "http://placeholder"
-
-

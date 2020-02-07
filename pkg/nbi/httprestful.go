@@ -44,6 +44,7 @@ import (
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/restapi"
 	"routing-manager/pkg/restapi/operations"
+	"routing-manager/pkg/restapi/operations/debug"
 	"routing-manager/pkg/restapi/operations/handle"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
@@ -359,6 +360,23 @@ func deleteE2tHandleHandlerImpl(e2tdelchan chan<- *models.E2tDeleteData,
 	return nil
 }
 
+func dumpDebugData() (models.Debuginfo, error) {
+	var response models.Debuginfo
+	sdlEngine, _ := sdl.GetSdl("file")
+	rpeEngine, _ := rpe.GetRpe("rmrpush")
+	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+	if err != nil || data == nil {
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return response, err
+	}
+	response.RouteTable = *rpeEngine.GeneratePolicies(rtmgr.Eps, data)
+
+	prettyJSON, err := json.MarshalIndent(data, "", "")
+	response.RouteConfigs = string(prettyJSON)
+
+	return response, err
+}
+
 func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData, subupdatechan chan<- *rtmgr.XappList,
 	subdelchan chan<- *models.XappSubscriptionData, e2taddchan chan<- *models.E2tData, assranchan chan<- models.RanE2tMap, disassranchan chan<- models.RanE2tMap, e2tdelchan chan<- *models.E2tDeleteData) {
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
@@ -468,6 +486,15 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			} else {
 				time.Sleep(1 * time.Second)
 				return handle.NewDeleteE2tHandleCreated()
+			}
+		})
+	api.DebugGetDebuginfoHandler = debug.GetDebuginfoHandlerFunc(
+		func(params debug.GetDebuginfoParams) middleware.Responder {
+			response, err := dumpDebugData()
+			if err != nil {
+				return debug.NewGetDebuginfoCreated()
+			} else {
+				return debug.NewGetDebuginfoOK().WithPayload(&response)
 			}
 		})
 	// start to serve API
