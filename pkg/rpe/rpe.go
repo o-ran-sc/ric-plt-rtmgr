@@ -137,7 +137,10 @@ func (r *Rpe) addRoute_rx_list(messageType string, tx *rtmgr.Endpoint, rx []rtmg
 	}
 
 	if rx != nil {
-		rxList = []rtmgr.EndpointList{rx}
+		for _, item := range rx {
+			ep := []rtmgr.Endpoint{item}
+			rxList = append(rxList, ep)
+		}
 	}
 
 	messageId := strconv.Itoa(xapp.RICMessageTypes[messageType])

@@ -1,3 +1,6 @@
+### v0.4.13
+* Corrected route table syntax in case of broadcast message 
+
 ### v0.4.12
 * Added debug API to request route and configuration details in routing manager 
 
