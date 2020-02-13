@@ -92,6 +92,11 @@ type E2TInstance struct {
         Ranlist []string `json:"ranlist"`
 }
 
+type E2tIdentity struct {
+        E2taddress string `json:"e2tAddress"`
+        Rannames []string `json:"ranNames"`
+}
+
 type ConfigRtmgr struct {
 	Pcs PlatformComponents `json:"PlatformComponents"`
 }

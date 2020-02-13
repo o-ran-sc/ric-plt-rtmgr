@@ -66,6 +66,8 @@ var BasicXAppLists = []byte(`[
 
 var SubscriptionResp = []byte(`{"ID":"deadbeef1234567890", "Version":0, "EventType":"all"}`)
 
+var E2TListResp = []byte(`[{"e2tAddress":"127.0.0.1:0","ranNames":["RanM0","RanN0"]},{"e2tAddress":"127.0.0.1:1","ranNames":["RanM1","RanN1"]},{"e2tAddress":"127.0.0.1:2","ranNames":["RanM2","RanN2"]},{"e2tAddress":"127.0.0.1:3","ranNames":["RanM3","RanN3"]}]`)
+
 var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
 
 func TestValidateXappCallbackData_1(t *testing.T) {
@@ -468,7 +470,7 @@ func TestHttpInstance(t *testing.T) {
 	//ts.Start()
 	//defer ts.Close()
 	var m sync.Mutex
-	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine, rpeEngine, triggerSBI, &m)
+	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine, rpeEngine, triggerSBI, &m)
 }
 
 func TestXappCallbackDataChannelwithdata(t *testing.T) {
@@ -519,7 +521,7 @@ func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
 	//subdel test
 }
 
-func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
+func createMockAppmgrWithData(url string, g []byte, p []byte, t []byte) *httptest.Server {
 	l, err := net.Listen("tcp", url)
 	if err != nil {
 		fmt.Println("Failed to create listener: " + err.Error())
@@ -534,6 +536,11 @@ func createMockAppmgrWithData(url string, g []byte, p []byte) *httptest.Server {
 			w.Header().Add("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			w.Write(p)
+		}
+		if r.Method == "GET" && r.URL.String() == "/ric/v1/e2t/list" {
+			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(t)
 		}
 
 	}))
@@ -640,7 +647,7 @@ func TestHttpGetXAppsInvalidData(t *testing.T) {
 
 func TestHttpGetXAppsWithValidData(t *testing.T) {
 	var expected = 1
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil, nil)
 
 	ts.Start()
 	defer ts.Close()
@@ -658,7 +665,7 @@ func TestHttpGetXAppsWithValidData(t *testing.T) {
 func TestRetrieveStartupDataTimeout(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	createMockPlatformComponents()
-	err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine)
 	if err == nil {
 		t.Error("Cannot retrieve startup data: " + err.Error())
 	}
@@ -667,13 +674,18 @@ func TestRetrieveStartupDataTimeout(t *testing.T) {
 }
 
 func TestRetrieveStartupData(t *testing.T) {
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, SubscriptionResp)
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, SubscriptionResp, nil)
 	ts.Start()
 	defer ts.Close()
+
+	ts1 := createMockAppmgrWithData("127.0.0.1:8080", nil, nil, E2TListResp)
+	ts1.Start()
+	defer ts1.Close()
+
 	sdlEngine, _ := sdl.GetSdl("file")
 	var httpRestful, _ = GetNbi("httpRESTful")
 	createMockPlatformComponents()
-	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine)
 	//err := retrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
 	if err != nil {
 		t.Error("Cannot retrieve startup data: " + err.Error())
@@ -683,13 +695,13 @@ func TestRetrieveStartupData(t *testing.T) {
 }
 
 func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
-	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, InvalidSubResp)
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, InvalidSubResp, nil)
 	ts.Start()
 	defer ts.Close()
 	sdlEngine, _ := sdl.GetSdl("file")
 	var httpRestful, _ = GetNbi("httpRESTful")
 	createMockPlatformComponents()
-	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", sdlEngine)
+	err := httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine)
 	if err == nil {
 		t.Error("Cannot retrieve startup data: " + err.Error())
 	}

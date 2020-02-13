@@ -88,7 +88,7 @@ func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpe
 
 	triggerSBI := make(chan bool)
 
-	nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"),
+	nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"), xapp.Config.GetString("e2murl"), 
 		sdlEngine, rpeEngine, triggerSBI, m)
 	if nbiErr != nil {
 		xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())

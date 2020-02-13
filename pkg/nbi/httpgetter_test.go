@@ -38,6 +38,7 @@ import (
 
 var (
 	XMURL = "http://127.0.0.1:3000/ric/v1/xapps"
+	E2MURL = "http://127.0.0.1:8080/ric/v1/e2t/list"
 )
 
 func TestFetchXappListInvalidData(t *testing.T) {

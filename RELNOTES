@@ -1,3 +1,6 @@
+### v0.4.14
+* Restart/Start of RM, fetch E2T data from E2manager - implementation in RM for v1/e2t/list API handling 
+
 ### v0.4.13
 * Corrected route table syntax in case of broadcast message 
 

@@ -527,43 +527,128 @@ func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
 	return nil, nil
 }
 
-func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, sdlEngine sdl.Engine) error {
-	var readErr error
-	var maxRetries = 10
-	for i := 1; i <= maxRetries; i++ {
-		time.Sleep(2 * time.Second)
-		xappData, err := httpGetXApps(xmurl)
-		if xappData != nil && err == nil {
-			pcData, confErr := rtmgr.GetPlatformComponents(configfile)
-			if confErr != nil {
-				xapp.Logger.Error(confErr.Error())
-				return confErr
+func httpGetE2TList(e2murl string) (*[]rtmgr.E2tIdentity, error) {
+	xapp.Logger.Info("Invoked httprestful.httpGetE2TList: " + e2murl)
+	r, err := myClient.Get(e2murl)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode == 200 {
+		xapp.Logger.Debug("http client raw response: %v", r)
+		var E2Tlist []rtmgr.E2tIdentity
+		err = json.NewDecoder(r.Body).Decode(&E2Tlist)
+		if err != nil {
+			xapp.Logger.Warn("Json decode failed: " + err.Error())
+		}
+		xapp.Logger.Info("HTTP GET: OK")
+		xapp.Logger.Debug("httprestful.httpGetXApps returns: %v", E2Tlist)
+		return &E2Tlist, err
+	}
+	xapp.Logger.Warn("httprestful got an unexpected http status code: %v", r.StatusCode)
+	return nil, nil
+}
+
+func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TInstance, meids []string) {
+	xapp.Logger.Info("Invoked httprestful.PopulateE2TMap ")
+
+	for _, e2tData := range *e2tDataList {
+		var str string
+
+		e2tinst := rtmgr.E2TInstance{
+			Ranlist: make([]string, len(e2tData.Rannames)),
+		}
+
+		e2tinst.Fqdn = e2tData.E2taddress
+		e2tinst.Name = "E2TERMINST"
+		copy(e2tinst.Ranlist, e2tData.Rannames)
+
+		if len(e2tData.Rannames) > 0 {
+			var meidar string
+			for _, meid := range e2tData.Rannames {
+				meidar += meid + " "
 			}
-			xapp.Logger.Info("Recieved intial xapp data and platform data, writing into SDL.")
-			// Combine the xapps data and platform data before writing to the SDL
-			ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts: make(map[string]rtmgr.E2TInstance)}
-			writeErr := sdlEngine.WriteAll(fileName, ricData)
-			if writeErr != nil {
-				xapp.Logger.Error(writeErr.Error())
-			}
-			// post subscription req to appmgr
-			readErr = PostSubReq(xmurl, nbiif)
-			if readErr == nil {
-				return nil
-			}
+			str += "mme_ar|" + e2tData.E2taddress + "|" + strings.TrimSuffix(meidar, " ")
+		}
+
+		e2ts[e2tinst.Fqdn] = e2tinst
+		meids = append(meids,str)
+	}
+}
+
+func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
+	xapp.Logger.Info("Invoked retrieveStartupData ")
+        var readErr error
+        var maxRetries = 10
+	var xappData *[]rtmgr.XApp
+	xappData = new([]rtmgr.XApp)
+	xapp.Logger.Info("Trying to fetch XApps data from XAPP manager")
+        for i := 1; i <= maxRetries; i++ {
+                time.Sleep(2 * time.Second)
+
+		readErr = nil
+                xappData, err := httpGetXApps(xmurl)
+                if xappData != nil && err == nil {
+			break
+                } else if err == nil {
+                        readErr = errors.New("unexpected HTTP status code")
+                } else {
+                        xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
+                        readErr = err
+                }
+        }
+
+	if ( readErr != nil) {
+	        return readErr
+	}
+
+	var meids []string
+	e2ts := make(map[string]rtmgr.E2TInstance)
+	xapp.Logger.Info("Trying to fetch E2T data from E2manager")
+        for i := 1; i <= maxRetries; i++ {
+                time.Sleep(2 * time.Second)
+
+		readErr = nil
+		e2tDataList, err := httpGetE2TList(e2murl)
+		if e2tDataList != nil && err == nil {
+			PopulateE2TMap(e2tDataList, e2ts, meids[:])
+			break
 		} else if err == nil {
 			readErr = errors.New("unexpected HTTP status code")
 		} else {
-			xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
+			xapp.Logger.Warn("cannot get E2T data from E2M due to: " + err.Error())
 			readErr = err
 		}
 	}
+
+	if ( readErr != nil) {
+	        return readErr
+	}
+
+	pcData, confErr := rtmgr.GetPlatformComponents(configfile)
+        if confErr != nil {
+                xapp.Logger.Error(confErr.Error())
+                return confErr
+        }
+        xapp.Logger.Info("Recieved intial xapp data, E2T data and platform data, writing into SDL.")
+        // Combine the xapps data and platform data before writing to the SDL
+	ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts: e2ts, MeidMap: meids}
+        writeErr := sdlEngine.WriteAll(fileName, ricData)
+        if writeErr != nil {
+                xapp.Logger.Error(writeErr.Error())
+        }
+        // post subscription req to appmgr
+        readErr = PostSubReq(xmurl, nbiif)
+        if readErr == nil {
+                return nil
+        }
 	return readErr
 }
 
-func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, configfile string,
+func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, configfile string, e2murl string,
 	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool, m *sync.Mutex) error {
-	err := r.RetrieveStartupData(xmurl, nbiif, fileName, configfile, sdlEngine)
+	err := r.RetrieveStartupData(xmurl, nbiif, fileName, configfile, e2murl, sdlEngine)
 	if err != nil {
 		xapp.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
 		return err
