@@ -50,14 +50,13 @@ import (
 	_ "nanomsg.org/go/mangos/v2/transport/all"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
+	"time"
 )
-
-
 
 type NngPush struct {
 	Sbi
 	NewSocket CreateNewNngSocketHandler
-        rcChan      chan *xapp.RMRParams
+	rcChan    chan *xapp.RMRParams
 }
 
 func NewNngPush() *NngPush {
@@ -150,10 +149,16 @@ func (c *NngPush) DistributeAll(policies *[]string) error {
 	xapp.Logger.Debug("Invoked: sbi.DistributeAll")
 	xapp.Logger.Debug("args: %v", *policies)
 	for _, ep := range rtmgr.Eps {
-		if ep.IsReady {
-			go c.send(ep, policies)
-		} else {
-			xapp.Logger.Warn("Endpoint " + ep.Uuid + " is not ready")
+		i := 1
+		for i < 5 {
+			if ep.IsReady {
+				go c.send(ep, policies)
+				break
+			} else {
+				xapp.Logger.Warn("Endpoint " + ep.Uuid + " is not ready" + " Retry count " + strconv.Itoa(i))
+				time.Sleep(10 * time.Millisecond)
+				i++
+			}
 		}
 	}
 	return nil
