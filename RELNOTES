@@ -1,3 +1,6 @@
+### v0.4.16
+* getAllSubscriptions API (RM -> SM) during restart of routing manager handled
+
 ### v0.4.15
 * Retained (E2M->E2T issue) - retrying when is_Ready flag in socket handle is false 
 

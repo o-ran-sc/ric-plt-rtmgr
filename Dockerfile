@@ -62,6 +62,8 @@ COPY go.mod go.mod
 COPY pkg pkg
 COPY cmd cmd
 COPY run_rtmgr.sh /run_rtmgr.sh
+RUN mkdir manifests
+COPY manifests/ /go/src/routing-manager/manifests
 #RUN go mod download 
 #RUN /usr/local/go/bin/go mod tidy
 ENV GOPATH /go
@@ -72,7 +74,7 @@ RUN go install ./cmd/rtmgr.go
 # UT intermediate container
 FROM rtmgrbuild as rtmgrut
 RUN ldconfig
-RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "./manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
 FROM ubuntu:16.04
