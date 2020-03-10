@@ -1,3 +1,6 @@
+### v0.5.1
+* Removal of go mangoes and using RMR nng
+
 ### v0.4.16
 * getAllSubscriptions API (RM -> SM) during restart of routing manager handled
 

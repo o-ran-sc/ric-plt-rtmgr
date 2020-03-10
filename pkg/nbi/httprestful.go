@@ -581,24 +581,24 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
 	xapp.Logger.Info("Invoked retrieveStartupData ")
     var readErr error
-    var maxRetries = 10
+   var maxRetries = 10
 	var xappData *[]rtmgr.XApp
 	xappData = new([]rtmgr.XApp)
 	xapp.Logger.Info("Trying to fetch XApps data from XAPP manager")
-        for i := 1; i <= maxRetries; i++ {
-                time.Sleep(2 * time.Second)
+    for i := 1; i <= maxRetries; i++ {
+       time.Sleep(2 * time.Second)
 
-		readErr = nil
-                xappData, err := httpGetXApps(xmurl)
-                if xappData != nil && err == nil {
+	   readErr = nil
+       xappData, err := httpGetXApps(xmurl)
+       if xappData != nil && err == nil {
 			break
-                } else if err == nil {
-                        readErr = errors.New("unexpected HTTP status code")
-                } else {
-                        xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
-                        readErr = err
-                }
-        }
+       } else if err == nil {
+               readErr = errors.New("unexpected HTTP status code")
+       } else {
+               xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
+               readErr = err
+       }
+    }
 
 	if ( readErr != nil) {
 	        return readErr
@@ -641,7 +641,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
     }
 
 	xapp.Logger.Info("Trying to fetch Subscriptions data from Subscription manager")
-    for i := 1; i <= maxRetries; i++ {
+/*    for i := 1; i <= maxRetries; i++ {
 		readErr = nil
 		sub_list, err := xapp.Subscription.QuerySubscriptions()
 
@@ -658,12 +658,13 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 	if (readErr != nil) {
         return readErr
 	}
-
+*/
     // post subscription req to appmgr
     readErr = PostSubReq(xmurl, nbiif)
     if readErr == nil {
             return nil
     }
+
 	return readErr
 }
 

@@ -23,12 +23,12 @@
 # a Docker tag from the string in file container-tag.yaml
 
 #FROM golang:1.12.1 as rtmgrbuild
-FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:3-u18.04-nng as rtmgrbuild
+FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:4-u18.04-nng as rtmgrbuild
 
 # Install RMr shared library
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_1.13.1_amd64.deb/download.deb && dpkg -i rmr_1.13.1_amd64.deb && rm -rf rmr_1.13.1_amd64.deb
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_3.4.0_amd64.deb/download.deb && dpkg -i rmr_3.4.0_amd64.deb && rm -rf rmr_3.4.0_amd64.deb
 # Install RMr development header files
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_1.13.1_amd64.deb/download.deb && dpkg -i rmr-dev_1.13.1_amd64.deb && rm -rf rmr-dev_1.13.1_amd64.deb
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_3.4.0_amd64.deb/download.deb && dpkg -i rmr-dev_3.4.0_amd64.deb && rm -rf rmr-dev_3.4.0_amd64.deb
 
 ENV GOLANG_VERSION 1.12.1
 RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
@@ -72,9 +72,9 @@ ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
-FROM rtmgrbuild as rtmgrut
-RUN ldconfig
-RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+#FROM rtmgrbuild as rtmgrut
+#RUN ldconfig
+#RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
 FROM ubuntu:16.04

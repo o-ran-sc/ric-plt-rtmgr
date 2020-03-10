@@ -64,6 +64,8 @@ func initRtmgr() (nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engi
 	return nil, nil, nil, nil, err
 }
 
+
+
 func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
 	for {
 		if <-triggerSBI {
@@ -83,6 +85,23 @@ func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine
 		}
 	}
 }
+
+func sendRoutesToAll(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine) {
+
+	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+	if err != nil || data == nil {
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return
+	}
+	sbiEngine.UpdateEndpoints(data)
+	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
+	err = sbiEngine.DistributeAll(policies)
+	if err != nil {
+		xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
+		return
+	}
+}
+
 
 func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
 
@@ -116,8 +135,9 @@ func serve(nbiEngine nbi.Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpe
 			}
 		}
 
-		triggerSBI <- true
+		sendRoutesToAll(sbiEngine, sdlEngine, rpeEngine)
 
+		rtmgr.Rtmgr_ready = true
 		time.Sleep(INTERVAL * time.Second)
 		xapp.Logger.Debug("Periodic loop timed out. Setting triggerSBI flag to distribute updated routes.")
 	}
@@ -134,19 +154,33 @@ func SetupCloseHandler() {
 }
 
 func main() {
+
 	nbiEngine, sbiEngine, sdlEngine, rpeEngine, err := initRtmgr()
 	if err != nil {
 		xapp.Logger.Error(err.Error())
 		os.Exit(1)
 	}
+
 	SetupCloseHandler()
+
 	xapp.Logger.Info("Start " + SERVICENAME + " service")
 	rtmgr.Eps = make(rtmgr.Endpoints)
+	rtmgr.Rtmgr_ready = false
 
 	var m sync.Mutex
 
-	c := sbi.NewControl()
-	go c.Run()
+// RMR thread is starting port: 4560
+	c := nbi.NewControl()
+	go c.Run(sbiEngine, sdlEngine, rpeEngine, &m)
+
+// Waiting for RMR to be ready
+	time.Sleep(time.Duration(2) * time.Second)
+	for xapp.Rmr.IsReady() == false {
+	        time.Sleep(time.Duration(2) * time.Second)
+	}
+
+	dummy_whid := int(xapp.Rmr.Openwh("localhost:4560"))
+	xapp.Logger.Info("created dummy Wormhole ID for routingmanager and dummy_whid :%d", dummy_whid)
 
 	serve(nbiEngine, sbiEngine, sdlEngine, rpeEngine, &m)
 	os.Exit(0)
