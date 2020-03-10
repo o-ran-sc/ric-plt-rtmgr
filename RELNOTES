@@ -1,3 +1,6 @@
+### v0.5.2
+* Switch to RMR Si95 mode 
+
 ### v0.5.1
 * Removal of go mangoes and using RMR nng
 
