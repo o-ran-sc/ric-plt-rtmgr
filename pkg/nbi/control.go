@@ -25,55 +25,53 @@ package nbi
 import "C"
 
 import (
-        "errors"
-        "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-        "strconv"
+	"errors"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
-	"routing-manager/pkg/sdl"
 	"routing-manager/pkg/sbi"
+	"routing-manager/pkg/sdl"
+	"strconv"
 	"sync"
 )
 
-
 func NewControl() Control {
 
-        return Control{make(chan *xapp.RMRParams)}
+	return Control{make(chan *xapp.RMRParams)}
 }
-
 
 type Control struct {
-        rcChan      chan *xapp.RMRParams
+	rcChan chan *xapp.RMRParams
 }
 
-
 func (c *Control) Run(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
-        go c.controlLoop(sbiEngine, sdlEngine, rpeEngine, m)
-        xapp.Run(c)
+	go c.controlLoop(sbiEngine, sdlEngine, rpeEngine, m)
+	xapp.Run(c)
 }
 
 func (c *Control) Consume(rp *xapp.RMRParams) (err error) {
-        c.rcChan <- rp
-        return
+	c.rcChan <- rp
+	return
 }
 
 func (c *Control) controlLoop(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
 	for {
 		msg := <-c.rcChan
+		xapp_msg := sbi.RMRParams{msg}
 		switch msg.Mtype {
 		case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
-			if (rtmgr.Rtmgr_ready == false) {
-					xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
+			if rtmgr.Rtmgr_ready == false {
+				xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
 			} else {
-					xapp.Logger.Info("Update Route Table Request(RMR to RM)")
+				xapp.Logger.Info("Update Route Table Request(RMR to RM)")
 				go c.handleUpdateToRoutingManagerRequest(msg, sbiEngine, sdlEngine, rpeEngine, m)
 			}
 		case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
-		       xapp.Logger.Info("state of table to route mgr %v", msg)
+			xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
 
 		default:
-		        err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
-		        xapp.Logger.Error("Unknown message type: %v", err)
+			err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
+			xapp.Logger.Error("Unknown message type: %v", err)
 		}
 	}
 }
@@ -95,7 +93,7 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams, sb
 
 	ep := sbiEngine.CreateEndpoint(string(params.Payload))
 	if ep == nil {
-		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ",string(params.Payload))
+		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
 		return
 	}
 
