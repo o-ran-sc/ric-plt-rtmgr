@@ -1,10 +1,10 @@
 ---
 distribution_type: container
-container_release_tag: 0.4.9
+container_release_tag: 0.4.15
 container_pull_registry: nexus3.o-ran-sc.org:10004
 container_push_registry: nexus3.o-ran-sc.org:10002
 project: ric-plt/rtmgr 
-ref: 2f9b55c1a2aac9f0865beb73b6619b106b32edb2 
+ref: 45b86cc64dc6071f160b0f2c9ab8dfb57d1ce039
 containers:
     - name: ric-plt-rtmgr
-      version: 0.4.9 
+      version: 0.4.15
