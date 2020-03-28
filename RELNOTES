@@ -1,15 +1,3 @@
-### v0.5.3
-* RMR updated to v3.6.0 with support for E2 Setup message types
-
-### v0.5.2
-* Switch to RMR Si95 mode 
-
-### v0.5.1
-* Removal of go mangoes and using RMR nng
-
-### v0.4.16
-* getAllSubscriptions API (RM -> SM) during restart of routing manager handled
-
 ### v0.4.15
 * Retained (E2M->E2T issue) - retrying when is_Ready flag in socket handle is false 
 

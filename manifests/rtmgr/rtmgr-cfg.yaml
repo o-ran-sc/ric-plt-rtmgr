@@ -65,5 +65,3 @@ data:
       "maxSize": 2072
       "numWorkers": 1
     }
-subscription:
- host: "127.0.0.1:8089"
