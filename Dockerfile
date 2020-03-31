@@ -26,9 +26,10 @@
 FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:4-u18.04-nng as rtmgrbuild
 
 # Install RMr shared library
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_1.13.1_amd64.deb/download.deb && dpkg -i rmr_1.13.1_amd64.deb && rm -rf rmr_1.13.1_amd64.deb
+ARG RMRVERSION=3.6.0
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
 # Install RMr development header files
-RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_1.13.1_amd64.deb/download.deb && dpkg -i rmr-dev_1.13.1_amd64.deb && rm -rf rmr-dev_1.13.1_amd64.deb
+RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
 
 ENV GOLANG_VERSION 1.12.1
 RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
@@ -62,17 +63,20 @@ COPY go.mod go.mod
 COPY pkg pkg
 COPY cmd cmd
 COPY run_rtmgr.sh /run_rtmgr.sh
+RUN mkdir manifests
+COPY manifests/ /go/src/routing-manager/manifests
 #RUN go mod download 
 #RUN /usr/local/go/bin/go mod tidy
 ENV GOPATH /go
 
 ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
+CMD /bin/bash
 
 # UT intermediate container
-FROM rtmgrbuild as rtmgrut
-RUN ldconfig
-RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "./manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+#FROM rtmgrbuild as rtmgrut
+#RUN ldconfig
+#RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
 FROM ubuntu:16.04

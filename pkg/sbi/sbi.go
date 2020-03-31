@@ -171,3 +171,18 @@ func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine)
                 }
         }
 }
+
+func (s *Sbi) createEndpoint(payload string, sbi Engine) (*rtmgr.Endpoint) {
+	xapp.Logger.Debug("CreateEndPoint %v", payload)
+	stringSlice := strings.Split(payload, " ")
+	uuid := stringSlice[0]
+	xapp.Logger.Debug(">>> uuid %v",  stringSlice[0])
+
+
+	if _, ok := rtmgr.Eps[uuid]; ok {
+		ep := rtmgr.Eps[uuid]
+		return ep
+	}
+
+	return nil
+}

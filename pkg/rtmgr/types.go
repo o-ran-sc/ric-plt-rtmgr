@@ -53,6 +53,7 @@ type Endpoint struct {
 	Socket     interface{}
 	IsReady    bool
 	Keepalive  bool
+	Whid       int
 }
 
 type RouteTableEntry struct {
@@ -135,3 +136,7 @@ type XappList struct {
         SubscriptionID  uint16
 	FqdnList []FqDn
 }
+
+var (
+	Rtmgr_ready bool
+)
