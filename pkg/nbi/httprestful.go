@@ -581,6 +581,7 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
 	xapp.Logger.Info("Invoked retrieveStartupData ")
     var readErr error
+	var err  error
    var maxRetries = 10
 	var xappData *[]rtmgr.XApp
 	xappData = new([]rtmgr.XApp)
@@ -589,7 +590,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
        time.Sleep(2 * time.Second)
 
 	   readErr = nil
-       xappData, err := httpGetXApps(xmurl)
+       xappData, err = httpGetXApps(xmurl)
        if xappData != nil && err == nil {
 			break
        } else if err == nil {
