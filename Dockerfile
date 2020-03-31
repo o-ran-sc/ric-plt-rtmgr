@@ -71,7 +71,6 @@ ENV GOPATH /go
 
 ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
-CMD /bin/bash
 
 # UT intermediate container
 #FROM rtmgrbuild as rtmgrut
@@ -84,6 +83,7 @@ COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 COPY --from=rtmgrbuild /usr/local/include /usr/local/include
 COPY --from=rtmgrbuild /usr/local/lib /usr/local/lib
+COPY "uta_rtg_ric.rt" /
 RUN ldconfig
 RUN apt-get update && apt-get install -y iputils-ping net-tools curl tcpdump
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
