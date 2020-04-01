@@ -27,11 +27,6 @@ Overview
 --------
 Routing Manager is a basic platform service of RIC. It is responsible for distributing routing policies among the other platform components and xApps.
 
-The routing manager has two ways to get the xapp details from xapp manager - httpGetter or httpRESTful.
-In case of httpGetter, the implemented logic periodically queries the xApp Manager component for xApps' list.
-Where in httpRESTful, starts a http server and creates a webhook subscription in xapp manager to update about changes in xapps and waits changed data to arrive on the REST http server.
-Either ways, the xapp data received is stored and then processed to create routing policies and distributes them to all xApps.
-
 Architecture
 ------------
 The architecture consists of the following five well defined functions:
@@ -42,44 +37,139 @@ The architecture consists of the following five well defined functions:
 * SouthBound Interface (__SBI__): Maintains the communication channels towards RIC tenants and control components
 * Control Logic (__RTMGR__): Controls the operation of above functions
 
+Configuration Settings for Routing Manager
+------------------------------------------
+The configuration related parameters for routing manager are provided in the following files -
 
-Installing Routing Manager
---------------------------
-* Tag the `rtmgr` container according to the project release and push it to a registry accessible from all minions of the Kubernetes cluster.
-* Edit the container image section of `rtmgr-dep.yaml` file according to the `rtmgr` image tag.
+ConfigMap: ric-dep/helm/rtmgr/config.yaml:
+------------------------------------------
+This file has the major configurations. The description for each of them is given below -
 
-Deploying Routing Manager
--------------------------
-* Issue the `kubectl create -f {manifest.yaml}` command in the following order:
-   1. `manifests/namespace.yaml`: creates the `example` namespace for routing-manager resources
-   2. `manifests/rtmgr/rtmgr-cfg.yaml`: creates default routes config file for routing-manager
-   3. `manifests/rtmgr/rtmgr-dep.yaml`: instantiates the `rtmgr` deployment in the `example` namespace
-   4. `manifests/rtmgr/rtmgr-svc.yaml`: creates the `rtmgr` service in `example` namespace
+* PlatformComponents : Represents the platform components that needs route table to be distributed. They usually contain the hard coded name(used internally by Routing Manager), the FQDN name and the port.
 
-NOTE: The above manifest files will deploy routing manager with NBI as httpRESTful which would not succeed unless there is an xapp manager running at the defined xm-url. The solution is either to deploy a real XAPP manager before deploying routing-manager or start the mock xmgr as mentioned in [Testing](#testing-and-troubleshoting).
+* XMURL : The URL used by RM to query Appmgr to provide the Xapp list during start-up
+
+* EMURL : The URL used by RM to query E2Mgr to provide the E2Termination list during start-up
+
+* RTFILE: File based data store that RM uses to store the route table information and other internal details.
+
+* CFGFILE: Stores the path of config file in RTE. Mandatorily needed to start RM.
+
+* RPE/SBI/SBIURL/NBI/NBIURL/SDL : Derived from the RM helm chart and needed for respective module initialization.
+
+* logger : To change the log level setting
+
+* local : Http server that listens on the specified port. This port used for dumping RTFILE contains.
+
+* rmr : RMR messaging related attributes needed by xapp-framework.
+
+  * protPort: RMR Listening Port
+  * maxSize: Maximum Transmission Buffer size
+  * threadType: Always set to 1 so that RM doesn't wait for static Route table initialization.
+
+* PlatformRoutes: Static platform routes between the Platform Components. Based on these rules the routes wll get populated. The syntax is based on the RMR route table syntax.
+
+  * messagetype: Message types as defined in mtypes.go(rmr.h) in xapp-framework(RMR)
+  * senderendpoint: Message originating address in the form IP:PORT
+  * subscriptionid: Subscription ID to be filled, mostlt "-1" for all static routes
+  * endpoint: Message reception address in the form IP:PORT
+  * meid: meid entry is required to be populated by "%meid"
+  
+  
+Env File: ric-dep/helm/rtmgr/env.yaml:
+---------------------------------------
+This file contains attributes based that are required by RMR.
+
+
+Installing RIC Platform - Routing Manager gets deployed automatically
+---------------------------------------------------------------------
+Follow the procedure found in 
+
+https://docs.o-ran-sc.org/projects/o-ran-sc-ric-plt-ric-dep/en/latest/
+
+This will be the best way to test the bugs and integrate new features. 
 
 Testing and Troubleshooting
 ---------------------------
-Testing with Kubernetes
------------------------
-Routing Manager's behaviour can be tested using the mocked xApp Manager, traffic generator xApp and receiver xApp.
 
-* Checkout and compile both xApp receiver and xApp Tx generator of RIC admission control project:
-  `https://gerrit.o-ran-sc.org/r/admin/repos/ric-app/admin`
+1. Routing Manager is in Continous Reboot loop.
+  
+   1a. Check if the appmgr POD is running by running the command. This command should show it as "Running"
+   1b. If appmgr is running as expected, check the logs of appmgr,if helm is properly initialised.
 
-* Copy the `adm-ctrl-xapp` binary to `./test/docker/xapp.build` folder furthermore copy all RMR related dinamycally linked library under `./test/docker/xapp.build/usr` folder. Issue `docker build ./test/docker/xapp.build` command. Tag the recently created docker image and push it to the common registry.
+.. code:: bash
 
-* Copy the `test-tx` binary to `./test/docker/xapp-tx.build` folder furthermore copy all RMR related dinamycally linked library under `./test/docker/xapp.build/usr` folder. Issue `docker build ./test/docker/xapp-tx.build` command.  Tag the recently created docker image and push it to the common registry.
+   1a .#kubectl get pods -n ricplt | grep appmgr
+   deployment-ricplt-appmgr-77bcbb8886-p4zvq          2/2     Running   0          2d3h
 
-* Enter the `./test/docker/xmgr.build` folder and issue `docker build .`.  Tag the recently created docker image and push it to the common registry.
+   2a .# kubectl logs  deployment-ricplt-appmgr-77bcbb8886-p4zvq -n ricplt container-ricplt-appmgr | grep "Helm init done successfully"
+   {"ts":1585551084410,"crit":"INFO","id":"appmgr","mdc":{"time":"2020-03-30T06:51:24Z","xm":"0.4.1"},"msg":"Helm init done successfully!"}
 
-* Modify the docker image version in each kuberbetes manifest files under `./test/kubernetes/` folder accordingly then issue the `kubectl create -f {manifest.yaml}` on each file.
+   
+2. Check the Routes generated by Routing Manager and its internal map.
 
-Once the routing manager is started, it retrievs the initial xapp list from `xmgr` via HTTPGet additonaly it starts to listen on http://rtmgr:8888/v1/handles/xapp-handle endpoint and ready to receive xapp list updates.
+   If this REST API is command fired, it should return the list of routes generated for platform components and the file contents. This should match with the user expectations while debugging.
 
-* Edit the provided `test/data/xapp.json` file accordingly and issue the following curl command to update `rtmgr's` xapp list.
+.. code:: bash
 
-  `curl --header "Content-Type: application/json" --request POST --data '@./test/data/xapps.json' http://10.244.2.104:8888/v1/handles/xapp-handle`
+   curl -X GET "http://<KONGPROXY_IP>:3800/ric/v1/getdebuginfo" -H  "accept: application/json" | json_pp
+
+   # curl -X GET "http://10.101.18.182:3800/ric/v1/getdebuginfo" -H  "accept: application/json" | json_pp
+   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                  Dload  Upload   Total   Spent    Left  Speed
+   100  3765    0  3765    0     0  71037      0 --:--:-- --:--:-- --:--:-- 71037
+   {
+    "RouteConfigs" : "{\n\"XApps\": null,\n\"E2Ts\": {\n\"10.102.131.163:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.102.131.163:38000\",\n\"ranlist\": []\n},\n\"10.103.165.47:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.103.165.47:38000\",\n\"ranlist\": []\n},\n\"10.104.160.127:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.104.160.127:38000\",\n\"ranlist\": []\n},\n\"10.104.30.46:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.104.30.46:38000\",\n\"ranlist\": []\n},\n\"10.108.90.168:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.108.90.168:38000\",\n\"ranlist\": []\n},\n\"10.110.3.220:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.110.3.220:38000\",\n\"ranlist\": []\n},\n\"10.97.122.250:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.97.122.250:38000\",\n\"ranlist\": []\n},\n\"10.98.173.62:38000\": {\n\"name\": \"E2TERMINST\",\n\"fqdn\": \"10.98.173.62:38000\",\n\"ranlist\": []\n}\n},\n\"MeidMap\": [],\n\"Pcs\": [\n{\n\"name\": \"E2TERM\",\n\"fqdn\": \"service-ricplt-e2term-rmr.ricplt\",\n\"port\": 38000\n},\n{\n\"name\": \"SUBMAN\",\n\"fqdn\": \"service-ricplt-submgr-rmr.ricplt\",\n\"port\": 4560\n},\n{\n\"name\": \"E2MAN\",\n\"fqdn\": \"service-ricplt-e2mgr-rmr.ricplt\",\n\"port\": 3801\n},\n{\n\"name\": \"RSM\",\n\"fqdn\": \"service-ricplt-rsm-rmr.ricplt\",\n\"port\": 4801\n},\n{\n\"name\": \"A1MEDIATOR\",\n\"fqdn\": \"service-ricplt-a1mediator-rmr.ricplt\",\n\"port\": 4562\n}\n]\n}",
+   "RouteTable" : [
+      "newrt|start\n",
+      "mse|12010,service-ricplt-submgr-rmr.ricplt:4560|-1|%meid\n",
+      "mse|12020,service-ricplt-submgr-rmr.ricplt:4560|-1|%meid\n",
+      "mse|12011|-1|service-ricplt-submgr-rmr.ricplt:4560\n",
+      "mse|12021|-1|service-ricplt-submgr-rmr.ricplt:4560\n",
+      "mse|12012|-1|service-ricplt-submgr-rmr.ricplt:4560\n",
+      "mse|12022|-1|service-ricplt-submgr-rmr.ricplt:4560\n",
+      "mse|10060,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10070,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10071,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10360,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10081,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10082,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10371,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|10372,service-ricplt-e2mgr-rmr.ricplt:3801|-1|%meid\n",
+      "mse|1100|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10061|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10062|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10070|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10071|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10361|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10362|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10370|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|1080|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10030|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10080|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|10020|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|1102|-1|service-ricplt-e2mgr-rmr.ricplt:3801\n",
+      "mse|1200,service-ricplt-e2mgr-rmr.ricplt:3801|-1|\n",
+      "mse|1210,service-ricplt-e2mgr-rmr.ricplt:3801|-1|\n",
+      "mse|1220,service-ricplt-e2mgr-rmr.ricplt:3801|-1|\n",
+      "mse|20012|-1|service-ricplt-a1mediator-rmr.ricplt:4562\n",
+      "mse|20011|-1|service-ricplt-a1mediator-rmr.ricplt:4562\n",
+      "mse|1090,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.104.160.127:38000;10.108.90.168:38000;10.102.131.163:38000;10.97.122.250:38000;10.98.173.62:38000;10.103.165.47:38000;10.110.3.220:38000;10.104.30.46:38000\n",
+      "mse|1101,service-ricplt-e2mgr-rmr.ricplt:3801|-1|10.104.160.127:38000;10.108.90.168:38000;10.102.131.163:38000;10.97.122.250:38000;10.98.173.62:38000;10.103.165.47:38000;10.110.3.220:38000;10.104.30.46:38000\n",
+      "newrt|end\n",
+      "meid_map|start\nmeid_map|end|0\n"
+   ]
+   }
+
+3. Further debugging can be done by checking the logs of routing manager. Debug flag if enabled in config map will allow more logs to be printed on the console
+
+.. code:: bash
+
+   #To enable debug logs, ensure this variable is as shown below in  ric-dep/helm/rtmgr/templates/config.yaml
+           "logger":
+                 "level": 4
+   #Re-start rtmgr and check for the logs,
+           kubectl logs <podname> -n ricplt
 
 Executing unit tests
 --------------------
@@ -88,11 +178,9 @@ For running unit tests, execute the following command:
 
 If you wish to execute the full UT set with coverage:
 
+.. code:: bash
+
    mkdir -p unit-test
-
    go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -cover -race -coverprofile=$PWD/unit-test/c.out
-
    go tool cover -html=$PWD/unit-test/c.out -o $PWD/unit-test/coverage.html
 
-
-For troubleshooting purpose the default logging level can be increased to `DEBUG`. (by hand launch it's set to INFO, kubernetes manifest has DEBUG set by default).

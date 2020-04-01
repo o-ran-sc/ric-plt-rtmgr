@@ -16,23 +16,29 @@
 ..  limitations under the License.
 ..
 
-.. _ric-plt-rtmgr:
+Pre-requisites
+--------------
+    * Ubuntu machine
+    * golang 1.12.1 minimum
 
-Welcome to O-RAN SC Routing Manager
-===================================
+Compiling Routing Manager
+-------------------------
+Clone the ric-plt/dep git repository.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. code:: bash
 
-   
-   installation-guide.rst
-   developer-guide.rst
-   release-notes.rst
-   api-docs.rst
+  git clone "https://gerrit.o-ran-sc.org/r/ric-plt/rtmgr"
 
-.. * :doc:`RIC Dashboard <ric-plt-rtmgr:index>`
+Execute this shell script which will give you the rtmgr as executable
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. code:: bash
+
+  cd rtmgr/example
+  ./rtmgr_exe.sh
+
+Run rtmgr by passing the config file as parameter. Note that the rtmgr may abort after sometime as it needs appmgr to be running. This can be tweaked by modifying the actual code. As this would be needed only for actual Development, the sam eis not being mentioned here.
+
+.. code:: bash
+
+  ./rtmgr -f rtmgr-config.yaml
+

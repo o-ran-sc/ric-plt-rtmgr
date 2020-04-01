@@ -1,3 +1,6 @@
+### v0.5.6
+* Fix to convert service name to IP during Route update Request
+
 ### v0.5.5
 * Supporting xApp to xApp Routes handling 
 
