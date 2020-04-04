@@ -102,11 +102,64 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 	return &rawrt
 }
 
+/*
+Produces the raw route message consumable by RMR
+*/
+func (r *Rmr) generateRMRRouteTables(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents, key string) (*[]string, *[]string) {
+	rawrt := []string{key + "newrt|start\n"}
+	rt := r.generateRouteTable(eps)
+	for _, rte := range *rt {
+		rawrte := key + "mse|" + rte.MessageType
+		for _, tx := range rte.TxList {
+			rawrte += "," + tx.Ip + ":" + strconv.Itoa(int(tx.Port))
+		}
+		rawrte += "|" + strconv.Itoa(int(rte.SubID)) + "|"
+		group := ""
+		for _, rxg := range rte.RxGroups {
+			member := ""
+			for _, rx := range rxg {
+				if member == "" {
+					member += rx.Ip + ":" + strconv.Itoa(int(rx.Port))
+				} else {
+					member += "," + rx.Ip + ":" + strconv.Itoa(int(rx.Port))
+				}
+			}
+			if group == "" {
+				group += member
+			} else {
+				group += ";" + member
+			}
+		}
+		rawrte += group
+
+                if (rte.RouteType == "%meid") {
+                        rawrte += group + rte.RouteType
+                }
+
+		rawrt = append(rawrt, rawrte+"\n")
+	}
+	rawrt = append(rawrt, key+"newrt|end\n")
+        count := 0
+
+	meidrt := []string{key +"meid_map|start\n"}
+        for _, value := range rcs.MeidMap {
+            meidrt = append(meidrt, key + value + "\n")
+            count++
+        }
+        meidrt = append(meidrt, key+"meid_map|end|" + strconv.Itoa(count) +"\n")
+
+	xapp.Logger.Debug("rmr.generateRMRRouteTables returns: %v", rawrt)
+	xapp.Logger.Debug("rmr.generateRMRRouteTables returns: %v", meidrt)
+	xapp.Logger.Debug("rmr.generateRMRRouteTables returns: %v", rcs)
+	return &rawrt, &meidrt
+}
+
 func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents) *[]string {
 	xapp.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
 	return r.generateRMRPolicies(eps, rcs, "")
 }
 
-func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
-	return r.generateRouteTable(eps)
+func (r *RmrPush) GenerateRouteTables(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents) (*[]string, *[]string) {
+	xapp.Logger.Debug("Invoked rmr.GenerateRouteTables, args: %v: ", eps)
+	return r.generateRMRRouteTables(eps, rcs, "")
 }

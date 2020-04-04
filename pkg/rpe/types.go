@@ -44,5 +44,5 @@ type EngineConfig struct {
 
 type Engine interface {
 	GeneratePolicies(rtmgr.Endpoints, *rtmgr.RicComponents) *[]string
-	GenerateRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
+	GenerateRouteTables(rtmgr.Endpoints, *rtmgr.RicComponents) (*[]string, *[]string)
 }

@@ -77,8 +77,8 @@ func serveSBI(triggerSBI <-chan bool, sbiEngine sbi.Engine, sdlEngine sdl.Engine
 				continue
 			}
 			sbiEngine.UpdateEndpoints(data)
-			policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
-			err = sbiEngine.DistributeAll(policies)
+			route_table, meid_table := rpeEngine.GenerateRouteTables(rtmgr.Eps, data)
+			err = sbiEngine.DistributeRouteTables(route_table, meid_table)
 			if err != nil {
 				xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
 			}

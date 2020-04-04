@@ -31,7 +31,9 @@ package sbi
 
 import (
 	"errors"
+	"fmt"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"net"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 	"strings"
@@ -107,7 +109,7 @@ func (s *Sbi) updateEndpoints(rcs *rtmgr.RicComponents, sbi Engine) {
 		}
 	}
 	s.updatePlatformEndpoints(&((*rcs).Pcs), sbi)
-        s.updateE2TEndpoints(&((*rcs).E2Ts), sbi)
+	s.updateE2TEndpoints(&((*rcs).E2Ts), sbi)
 	s.pruneEndpointList(sbi)
 }
 
@@ -141,47 +143,58 @@ func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine)
 }
 
 func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine) {
-        xapp.Logger.Debug("updateE2TEndpoints invoked. E2T: %v", *E2Ts)
-        for _, e2t := range *E2Ts {
-                uuid := e2t.Fqdn
-                stringSlice := strings.Split(e2t.Fqdn, ":")
-                ipaddress := stringSlice[0]
-                port, _ := strconv.Atoi(stringSlice[1])
-                if _, ok := rtmgr.Eps[uuid]; ok {
-                        rtmgr.Eps[uuid].Keepalive = true
-                } else {
-                        ep := &rtmgr.Endpoint{
-                                Uuid:       uuid,
-                                Name:       e2t.Name,
-                                XAppType:   PlatformType,
-                                Ip:         ipaddress,
-                                Port:       uint16(port),
-                                TxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["tx"],
-                                RxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["rx"],
-                                Socket:     nil,
-                                IsReady:    false,
-                                Keepalive:  true,
-                        }
-                        xapp.Logger.Debug("ep created: %v", ep)
-                        if err := sbi.AddEndpoint(ep); err != nil {
-                                xapp.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
-                                continue
-                        }
-                        rtmgr.Eps[uuid] = ep
-                }
-        }
+	xapp.Logger.Debug("updateE2TEndpoints invoked. E2T: %v", *E2Ts)
+	for _, e2t := range *E2Ts {
+		uuid := e2t.Fqdn
+		stringSlice := strings.Split(e2t.Fqdn, ":")
+		ipaddress := stringSlice[0]
+		port, _ := strconv.Atoi(stringSlice[1])
+		if _, ok := rtmgr.Eps[uuid]; ok {
+			rtmgr.Eps[uuid].Keepalive = true
+		} else {
+			ep := &rtmgr.Endpoint{
+				Uuid:       uuid,
+				Name:       e2t.Name,
+				XAppType:   PlatformType,
+				Ip:         ipaddress,
+				Port:       uint16(port),
+				TxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["tx"],
+				RxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["rx"],
+				Socket:     nil,
+				IsReady:    false,
+				Keepalive:  true,
+			}
+			xapp.Logger.Debug("ep created: %v", ep)
+			if err := sbi.AddEndpoint(ep); err != nil {
+				xapp.Logger.Error("can't create socket for endpoint: " + ep.Name + " due to:" + err.Error())
+				continue
+			}
+			rtmgr.Eps[uuid] = ep
+		}
+	}
 }
 
-func (s *Sbi) createEndpoint(payload string, sbi Engine) (*rtmgr.Endpoint) {
+func (s *Sbi) createEndpoint(payload string, sbi Engine) *rtmgr.Endpoint {
 	xapp.Logger.Debug("CreateEndPoint %v", payload)
 	stringSlice := strings.Split(payload, " ")
 	uuid := stringSlice[0]
-	xapp.Logger.Debug(">>> uuid %v",  stringSlice[0])
-
+	xapp.Logger.Debug(">>> uuid %v", stringSlice[0])
 
 	if _, ok := rtmgr.Eps[uuid]; ok {
 		ep := rtmgr.Eps[uuid]
 		return ep
+	}
+
+	/* incase the stored Endpoint list is in the form of IP:port*/
+	stringsubsplit := strings.Split(uuid, ":")
+	addr, err := net.LookupIP(stringsubsplit[0])
+	if err == nil {
+		convertedUuid := fmt.Sprintf("%s:%s", addr[0], stringsubsplit[1])
+		xapp.Logger.Info(" IP:Port received is %s", convertedUuid)
+		if _, ok := rtmgr.Eps[convertedUuid]; ok {
+			ep := rtmgr.Eps[convertedUuid]
+			return ep
+		}
 	}
 
 	return nil

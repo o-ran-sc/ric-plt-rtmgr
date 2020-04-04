@@ -47,6 +47,7 @@ type Engine interface {
 	UpdateEndpoints(*rtmgr.RicComponents)
 	CreateEndpoint(string) (*rtmgr.Endpoint)
 	DistributeToEp(*[]string, *rtmgr.Endpoint) error
+	DistributeRouteTables(route_table *[]string, meid_table *[]string) error
 }
 
 type NngSocket interface {

@@ -26,7 +26,7 @@
 FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:4-u18.04-nng as rtmgrbuild
 
 # Install RMr shared library
-ARG RMRVERSION=3.6.0
+ARG RMRVERSION=3.6.2
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
 # Install RMr development header files
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
@@ -83,6 +83,7 @@ COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 COPY --from=rtmgrbuild /usr/local/include /usr/local/include
 COPY --from=rtmgrbuild /usr/local/lib /usr/local/lib
+COPY "uta_rtg_ric.rt" /
 RUN ldconfig
 RUN apt-get update && apt-get install -y iputils-ping net-tools curl tcpdump
 RUN mkdir /db && touch /db/rt.json && chmod 777 /db/rt.json
