@@ -35,25 +35,18 @@ import (
 )
 
 var ValidXApps = &[]rtmgr.XApp{
-	{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2TERM", Status: "unknown", Ip: "10.0.0.1", Port: 0, TxMessages: []string{"HandoverPreparation", "HandoverCancel"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
-	{Name: "app2", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "SUBMAN", Status: "unknown", Ip: "192.168.0.1", Port: 0, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
-	{Name: "app3", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2MAN", Status: "unknown", Ip: "10.1.1.1", Port: 0, TxMessages: []string{"X2Setup"}, RxMessages: []string{"Reset", "UEContextRelease"}}}},
-	{Name: "app4", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "UEMAN", Status: "unknown", Ip: "10.2.2.1", Port: 0, TxMessages: []string{"Reset", "UEContextRelease"}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}}}},
+	{Name: "app2", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "SUBMAN", Status: "unknown", Ip: "127.0.0.1", Port: 4560, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
+	{Name: "app1", Status: "", Version: "", Instances: []rtmgr.XAppInstance{{Name: "E2TERM", Status: "unknown", Ip: "127.0.0.2", Port: 4562, TxMessages: []string{"HandoverCancel", "HandoverPreparation"}, RxMessages: []string{"HandoverPreparation", "HandoverCancel"}}}},
 }
 
 var ValidPlatformComponents = &rtmgr.PlatformComponents{
-	{Name: "E2TERM", Fqdn: "e2term", Port: 4561},
-	{Name: "SUBMAN", Fqdn: "subman", Port: 4561},
-	{Name: "E2MAN", Fqdn: "e2man", Port: 4561},
-	{Name: "UEMAN", Fqdn: "ueman", Port: 4561},
+	{Name: "SUBMAN", Fqdn: "localhost", Port: 4560},
+	{Name: "E2TERM", Fqdn: "localhost1", Port: 4562},
 }
 
 var ValidEndpoints = []rtmgr.Endpoint{
-	{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
-	{Uuid: "10.0.0.2:0", Name: "E2TERMINST", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
-	{Uuid: "192.168.0.1:0", Name: "SUBMAN", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
-	{Uuid: "10.1.1.1:0", Name: "E2MAN", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
-	{Uuid: "10.2.2.1:0", Name: "UEMAN", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
+	{Uuid: "localhost", Name: "SUBMAN", XAppType: "app2", Ip: "127.0.0.1", Port: 4560, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
+	{Uuid: "localhost1", Name: "E2TERM", XAppType: "app1", Ip: "127.0.0.2", Port: 4562, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
 }
 
 var ValidE2TInstance = rtmgr.E2TInstance{
@@ -71,6 +64,14 @@ var ValidRicComponents = rtmgr.RicComponents{
 }
 
 var ValidPolicies = &[]string{"", ""}
+
+var ValidEndpoints1 = []rtmgr.Endpoint{
+{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
+        {Uuid: "10.0.0.2:0", Name: "E2TERMINST", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
+        {Uuid: "192.168.0.1:0", Name: "SUBMAN", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
+        {Uuid: "10.1.1.1:0", Name: "E2MAN", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
+        {Uuid: "10.2.2.1:0", Name: "UEMAN", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
+}
 
 var ValidSubscriptions = &[]rtmgr.Subscription{
 	{SubID: 1234, Fqdn: "10.0.0.1", Port: 0},

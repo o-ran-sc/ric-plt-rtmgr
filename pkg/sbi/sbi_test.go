@@ -59,11 +59,19 @@ func TestUpdateE2TendPoint(t *testing.T) {
 	var err error
 	var sbi = Sbi{}
 	sbii, err := GetSbi("nngpush")
+
+	var EP = make(map[string]*rtmgr.Endpoint)
+	EP["127.0.0.2"] = &rtmgr.Endpoint{Uuid: "127.0.0.2", Name: "E2TERM", XAppType: "app1", Ip: "127.0.0.2", Port: 4562, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
+	rtmgr.Eps = EP
+
+	var nngpush = NngPush{}
+	nngpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
+
 	var E2map = make(map[string]rtmgr.E2TInstance)
 
-	E2map["1.2.3.4:100"] = rtmgr.E2TInstance{
+	E2map["127.0.0.2:4562"] = rtmgr.E2TInstance{
 		Name:    "E2Tinstance1",
-		Fqdn:    "1.2.3.4:100",
+		Fqdn:    "127.0.0.2:4562",
 		Ranlist: []string{"1", "2"},
 	}
 
@@ -76,12 +84,11 @@ func TestPruneEndpointList(t *testing.T) {
 	var err error
 	sbii, err := GetSbi("nngpush")
 	var EP = make(map[string]*rtmgr.Endpoint)
-	EP["10.0.0.1:0"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "10.20.30.40", Port: 1234, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
+	EP["127.0.0.2"] = &rtmgr.Endpoint{Uuid: "127.0.0.2", Name: "E2TERM", XAppType: "app1", Ip: "127.0.0.1", Port: 4562, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
 	rtmgr.Eps = EP
 
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
-	nngpush.AddEndpoint(rtmgr.Eps["10.0.0.1:0"])
+	nngpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
 
 	sbi.pruneEndpointList(sbii)
 	t.Log(err)

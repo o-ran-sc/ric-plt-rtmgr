@@ -23,7 +23,7 @@
 # a Docker tag from the string in file container-tag.yaml
 
 #FROM golang:1.12.1 as rtmgrbuild
-FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:4-u18.04-nng as rtmgrbuild
+FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:5-u18.04-nng as rtmgrbuild
 
 # Install RMr shared library
 ARG RMRVERSION=3.6.0
@@ -65,20 +65,20 @@ COPY cmd cmd
 COPY run_rtmgr.sh /run_rtmgr.sh
 RUN mkdir manifests
 COPY manifests/ /go/src/routing-manager/manifests
-#RUN go mod download 
-#RUN /usr/local/go/bin/go mod tidy
+COPY "uta_rtg_ric.rt" /
 ENV GOPATH /go
 
 ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
-#FROM rtmgrbuild as rtmgrut
-#RUN ldconfig
-#RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+FROM rtmgrbuild as rtmgrut
+RUN ldconfig
+ENV RMR_SEED_RT "/uta_rtg_ric.rt"
+RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 COPY --from=rtmgrbuild /usr/local/include /usr/local/include

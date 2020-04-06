@@ -1,3 +1,6 @@
+### v0.5.6-1
+* Moving to ubuntu 18 and fixing UT's
+
 ### v0.5.6
 * Fix to convert service name to IP during Route update Request
 

@@ -28,28 +28,11 @@
 
 package sbi
 
-/*
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <rmr/rmr.h>
-#include <rmr/RIC_message_types.h>
-
-
-#cgo CFLAGS: -I../
-#cgo LDFLAGS: -lrmr_nng -lnng
-*/
-import "C"
-
 import (
 	"bytes"
 	"crypto/md5"
 	"errors"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	"nanomsg.org/go/mangos/v2"
-	"nanomsg.org/go/mangos/v2/protocol/push"
-	_ "nanomsg.org/go/mangos/v2/transport/all"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 	"time"
@@ -58,7 +41,6 @@ import (
 
 type NngPush struct {
 	Sbi
-	NewSocket CreateNewNngSocketHandler
 	rcChan    chan *xapp.RMRParams
 }
 
@@ -76,36 +58,7 @@ func (params *RMRParams) String() string {
 
 func NewNngPush() *NngPush {
 	instance := new(NngPush)
-	instance.NewSocket = createNewPushSocket
 	return instance
-}
-
-func createNewPushSocket() (NngSocket, error) {
-	xapp.Logger.Debug("Invoked: createNewPushSocket()")
-	socket, err := push.NewSocket()
-	if err != nil {
-		return nil, errors.New("can't create new push socket due to:" + err.Error())
-	}
-	socket.SetPipeEventHook(pipeEventHandler)
-	return socket, nil
-}
-
-func pipeEventHandler(event mangos.PipeEvent, pipe mangos.Pipe) {
-	xapp.Logger.Debug("Invoked: pipeEventHandler()")
-	xapp.Logger.Debug("Received pipe event for " + pipe.Address() + " address")
-	for _, ep := range rtmgr.Eps {
-		uri := DefaultNngPipelineSocketPrefix + ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
-		if uri == pipe.Address() {
-			switch event {
-			case 1:
-				ep.IsReady = true
-				xapp.Logger.Debug("Endpoint " + uri + " successfully attached")
-			default:
-				ep.IsReady = false
-				xapp.Logger.Debug("Endpoint " + uri + " has been detached")
-			}
-		}
-	}
 }
 
 func (c *NngPush) Initialize(ip string) error {
@@ -119,7 +72,6 @@ func (c *NngPush) Terminate() error {
 func (c *NngPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 
 	xapp.Logger.Debug("Invoked sbi.AddEndpoint")
-	xapp.Logger.Debug("args: %v", *ep)
 	endpoint := ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
 	ep.Whid = int(xapp.Rmr.Openwh(endpoint))
 	if ep.Whid < 0   {
@@ -141,20 +93,6 @@ func (c *NngPush) DeleteEndpoint(ep *rtmgr.Endpoint) error {
 
 func (c *NngPush) UpdateEndpoints(rcs *rtmgr.RicComponents) {
 	c.updateEndpoints(rcs, c)
-}
-
-/*
-NOTE: Asynchronous dial starts a goroutine which keep maintains the connection to the given endpoint
-*/
-func (c *NngPush) dial(ep *rtmgr.Endpoint) error {
-	xapp.Logger.Debug("Dialing to endpoint: " + ep.Uuid)
-	uri := DefaultNngPipelineSocketPrefix + ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
-	options := make(map[string]interface{})
-	options[mangos.OptionDialAsynch] = true
-	if err := ep.Socket.(NngSocket).DialOptions(uri, options); err != nil {
-		return errors.New("can't dial on push socket to " + uri + " due to: " + err.Error())
-	}
-	return nil
 }
 
 func (c *NngPush) DistributeAll(policies *[]string) error {

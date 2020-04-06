@@ -28,55 +28,31 @@
 package sbi
 
 import (
-	"errors"
+	//"errors"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/stub"
+	"time"
+	"os"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	//"nanomsg.org/go/mangos/v2"
 	//_ "nanomsg.org/go/mangos/v2/transport/all"
 	//"nanomsg.org/go/mangos/v2/protocol/push"
 	"testing"
 )
 
-/*
-Returns an error free Socket instance
-*/
-func createNewStubPushSocket() (NngSocket, error) {
-	socket := stub.MangosSocket{}
-	return socket, nil
+type Consumer struct{}
+
+func (m Consumer) Consume(params *xapp.RMRParams) (err error) {
+        xapp.Sdl.Store("myKey", params.Payload)
+        return nil
 }
 
-/*
-Returns a SocketError
-*/
-func createNewStubPushSocketError() (NngSocket, error) {
-	return nil, errors.New("stub generated Create Socket error")
-}
-
-/*
-Returns a Socket which always generates error on Close()
-*/
-func createNewStubPushSocketCloseError() (NngSocket, error) {
-	socket := stub.MangosSocket{}
-	socket.GenerateSocketCloseError = true
-	return socket, nil
-}
-
-/*
-Returns a Socket which always generates error on Send()
-*/
-func createNewStubPushSocketSendError() (NngSocket, error) {
-	socket := stub.MangosSocket{}
-	socket.GenerateSocketSendError = true
-	return socket, nil
-}
-
-/*
-Returns a Socket which always generates error on Dial()
-*/
-func createNewStubPushSocketDialError() (NngSocket, error) {
-	socket := stub.MangosSocket{}
-	socket.GenerateSocketDialError = true
-	return socket, nil
+// Test cases
+func TestMain(m *testing.M) {
+        go xapp.RunWithParams(Consumer{}, false)
+        time.Sleep(time.Duration(5) * time.Second)
+        code := m.Run()
+        os.Exit(code)
 }
 
 /*
@@ -86,7 +62,7 @@ func resetTestPushDataset(instance NngPush, testdata []rtmgr.Endpoint) {
 	rtmgr.Eps = make(map[string]*rtmgr.Endpoint)
 	for _, endpoint := range testdata {
 		ep := endpoint
-		ep.Socket, _ = instance.NewSocket()
+		//ep.Socket, _ = instance.NewSocket()
 		rtmgr.Eps[ep.Uuid] = &ep
 	}
 }
@@ -96,7 +72,6 @@ nngpush.Initialize() method is empty, nothing to be tested
 */
 func TestNngPushInitialize(t *testing.T) {
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
 
 	_ = nngpush.Initialize("")
 }
@@ -106,7 +81,6 @@ nngpush.Terminate() method is empty, nothing to be tested
 */
 func TestNngPushTerminate(t *testing.T) {
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
 
 	_ = nngpush.Terminate()
 }
@@ -116,8 +90,7 @@ nngpush.UpdateEndpoints() is testd against stub.ValidXApps dataset
 */
 func TestNngPushUpdateEndpoints(t *testing.T) {
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
-	rtmgr.Eps = make(rtmgr.Endpoints)
+	resetTestPushDataset(nngpush, stub.ValidEndpoints)
 
 	nngpush.UpdateEndpoints(&stub.ValidRicComponents)
 	if rtmgr.Eps == nil {
@@ -131,50 +104,13 @@ nngpush.AddEndpoint() is tested for happy path case
 func TestNngPushAddEndpoint(t *testing.T) {
 	var err error
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
 	resetTestPushDataset(nngpush, stub.ValidEndpoints)
-
-	err = nngpush.AddEndpoint(rtmgr.Eps["10.0.0.1:0"])
+	err = nngpush.AddEndpoint(rtmgr.Eps["localhost"])
 	if err != nil {
 		t.Errorf("nngpush.AddEndpoint() return was incorrect, got: %v, want: %v.", err, "nil")
 	}
-	if rtmgr.Eps["10.0.0.1:0"].Socket == nil {
-		t.Errorf("nngpush.AddEndpoint() was incorrect, got: %v, want: %v.", nil, "Socket")
-	}
 }
 
-/*
-nngpush.AddEndpoint() is tested for Socket creating error case
-*/
-func TestNngPushAddEndpointWithSocketError(t *testing.T) {
-	var err error
-	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocketError
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
-
-	err = nngpush.AddEndpoint(rtmgr.Eps["10.0.0.1:0"])
-	if err == nil {
-		t.Errorf("nngpush.AddEndpoint() was incorrect, got: %v, want: %v.", nil, "error")
-	}
-	if rtmgr.Eps["10.0.0.1:0"].Socket != nil {
-		t.Errorf("nngpush.AddEndpoint() was incorrect, got: %v, want: %v.", rtmgr.Eps["10.0.0.1:0"].Socket, nil)
-	}
-}
-
-/*
-nngpush.AddEndpoint() is tested for Dialing error case
-*/
-func TestNngPushAddEndpointWithSocketDialError(t *testing.T) {
-	var err error
-	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocketDialError
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
-
-	err = nngpush.AddEndpoint(rtmgr.Eps["10.0.0.1:0"])
-	if err == nil {
-		t.Errorf("nngpush.AddEndpoint() was incorrect, got: %v, want: %v.", nil, "error")
-	}
-}
 
 /*
 nngpush.DistributeAll() is tested for happy path case
@@ -182,7 +118,6 @@ nngpush.DistributeAll() is tested for happy path case
 func TestNngPushDistributeAll(t *testing.T) {
 	var err error
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
 	resetTestPushDataset(nngpush, stub.ValidEndpoints)
 
 	err = nngpush.DistributeAll(stub.ValidPolicies)
@@ -192,65 +127,42 @@ func TestNngPushDistributeAll(t *testing.T) {
 }
 
 /*
-nngpush.DistributeAll() is tested for Sending error case
+nngpush.DistributeToEp() is tested for Sending case
 */
-func TestNngPushDistributeAllSocketSendError(t *testing.T) {
+func TestDistributeToEp(t *testing.T) {
 	var err error
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocketSendError
 	resetTestPushDataset(nngpush, stub.ValidEndpoints)
 
-	err = nngpush.DistributeAll(stub.ValidPolicies)
+	err = nngpush.DistributeToEp(stub.ValidPolicies,rtmgr.Eps["localhost"])
 	if err != nil {
-		t.Errorf("nngpush.DistributeAll(policies) was incorrect, got: %v, want: %v.", err, "nil")
+		t.Errorf("nngpush.DistributetoEp(policies) was incorrect, got: %v, want: %v.", err, "nil")
 	}
 }
 
-func TestNngPushDeleteEndpoint(t *testing.T) {
+func TestDeleteEndpoint(t *testing.T) {
 	var err error
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocket
 	resetTestPushDataset(nngpush, stub.ValidEndpoints)
 
-	err = nngpush.DeleteEndpoint(rtmgr.Eps["10.0.0.1:0"])
+	err = nngpush.DeleteEndpoint(rtmgr.Eps["localhost"])
 	if err != nil {
 		t.Errorf("nngpush.DeleteEndpoint() was incorrect, got: %v, want: %v.", err, "nil")
 	}
 }
 
-func TestNngPushDeleteEndpointWithSocketCloseError(t *testing.T) {
-	var err error
+func TestCreateEndpoint(t *testing.T) {
 	var nngpush = NngPush{}
-	nngpush.NewSocket = createNewStubPushSocketCloseError
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
-
-	err = nngpush.DeleteEndpoint(rtmgr.Eps["10.1.1.1:0"])
-	if err == nil {
-		t.Errorf("nngpush.DeleteEndpoint() was incorrect, got: %v, want: %v.", nil, "error")
-	}
+	resetTestPushDataset(nngpush, stub.ValidEndpoints1)
+	 nngpush.CreateEndpoint("192.168.0.1:0")
+	 nngpush.CreateEndpoint("localhost:4560")
 }
-
 /*
 Initialize and send policies
 */
 func TestNngPushInitializeandsendPolicies(t *testing.T) {
         var nngpush = NngPush{}
-        _,_ = createNewPushSocket()
+	resetTestPushDataset(nngpush, stub.ValidEndpoints)
         policies := []string{"hello","welcome"}
-        nngpush.send(rtmgr.Eps["10.1.1.1:0"],&policies)
+	nngpush.send(rtmgr.Eps["localhost"],&policies)
 }
-
-/*
-func TestPipeEventHandler(t *testing.T) {
-	var sock mangos.Socket
-	var event mangos.PipeEvent
-	var pipe mangos.Pipe
-
-	var err error
-	sock, err = push.NewSocket()
-	sock.Dial("tcp://127.0.0.1:4555")
-	sock.SetPipeEventHook(pipeEventHandler)
-        pipeEventHandler(event,pipe)
-      t.Log(err)
-}
-*/

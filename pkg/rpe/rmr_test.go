@@ -48,7 +48,7 @@ RmrPush.GeneratePolicies() method is tested for happy path case
 func TestRmrPushGeneratePolicies(t *testing.T) {
 	var rmrpush = RmrPush{}
 	var pcs rtmgr.RicComponents
-	resetTestDataset(stub.ValidEndpoints)
+	resetTestDataset(stub.ValidEndpoints1)
 	stub.ValidPlatformComponents = nil
 	rtmgr.Subs = *stub.ValidSubscriptions
 	rtmgr.PrsCfg = stub.DummyRoutes
