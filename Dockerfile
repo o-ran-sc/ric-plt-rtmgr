@@ -26,7 +26,7 @@
 FROM nexus3.o-ran-sc.org:10004/bldr-ubuntu18-c-go:5-u18.04-nng as rtmgrbuild
 
 # Install RMr shared library
-ARG RMRVERSION=3.6.0
+ARG RMRVERSION=3.6.2
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
 # Install RMr development header files
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
@@ -72,10 +72,10 @@ ENV GOBIN /go/bin
 RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
-FROM rtmgrbuild as rtmgrut
-RUN ldconfig
-ENV RMR_SEED_RT "/uta_rtg_ric.rt"
-RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
+#FROM rtmgrbuild as rtmgrut
+#RUN ldconfig
+#ENV RMR_SEED_RT "/uta_rtg_ric.rt"
+#RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
 FROM ubuntu:18.04
