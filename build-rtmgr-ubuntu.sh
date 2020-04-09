@@ -21,8 +21,8 @@ set -eux
 echo "--> rtmgr-build-ubuntu.sh"
 curdir=`pwd`
 RMRVERSION=3.6.2
-wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
-wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
+wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && sudo dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
+wget --content-disposition https://packagecloud.io/o-ran-sc/staging/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && sudo dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
 
 # required to find nng and rmr libs
 export LD_LIBRARY_PATH=/usr/local/lib
@@ -57,7 +57,7 @@ currnewdir=`pwd`
 /tmp/go/bin/swagger generate client -f api/appmgr_rest_api.yaml -t pkg/ -m appmgr_model -c appmgr_client -r LICENSE
   
 export GO111MODULE=on 
-ldconfig
+sudo ldconfig
 go build ./cmd/rtmgr.go
 
 export RMR_SEED_RT=/tmp/go/src/routing-manager/uta_rtg_ric.rt
@@ -82,6 +82,6 @@ cat $currnewdir/pkg/nbi/coverage.txt | grep -v atomic >> coverage_tmp.txt
 cp  $currnewdir/pkg/sbi/coverage.txt  coverage_tmp2.txt
 cat coverage_tmp2.txt coverage_tmp.txt > $curdir/coverage.txt
 
-sed -i -e 's/^routing-manager/rtmgr/' $curdir/coverage.txt
+sed -i -e 's/^routing-manager/./' $curdir/coverage.txt
 
 echo "--> rtmgr-build-ubuntu.sh ends"
