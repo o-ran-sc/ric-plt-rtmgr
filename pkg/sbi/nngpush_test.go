@@ -34,9 +34,6 @@ import (
 	"time"
 	"os"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	//"nanomsg.org/go/mangos/v2"
-	//_ "nanomsg.org/go/mangos/v2/transport/all"
-	//"nanomsg.org/go/mangos/v2/protocol/push"
 	"testing"
 )
 
