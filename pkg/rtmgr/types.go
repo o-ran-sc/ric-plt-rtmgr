@@ -39,6 +39,7 @@ type Endpoints map[string]*Endpoint
 
 type SubscriptionList []Subscription
 
+type SessionMap map[uint64]string
 //TODO: uuid is not a real UUID but a string of "ip:port"
 // this should be changed to real UUID later on which should come from xApp Manager // petszila
 type Endpoint struct {
@@ -140,3 +141,4 @@ type XappList struct {
 var (
 	Rtmgr_ready bool
 )
+

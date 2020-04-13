@@ -120,6 +120,7 @@ var (
 	}
 
 	Eps  Endpoints
+	Sessions  SessionMap
 	Subs SubscriptionList
 	PrsCfg  *PlatformRoutes
 )

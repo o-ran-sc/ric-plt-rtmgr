@@ -54,6 +54,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"sync/atomic"
 )
 
 //var myClient = &http.Client{Timeout: 1 * time.Second}
@@ -78,8 +79,9 @@ func NewHttpRestful() *HttpRestful {
 }
 
 // ToDo: Use Range over channel. Read and return only the latest one.
-func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr.XApp, error) {
+func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData, seq_id_chan <-chan uint64) (*[]rtmgr.XApp, uint64, error) {
 	var xappData *models.XappCallbackData
+	var seq_id uint64
 	// Drain the channel as we are only looking for the latest value until
 	// xapp manager sends all xapp data with every request.
 	length := len(dataChannel)
@@ -87,26 +89,27 @@ func recvXappCallbackData(dataChannel <-chan *models.XappCallbackData) (*[]rtmgr
 	for i := 0; i <= length; i++ {
 		xapp.Logger.Info("data received")
 		// If no data received from the REST, it blocks.
-		xappData = <-dataChannel
+		xappData, seq_id = <-dataChannel, <-seq_id_chan
 	}
 	if nil != xappData {
 		var xapps []rtmgr.XApp
 		err := json.Unmarshal([]byte(xappData.XApps), &xapps)
-		return &xapps, err
+		return &xapps, seq_id, err
 	} else {
 		xapp.Logger.Info("No data")
 	}
 
 	xapp.Logger.Debug("Nothing received on the Http interface")
-	return nil, nil
+	return nil, seq_id,nil
 }
 
-func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, string, error) {
+func recvNewE2Tdata(dataChannel <-chan *models.E2tData, seq_id_chan <-chan uint64) (*rtmgr.E2TInstance,uint64,string,error) {
 	var e2tData *models.E2tData
+	var seq_id uint64
 	var str string
 	xapp.Logger.Info("data received")
 
-	e2tData = <-dataChannel
+	e2tData, seq_id = <-dataChannel, <-seq_id_chan
 
 	if nil != e2tData {
 
@@ -124,14 +127,14 @@ func recvNewE2Tdata(dataChannel <-chan *models.E2tData) (*rtmgr.E2TInstance, str
 			}
 			str = "mme_ar|" + *e2tData.E2TAddress + "|" + strings.TrimSuffix(meidar, " ")
 		}
-		return &e2tinst, str, nil
+		return &e2tinst,seq_id,str,nil
 
 	} else {
 		xapp.Logger.Info("No data")
 	}
 
 	xapp.Logger.Debug("Nothing received on the Http interface")
-	return nil, str, nil
+	return nil, seq_id,str, nil
 }
 
 func validateXappCallbackData(callbackData *models.XappCallbackData) error {
@@ -378,8 +381,7 @@ func dumpDebugData() (models.Debuginfo, error) {
 	return response, err
 }
 
-func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData, subupdatechan chan<- *rtmgr.XappList,
-	subdelchan chan<- *models.XappSubscriptionData, e2taddchan chan<- *models.E2tData, assranchan chan<- models.RanE2tMap, disassranchan chan<- models.RanE2tMap, e2tdelchan chan<- *models.E2tDeleteData) {
+func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan chan<- *models.XappSubscriptionData, subupdatechan chan<- *rtmgr.XappList,subdelchan chan<- *models.XappSubscriptionData, e2taddchan chan<- *models.E2tData, assranchan chan<- models.RanE2tMap, disassranchan chan<- models.RanE2tMap, e2tdelchan chan<- *models.E2tDeleteData,seq_data chan<- uint64, seq_subs chan<- uint64, seq_subdel chan<- uint64, seq_e2tadd chan<- uint64, seq_assran chan<- uint64, seq_disran chan<- uint64, seq_e2tdel chan<- uint64, seq_submerge chan<- uint64) {
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
 	if err != nil {
 		//log.Fatalln(err)
@@ -410,6 +412,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				xapp.Logger.Error("Invalid XApp callback data: " + err.Error())
 				return handle.NewProvideXappHandleBadRequest()
 			} else {
+				sync_response(seq_data)
 				return handle.NewGetHandlesOK()
 			}
 		})
@@ -420,7 +423,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				return handle.NewProvideXappSubscriptionHandleBadRequest()
 			} else {
 				//Delay the reponse as add subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
-				time.Sleep(1 * time.Second)
+				sync_response(seq_subs)
 				return handle.NewGetHandlesOK()
 			}
 		})
@@ -431,7 +434,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				return handle.NewDeleteXappSubscriptionHandleNoContent()
 			} else {
 				//Delay the reponse as delete subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
-				time.Sleep(1 * time.Second)
+				sync_response(seq_subdel)
 				return handle.NewGetHandlesOK()
 			}
 		})
@@ -442,7 +445,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 				return handle.NewUpdateXappSubscriptionHandleBadRequest()
 			} else {
 				//Delay the reponse as delete subscription channel needs to update sdl and then sbi sends updated routes to all endpoints
-				time.Sleep(1 * time.Second)
+				sync_response(seq_submerge)
 				return handle.NewUpdateXappSubscriptionHandleCreated()
 			}
 		})
@@ -452,7 +455,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewCreateNewE2tHandleBadRequest()
 			} else {
-				time.Sleep(1 * time.Second)
+				sync_response(seq_e2tadd)
 				return handle.NewCreateNewE2tHandleCreated()
 			}
 		})
@@ -463,7 +466,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewAssociateRanToE2tHandleBadRequest()
 			} else {
-				time.Sleep(1 * time.Second)
+				sync_response(seq_assran)
 				return handle.NewAssociateRanToE2tHandleCreated()
 			}
 		})
@@ -474,7 +477,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewDissociateRanBadRequest()
 			} else {
-				time.Sleep(1 * time.Second)
+				sync_response(seq_disran)
 				return handle.NewDissociateRanCreated()
 			}
 		})
@@ -485,7 +488,7 @@ func launchRest(nbiif *string, datach chan<- *models.XappCallbackData, subchan c
 			if err != nil {
 				return handle.NewDeleteE2tHandleBadRequest()
 			} else {
-				time.Sleep(1 * time.Second)
+				sync_response(seq_e2tdel)
 				return handle.NewDeleteE2tHandleCreated()
 			}
 		})
@@ -581,7 +584,6 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
 	xapp.Logger.Info("Invoked retrieveStartupData ")
 	var readErr error
-	var err error
 	var maxRetries = 10
 	var xappData *[]rtmgr.XApp
 	xappData = new([]rtmgr.XApp)
@@ -642,7 +644,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 	}
 
 	xapp.Logger.Info("Trying to fetch Subscriptions data from Subscription manager")
-	/*    for i := 1; i <= maxRetries; i++ {
+	    for i := 1; i <= maxRetries; i++ {
 			readErr = nil
 			sub_list, err := xapp.Subscription.QuerySubscriptions()
 
@@ -659,7 +661,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		if (readErr != nil) {
 	        return readErr
 		}
-	*/
+
 	// post subscription req to appmgr
 	readErr = PostSubReq(xmurl, nbiif)
 	if readErr == nil {
@@ -670,7 +672,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 }
 
 func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, configfile string, e2murl string,
-	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool, m *sync.Mutex) error {
+	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool,utriggerSBI chan<- uint64, m *sync.Mutex) error {
 	err := r.RetrieveStartupData(xmurl, nbiif, fileName, configfile, e2murl, sdlEngine)
 	if err != nil {
 		xapp.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
@@ -685,14 +687,24 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 	associateranchan := make(chan models.RanE2tMap, 10)
 	disassociateranchan := make(chan models.RanE2tMap, 10)
 	e2tdelchan := make(chan *models.E2tDeleteData, 10)
+
+       seq_data := make(chan uint64, 10)
+       seq_subs := make(chan uint64, 10)
+       seq_subdel := make(chan uint64, 10)
+       seq_e2tadd := make(chan uint64, 10)
+       seq_assran := make(chan uint64, 10)
+       seq_disran := make(chan uint64, 10)
+       seq_e2tdel := make(chan uint64, 10)
+       seq_submerge := make(chan uint64, 10)
+
 	xapp.Logger.Info("Launching Rest Http service")
 	go func() {
-		r.LaunchRest(&nbiif, datach, subschan, subupdatechan, subdelchan, e2taddchan, associateranchan, disassociateranchan, e2tdelchan)
+		r.LaunchRest(&nbiif, datach, subschan, subupdatechan, subdelchan, e2taddchan, associateranchan, disassociateranchan, e2tdelchan,seq_data, seq_subs, seq_subdel, seq_e2tadd, seq_assran, seq_disran, seq_e2tdel,seq_submerge)
 	}()
 
 	go func() {
 		for {
-			data, err := r.RecvXappCallbackData(datach)
+			data, seq_id, err := r.RecvXappCallbackData(datach, seq_data)
 			if err != nil {
 				xapp.Logger.Error("cannot get data from rest api dute to: " + err.Error())
 			} else if data != nil {
@@ -702,7 +714,7 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 					m.Lock()
 					sdlEngine.WriteXApps(fileName, alldata)
 					m.Unlock()
-					triggerSBI <- true
+					utriggerSBI <- seq_id
 				}
 			}
 		}
@@ -710,78 +722,75 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 
 	go func() {
 		for {
-			data := <-subschan
+			data, seq_id := <-subschan, <-seq_subs
 			xapp.Logger.Debug("received XApp subscription data")
 			addSubscription(&rtmgr.Subs, data)
-			triggerSBI <- true
+			utriggerSBI <- seq_id
 		}
 	}()
 
 	go func() {
 		for {
-			data := <-subdelchan
+			data, seq_id := <-subdelchan, <-seq_subdel
 			xapp.Logger.Debug("received XApp subscription delete data")
 			delSubscription(&rtmgr.Subs, data)
-			triggerSBI <- true
+			utriggerSBI <- seq_id
 		}
 	}()
 
 	go func() {
 		for {
-			data := <-subupdatechan
+			data, seq_id := <-subupdatechan, <-seq_submerge
 			xapp.Logger.Debug("received XApp subscription Merge data")
 			updateSubscription(data)
-			triggerSBI <- true
+			utriggerSBI <- seq_id
 		}
 	}()
 
 	go func() {
 		for {
-
-			data, meiddata, _ := r.RecvNewE2Tdata(e2taddchan)
+			data, seq_id, meiddata,_ := r.RecvNewE2Tdata(e2taddchan, seq_e2tadd)
 			if data != nil {
 				xapp.Logger.Debug("received create New E2T data")
 				m.Lock()
 				sdlEngine.WriteNewE2TInstance(fileName, data, meiddata)
 				m.Unlock()
-				triggerSBI <- true
+				utriggerSBI <- seq_id
 			}
 		}
 	}()
 
 	go func() {
 		for {
-			data := <-associateranchan
+			data, seq_id := <-associateranchan, <-seq_assran
 			xapp.Logger.Debug("received associate RAN list to E2T instance mapping from E2 Manager")
 			m.Lock()
 			sdlEngine.WriteAssRANToE2TInstance(fileName, data)
 			m.Unlock()
-			triggerSBI <- true
+			utriggerSBI <- seq_id
 		}
 	}()
 
 	go func() {
 		for {
-
-			data := <-disassociateranchan
+			data, seq_id := <-disassociateranchan, <-seq_disran
 			xapp.Logger.Debug("received disassociate RANs from E2T instance")
 			m.Lock()
 			sdlEngine.WriteDisAssRANFromE2TInstance(fileName, data)
 			m.Unlock()
-			triggerSBI <- true
+			utriggerSBI <- seq_id
 		}
 	}()
 
 	go func() {
 		for {
-
-			data := <-e2tdelchan
+			data, seq_id := <-e2tdelchan, <-seq_e2tdel
 			xapp.Logger.Debug("received Delete E2T data")
 			if data != nil {
 				m.Lock()
 				sdlEngine.WriteDeleteE2TInstance(fileName, data)
 				m.Unlock()
-				triggerSBI <- true
+				utriggerSBI <- seq_id
 			}
 		}
 	}()
@@ -882,3 +891,26 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 		}
 	}
 }
+
+var reqid uint64
+func getsessionID() uint64 {
+       myid := atomic.AddUint64(&reqid, 1)
+       return myid
+}
+
+func sync_response(seq_chan chan<- uint64) {
+       seqid := getsessionID()
+       rtmgr.Sessions[seqid] = "NBI"
+       seq_chan <- seqid
+       xapp.Logger.Info("NBI: Recieved request with sequence id %d",seqid)
+       for {
+                       if rtmgr.Sessions[seqid] != "SBI" {
+                               time.Sleep(100 * time.Millisecond)
+                       } else {
+				xapp.Logger.Info("NBI: Deleted request with sequence id %d", seqid)
+                                   delete(rtmgr.Sessions, seqid)
+                                       break
+                       }
+               }
+}
+

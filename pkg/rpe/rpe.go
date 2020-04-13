@@ -209,54 +209,6 @@ func (r *Rpe) generateXappToXappRoutes(RecvxAppEp *rtmgr.Endpoint, endPointList 
     }
 }
 
-func (r *Rpe) generateXappToXappRoutes(RecvxAppEp *rtmgr.Endpoint, endPointList rtmgr.Endpoints, routeTable *rtmgr.RouteTable) {
-
-	xapp.Logger.Debug("rpe.generateXappToXappRoutes invoked")
-
-
-	for _, rxmsg := range RecvxAppEp.RxMessages {
-
-
-		var src_present bool
-
-		xapp.Logger.Debug("RecvxAppEp.RxMessages Endpoint: %v, xAppType: %v and rxmsg: %v ", RecvxAppEp.Name, RecvxAppEp.XAppType, rxmsg)
-
-		if (rxmsg != "RIC_SUB_RESP" && rxmsg != "RIC_SUB_FAILURE" && rxmsg != "RIC_SUB_DEL_RESP" && rxmsg != "RIC_SUB_DEL_FAILURE" && rxmsg != "RIC_INDICATION" && rxmsg != "RIC_CONTROL_ACK" && rxmsg != "RIC_CONTROL_FAILURE" && rxmsg != "A1_POLICY_REQ") {
-
-			for _, SrcxAppEp := range endPointList {
-
-				if SrcxAppEp.XAppType != sbi.PlatformType && (len(SrcxAppEp.TxMessages) > 0) && SrcxAppEp.Name != RecvxAppEp.Name {
-
-					for _, txmsg := rnge SrcxAppEp.TxMessages {
-	
-							if (rxmsg == txmsg) {
-	
-								r.addRoute(rxmsg, SrcxAppEp, RecvxAppEp, routeTable, -1, "")
-	
-								src_present = true
-	
-								break
-	
-							}
-	
-					}
-	
-				}
-	
-			}
-	
-			if src_present == false {
-	
-				r.addRoute(rxmsg, nil, RecvxAppEp, routeTable, -1, "")
-	
-			}
-	
-		}
-	
-	
-	}
-	
-}
 func (r *Rpe) generateSubscriptionRoutes(selectedxAppEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {
 	xapp.Logger.Debug("rpe.addSubscriptionRoutes invoked")
 	subscriptionList := &rtmgr.Subs

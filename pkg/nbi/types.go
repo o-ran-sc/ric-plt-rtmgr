@@ -38,9 +38,9 @@ import (
 )
 
 type FetchAllXAppsHandler func(string) (*[]rtmgr.XApp, error)
-type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
-type RecvNewE2TdataHandler func(<-chan *models.E2tData) (*rtmgr.E2TInstance, string, error)
-type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *rtmgr.XappList, chan<- *models.XappSubscriptionData, chan<- *models.E2tData, chan<- models.RanE2tMap, chan<- models.RanE2tMap, chan<- *models.E2tDeleteData)
+type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData, <-chan uint64) (*[]rtmgr.XApp, uint64, error)
+type RecvNewE2TdataHandler func(<-chan *models.E2tData,<-chan uint64) (*rtmgr.E2TInstance, uint64, string, error)
+type LaunchRestHandler func(*string, chan<- *models.XappCallbackData, chan<- *models.XappSubscriptionData, chan<- *rtmgr.XappList, chan<- *models.XappSubscriptionData, chan<- *models.E2tData, chan<- models.RanE2tMap, chan<- models.RanE2tMap, chan<- *models.E2tDeleteData,chan<- uint64, chan<- uint64, chan<- uint64, chan<- uint64, chan<- uint64, chan<- uint64, chan<- uint64,chan<- uint64)
 type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
 type RetrieveStartupDataHandler func(string, string, string, string, string, sdl.Engine) error
 
@@ -53,6 +53,6 @@ type EngineConfig struct {
 }
 
 type Engine interface {
-	Initialize(string, string, string, string, string, sdl.Engine, rpe.Engine, chan<- bool, *sync.Mutex) error
+	Initialize(string, string, string, string, string, sdl.Engine, rpe.Engine, chan<- bool,chan<- uint64, *sync.Mutex) error
 	Terminate() error
 }

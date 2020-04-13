@@ -31,9 +31,6 @@ import (
 	"errors"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/stub"
-	//"nanomsg.org/go/mangos/v2"
-	//_ "nanomsg.org/go/mangos/v2/transport/all"
-	//"nanomsg.org/go/mangos/v2/protocol/push"
 	"testing"
 )
 
