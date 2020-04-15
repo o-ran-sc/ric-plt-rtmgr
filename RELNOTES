@@ -1,3 +1,6 @@
+### v0.5.6-2
+* RT records are sent in a group rather than individually. Group is configurabl 
+
 ### v0.5.6-1
 * Moving to ubuntu 18 and fixing UT's
 

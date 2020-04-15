@@ -35,25 +35,24 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
-	"time"
+	//"time"
 	"fmt"
 )
 
 type NngPush struct {
 	Sbi
-	rcChan    chan *xapp.RMRParams
+	rcChan chan *xapp.RMRParams
 }
 
 type RMRParams struct {
-        *xapp.RMRParams
+	*xapp.RMRParams
 }
 
-
 func (params *RMRParams) String() string {
-        var b bytes.Buffer
-        sum := md5.Sum(params.Payload)
-        fmt.Fprintf(&b, "params(Src=%s Mtype=%d SubId=%d Xid=%s Meid=%s Paylens=%d/%d Payhash=%x)", params.Src, params.Mtype, params.SubId, params.Xid, params.Meid.RanName, params.PayloadLen, len(params.Payload), sum)
-        return b.String()
+	var b bytes.Buffer
+	sum := md5.Sum(params.Payload)
+	fmt.Fprintf(&b, "params(Src=%s Mtype=%d SubId=%d Xid=%s Meid=%s Paylens=%d/%d Payhash=%x)", params.Src, params.Mtype, params.SubId, params.Xid, params.Meid.RanName, params.PayloadLen, len(params.Payload), sum)
+	return b.String()
 }
 
 func NewNngPush() *NngPush {
@@ -74,10 +73,10 @@ func (c *NngPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 	xapp.Logger.Debug("Invoked sbi.AddEndpoint")
 	endpoint := ep.Ip + ":" + strconv.Itoa(DefaultNngPipelineSocketNumber)
 	ep.Whid = int(xapp.Rmr.Openwh(endpoint))
-	if ep.Whid < 0   {
+	if ep.Whid < 0 {
 		return errors.New("can't open warmhole connection for endpoint:" + ep.Uuid + " due to invalid Wormhole ID: " + string(ep.Whid))
-	}else {
-		xapp.Logger.Debug("Wormhole ID is %v and EP is %v",ep.Whid,endpoint)
+	} else {
+		xapp.Logger.Debug("Wormhole ID is %v and EP is %v", ep.Whid, endpoint)
 	}
 
 	return nil
@@ -109,20 +108,39 @@ func (c *NngPush) DistributeAll(policies *[]string) error {
 func (c *NngPush) send(ep *rtmgr.Endpoint, policies *[]string) {
 	xapp.Logger.Debug("Push policy to endpoint: " + ep.Uuid)
 
-	for _, pe := range *policies {
-		params := &RMRParams{&xapp.RMRParams{}}
-		params.Mtype = 20
-		params.PayloadLen = len([]byte(pe))
-		params.Payload =[]byte(pe)
-		params.Mbuf = nil
-		params.Whid = ep.Whid
-		time.Sleep(1 * time.Millisecond)
-		xapp.Rmr.SendMsg(params.RMRParams)
+	var policy = []byte{}
+	cumulative_policy := 0
+	count := 0
+	maxrecord := xapp.Config.GetInt("maxrecord")
+	if maxrecord == 0 {
+		maxrecord = 10
 	}
+
+	for _, pe := range *policies {
+		b := []byte(pe)
+		for j := 0; j < len(b); j++ {
+			policy = append(policy, b[j])
+		}
+		count++
+		cumulative_policy++
+		if count == maxrecord || cumulative_policy == len(*policies) {
+			params := &RMRParams{&xapp.RMRParams{}}
+			params.Mtype = 20
+			params.PayloadLen = len(policy)
+			params.Payload = []byte(policy)
+			params.Mbuf = nil
+			params.Whid = ep.Whid
+			xapp.Rmr.SendMsg(params.RMRParams)
+			count = 0
+			policy = nil
+			xapp.Logger.Debug("Sent message with payload len = %d", params.PayloadLen)
+		}
+	}
+
 	xapp.Logger.Info("NNG PUSH to endpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len(*policies)) + ")")
 }
 
-func (c *NngPush) CreateEndpoint(payload string) (*rtmgr.Endpoint){
+func (c *NngPush) CreateEndpoint(payload string) *rtmgr.Endpoint {
 	return c.createEndpoint(payload, c)
 }
 
@@ -134,4 +152,3 @@ func (c *NngPush) DistributeToEp(policies *[]string, ep *rtmgr.Endpoint) error {
 
 	return nil
 }
-
