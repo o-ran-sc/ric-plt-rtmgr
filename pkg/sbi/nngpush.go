@@ -44,7 +44,6 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
-	"time"
 )
 
 type EPStatus struct {
@@ -121,17 +120,35 @@ func (c *NngPush) DistributeAll(policies *[]string) error {
 
 func (c *NngPush) send(ep *rtmgr.Endpoint, policies *[]string) {
 	xapp.Logger.Debug("Push policy to endpoint: " + ep.Uuid)
+	var policy = []byte{}
+        cumulative_policy := 0
+        count := 0
+        maxrecord := xapp.Config.GetInt("maxrecord")
+        if maxrecord == 0{
+                maxrecord = 10
+        }
 
-	for _, pe := range *policies {
-		params := &RMRParams{&xapp.RMRParams{}}
-		params.Mtype = 20
-		params.PayloadLen = len([]byte(pe))
-		params.Payload = []byte(pe)
-		params.Mbuf = nil
-		params.Whid = ep.Whid
-		time.Sleep(1 * time.Millisecond)
-		xapp.Rmr.SendMsg(params.RMRParams)
-	}
+        for _, pe := range *policies {
+                b:= []byte(pe)
+                for j:=0; j<len(b); j++{
+                        policy = append(policy,b[j])
+                }
+                count++
+                cumulative_policy++
+                if count == maxrecord || cumulative_policy == len(*policies) {
+                params := &RMRParams{&xapp.RMRParams{}}
+                params.Mtype = 20
+                params.PayloadLen = len(policy)
+                params.Payload =[]byte(policy)
+                params.Mbuf = nil
+                params.Whid = ep.Whid
+                xapp.Rmr.SendMsg(params.RMRParams)
+                count = 0
+                policy = nil
+                xapp.Logger.Debug("Sent message with payload len = %d",params.PayloadLen)
+                }
+        }
+
 	xapp.Logger.Info("NNG PUSH to endpoint " + ep.Uuid + ": OK (# of Entries:" + strconv.Itoa(len(*policies)) + ")")
 }
 
@@ -204,17 +221,39 @@ func (c *NngPush) send_data(ep *rtmgr.Endpoint, policies *[]string, call_id int)
 	var state int
 	var retstr string
 
-	length := len(*policies)
+	var policy = []byte{}
+        cumulative_policy := 0
+        count := 0
+        maxrecord := xapp.Config.GetInt("maxrecord")
+        if maxrecord == 0{
+                maxrecord = 10
+        }
 
-	for index, pe := range *policies {
-
-		params := &RMRParams{&xapp.RMRParams{}}
-		params.Mtype = 20
-		params.PayloadLen = len([]byte(pe))
-		params.Payload = []byte(pe)
-		params.Mbuf = nil
-		params.Whid = ep.Whid
-		if index == length-1 {
+        for _, pe := range *policies {
+                b:= []byte(pe)
+                for j:=0; j<len(b); j++{
+                        policy = append(policy,b[j])
+                }
+                count++
+                cumulative_policy++
+                if count == maxrecord {
+                        params := &RMRParams{&xapp.RMRParams{}}
+                        params.Mtype = 20
+                        params.PayloadLen = len(policy)
+                        params.Payload =[]byte(policy)
+                        params.Mbuf = nil
+                        params.Whid = ep.Whid
+                        xapp.Rmr.SendMsg(params.RMRParams)
+                        count = 0
+                        policy = nil
+                        xapp.Logger.Debug("Sent message with payload len = %d",params.PayloadLen)
+                } else if  cumulative_policy == len(*policies) {
+			params := &RMRParams{&xapp.RMRParams{}}
+			params.Mtype = 20
+			params.PayloadLen = len(policy)
+			params.Payload =[]byte(policy)
+			params.Mbuf = nil
+			params.Whid = ep.Whid
 			params.Callid = call_id
 			params.Timeout = 200
 			state, retstr = xapp.Rmr.SendCallMsg(params.RMRParams)
@@ -222,17 +261,12 @@ func (c *NngPush) send_data(ep *rtmgr.Endpoint, policies *[]string, call_id int)
 				xapp.Logger.Error("sync send route data to endpoint: " + ep.Uuid + " is failed,   call_id: " + string(call_id) + " for xapp.Rmr.SendCallMsg " + " return payload: " + retstr)
 				return false
 			} else {
-				xapp.Logger.Info("sync send route data to endpoint: " + ep.Uuid + " is success,  call_id: " + string(call_id) + " return payload: " + retstr)
+				xapp.Logger.Info("sync send route data to endpoint: " + ep.Uuid + " is success,  call_id: " + string(call_id) + " Payload length " + string(params.PayloadLen) + " return payload: " + retstr)
 				return true
 			}
 
-		} else {
-			if xapp.Rmr.SendMsg(params.RMRParams) != true {
-				xapp.Logger.Error("sync send route data to endpoint: " + ep.Uuid + " is failed, call_id: " + string(call_id) + " for xapp.Rmr.SendMsg")
-				return false
-			}
 		}
-	}
+        }
 
 	xapp.Logger.Error("sync send route data to endpoint: " + ep.Uuid + " is failed, call_id: " + string(call_id) + " xapp.Rmr.SendCallMsg is not called")
 	return false
