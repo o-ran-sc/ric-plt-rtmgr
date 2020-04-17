@@ -48,7 +48,7 @@ git clone "https://gerrit.o-ran-sc.org/r/ric-plt/appmgr" \
   && cp appmgr/api/appmgr_rest_api.yaml api/ \
   && rm -rf appmgr
 
-cp -r curdir/* /tmp/go/src/routing-manager/. 
+cp -r $curdir/* /tmp/go/src/routing-manager/.
 
 cd /tmp/go/src/routing-manager
 
