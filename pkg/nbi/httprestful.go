@@ -35,8 +35,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"net"
@@ -574,41 +574,41 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 		}
 
 		e2ts[e2tinst.Fqdn] = e2tinst
-		meids = append(meids,str)
+		meids = append(meids, str)
 	}
 }
 
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
 	xapp.Logger.Info("Invoked retrieveStartupData ")
-    var readErr error
-	var err  error
-   var maxRetries = 10
+	var readErr error
+	var err error
+	var maxRetries = 10
 	var xappData *[]rtmgr.XApp
 	xappData = new([]rtmgr.XApp)
 	xapp.Logger.Info("Trying to fetch XApps data from XAPP manager")
-    for i := 1; i <= maxRetries; i++ {
-       time.Sleep(2 * time.Second)
+	for i := 1; i <= maxRetries; i++ {
+		time.Sleep(2 * time.Second)
 
-	   readErr = nil
-       xappData, err = httpGetXApps(xmurl)
-       if xappData != nil && err == nil {
+		readErr = nil
+		xappData, err = httpGetXApps(xmurl)
+		if xappData != nil && err == nil {
 			break
-       } else if err == nil {
-               readErr = errors.New("unexpected HTTP status code")
-       } else {
-               xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
-               readErr = err
-       }
-    }
+		} else if err == nil {
+			readErr = errors.New("unexpected HTTP status code")
+		} else {
+			xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
+			readErr = err
+		}
+	}
 
-	if ( readErr != nil) {
-	        return readErr
+	if readErr != nil {
+		return readErr
 	}
 
 	var meids []string
 	e2ts := make(map[string]rtmgr.E2TInstance)
 	xapp.Logger.Info("Trying to fetch E2T data from E2manager")
-        for i := 1; i <= maxRetries; i++ {
+	for i := 1; i <= maxRetries; i++ {
 
 		readErr = nil
 		e2tDataList, err := httpGetE2TList(e2murl)
@@ -621,50 +621,50 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			xapp.Logger.Warn("cannot get E2T data from E2M due to: " + err.Error())
 			readErr = err
 		}
-       time.Sleep(2 * time.Second)
-	}
-
-	if ( readErr != nil) {
-	        return readErr
-	}
-
-	pcData, confErr := rtmgr.GetPlatformComponents(configfile)
-    if confErr != nil {
-            xapp.Logger.Error(confErr.Error())
-            return confErr
-    }
-    xapp.Logger.Info("Recieved intial xapp data, E2T data and platform data, writing into SDL.")
-    // Combine the xapps data and platform data before writing to the SDL
-	ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts: e2ts, MeidMap: meids}
-    writeErr := sdlEngine.WriteAll(fileName, ricData)
-    if writeErr != nil {
-            xapp.Logger.Error(writeErr.Error())
-    }
-
-    xapp.Logger.Info("Trying to fetch Subscriptions data from Subscription manager")
-    for i := 1; i <= maxRetries; i++ {
-		readErr = nil
-		sub_list, err := xapp.Subscription.QuerySubscriptions()
-
-		if sub_list != nil && err == nil {
-			PopulateSubscription(sub_list)
-			break
-		} else {
-			readErr = err
-			xapp.Logger.Warn("cannot get xapp data due to: " + readErr.Error())
-        }
 		time.Sleep(2 * time.Second)
 	}
 
-	if (readErr != nil) {
-        return readErr
+	if readErr != nil {
+		return readErr
 	}
 
-    // post subscription req to appmgr
-    readErr = PostSubReq(xmurl, nbiif)
-    if readErr == nil {
-            return nil
-    }
+	pcData, confErr := rtmgr.GetPlatformComponents(configfile)
+	if confErr != nil {
+		xapp.Logger.Error(confErr.Error())
+		return confErr
+	}
+	xapp.Logger.Info("Recieved intial xapp data, E2T data and platform data, writing into SDL.")
+	// Combine the xapps data and platform data before writing to the SDL
+	ricData := &rtmgr.RicComponents{XApps: *xappData, Pcs: *pcData, E2Ts: e2ts, MeidMap: meids}
+	writeErr := sdlEngine.WriteAll(fileName, ricData)
+	if writeErr != nil {
+		xapp.Logger.Error(writeErr.Error())
+	}
+
+	xapp.Logger.Info("Trying to fetch Subscriptions data from Subscription manager")
+	/*for i := 1; i <= maxRetries; i++ {
+			readErr = nil
+			sub_list, err := xapp.Subscription.QuerySubscriptions()
+
+			if sub_list != nil && err == nil {
+				PopulateSubscription(sub_list)
+				break
+			} else {
+				readErr = err
+				xapp.Logger.Warn("cannot get xapp data due to: " + readErr.Error())
+	        }
+			time.Sleep(2 * time.Second)
+		}
+
+	if readErr != nil {
+		return readErr
+	}*/
+
+	// post subscription req to appmgr
+	readErr = PostSubReq(xmurl, nbiif)
+	if readErr == nil {
+		return nil
+	}
 
 	return readErr
 }
@@ -874,7 +874,7 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 
 			stringSlice := strings.Split(ep, ":")
 			subdata.Address = &stringSlice[0]
-			intportval, _ := strconv.Atoi( stringSlice[1])
+			intportval, _ := strconv.Atoi(stringSlice[1])
 			value := uint16(intportval)
 			subdata.Port = &value
 			xapp.Logger.Debug("Adding Subscription List has Address :%v, port :%v, SubscriptionID :%v ", subdata.Address, subdata.Address, subdata.SubscriptionID)

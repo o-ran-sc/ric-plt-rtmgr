@@ -1,3 +1,6 @@
+### v0.5.7
+* Commented subscription list retrieval during rtmgr startUp 
+
 ### v0.5.6-2
 * RT records are sent in a group rather than individually. Group is configurabl 
 
