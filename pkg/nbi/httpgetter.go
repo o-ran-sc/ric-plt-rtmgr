@@ -37,8 +37,8 @@ import (
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
-	"time"
 	"sync"
+	"time"
 )
 
 type HttpGetter struct {
@@ -52,7 +52,7 @@ func NewHttpGetter() *HttpGetter {
 	return instance
 }
 
-var myClient = &http.Client{Timeout: 5 * time.Second}
+var myClient = &http.Client{Timeout: 15 * time.Second}
 
 func fetchAllXApps(xmurl string) (*[]rtmgr.XApp, error) {
 	xapp.Logger.Info("Invoked httpGetter.fetchXappList: " + xmurl)
