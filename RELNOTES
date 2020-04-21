@@ -1,3 +1,6 @@
+### v0.5.7-2
+* Supporting of reading subscriptions from subscription manager while restarting rtmgr
+
 ### v0.5.7-1
 * Increased http client timeout to 15sec 
 

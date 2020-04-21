@@ -642,7 +642,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 	}
 
 	xapp.Logger.Info("Trying to fetch Subscriptions data from Subscription manager")
-	/*for i := 1; i <= maxRetries; i++ {
+	for i := 1; i <= maxRetries; i++ {
 			readErr = nil
 			sub_list, err := xapp.Subscription.QuerySubscriptions()
 
@@ -658,7 +658,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 
 	if readErr != nil {
 		return readErr
-	}*/
+	}
 
 	// post subscription req to appmgr
 	readErr = PostSubReq(xmurl, nbiif)

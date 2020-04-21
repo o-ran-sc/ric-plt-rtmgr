@@ -133,7 +133,7 @@ func (c *NngPush) send(ep *rtmgr.Endpoint, policies *[]string) {
 			xapp.Rmr.SendMsg(params.RMRParams)
 			count = 0
 			policy = nil
-			xapp.Logger.Debug("Sent message with payload len = %d", params.PayloadLen)
+			xapp.Logger.Debug("Sent message with payload len = %d and payload :%v", params.PayloadLen, params.Payload)
 		}
 	}
 

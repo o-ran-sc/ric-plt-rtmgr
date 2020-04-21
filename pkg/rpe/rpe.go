@@ -218,18 +218,22 @@ func (r *Rpe) generateSubscriptionRoutes(selectedxAppEp *rtmgr.Endpoint, subManE
 		xAppUuid := subscription.Fqdn + ":" + strconv.Itoa(int(subscription.Port))
 		xapp.Logger.Debug("xApp UUID: %v", xAppUuid)
 		xAppEp := getEndpointByUuid(xAppUuid)
-		if xAppEp.Uuid == selectedxAppEp.Uuid {
-			xapp.Logger.Debug("xApp UUID is matched for selected xApp.UUID: %v and xApp.Name: %v", selectedxAppEp.Uuid, selectedxAppEp.Name)
-			/// TODO
-			//Subscription Manager -> xApp
-			r.addRoute("RIC_SUB_RESP", subManEp, xAppEp, routeTable, subscription.SubID, "")
-			r.addRoute("RIC_SUB_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID, "")
-			r.addRoute("RIC_SUB_DEL_RESP", subManEp, xAppEp, routeTable, subscription.SubID, "")
-			r.addRoute("RIC_SUB_DEL_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID, "")
-			//E2 Termination -> xApp
-			r.addRoute("RIC_INDICATION", nil, xAppEp, routeTable, subscription.SubID, "")
-			r.addRoute("RIC_CONTROL_ACK", nil, xAppEp, routeTable, subscription.SubID, "")
-			r.addRoute("RIC_CONTROL_FAILURE", nil, xAppEp, routeTable, subscription.SubID, "")
+		if xAppEp != nil {
+			if xAppEp.Uuid == selectedxAppEp.Uuid {
+				xapp.Logger.Debug("xApp UUID is matched for selected xApp.UUID: %v and xApp.Name: %v", selectedxAppEp.Uuid, selectedxAppEp.Name)
+				/// TODO
+				//Subscription Manager -> xApp
+				r.addRoute("RIC_SUB_RESP", subManEp, xAppEp, routeTable, subscription.SubID, "")
+				r.addRoute("RIC_SUB_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID, "")
+				r.addRoute("RIC_SUB_DEL_RESP", subManEp, xAppEp, routeTable, subscription.SubID, "")
+				r.addRoute("RIC_SUB_DEL_FAILURE", subManEp, xAppEp, routeTable, subscription.SubID, "")
+				//E2 Termination -> xApp
+				r.addRoute("RIC_INDICATION", nil, xAppEp, routeTable, subscription.SubID, "")
+				r.addRoute("RIC_CONTROL_ACK", nil, xAppEp, routeTable, subscription.SubID, "")
+				r.addRoute("RIC_CONTROL_FAILURE", nil, xAppEp, routeTable, subscription.SubID, "")
+			}
+		} else {
+				xapp.Logger.Error("generateSubscriptionRoutes xAppEp is nil, xApp UUID: %v", xAppUuid)
 		}
 	}
 }
