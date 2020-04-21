@@ -1,3 +1,6 @@
+### v0.5.7-1
+* Increased http client timeout to 15sec 
+
 ### v0.5.7
 * Commented subscription list retrieval during rtmgr startUp 
 
