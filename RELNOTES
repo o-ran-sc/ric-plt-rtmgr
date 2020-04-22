@@ -1,3 +1,5 @@
+### v0.5.7-3
+* Updating to RMR version 3.8.2
 ### v0.5.7-2
 * Supporting of reading subscriptions from subscription manager while restarting rtmgr
 
