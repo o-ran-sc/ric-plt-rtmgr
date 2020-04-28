@@ -73,6 +73,7 @@ func (c *Control) controlLoop(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEng
 			err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
 			xapp.Logger.Error("Unknown message type: %v", err)
 		}
+		xapp.Rmr.Free(msg.Mbuf)
 	}
 }
 
