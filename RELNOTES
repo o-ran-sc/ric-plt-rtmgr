@@ -1,3 +1,6 @@
+### v0.6.1
+* Updating xapp_fwk to v0.4.15, that contains RIC_HEALTH_CHECK message types
+
 ### v0.6.0
 * Updating RMR version to 4.0.5 
 
