@@ -64,6 +64,25 @@ data:
       "protPort": "tcp:4560"
       "maxSize": 2072
       "numWorkers": 1
+      "RTFILE":
+         "/db/rt.json"
+      "NBIURL":
+              "http://localhost:3800"
+   
     }
 subscription:
  host: "127.0.0.1:8089"
+
+ #xmurl: "http://service-ricplt-appmgr-http:8080/ric/v1/xapps"
+ #e2murl: "http://service-ricplt-e2mgr-http:3800/v1/e2t/list"
+ #rtfile: "/db/rt.json"
+ #CFGFILE: "/cfg/rtmgr-config.yaml"
+ #rpe: "rmrpush"
+ #s#bi: "rmrpush"
+ #s#biurl: "0.0.0.0"
+ #nbi: "httpRESTful"
+ #nbiurl: "http://service-ricplt-rtmgr-http:3800"
+ ##sdl: "file"
+ #local: 
+ #host: ":8080"
+

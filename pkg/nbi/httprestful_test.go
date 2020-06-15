@@ -43,7 +43,6 @@ import (
 	"routing-manager/pkg/sdl"
 	"routing-manager/pkg/stub"
 	"testing"
-	"time"
 	"sync"
 	"github.com/go-openapi/swag"
 )
@@ -113,7 +112,6 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 		Port:           &p,
 		SubscriptionID: swag.Int32(123456)}
 	err = validateXappSubscriptionData(&data1)
-	t.Log(err)
 
 	//Validate E2tData
 	data2 := models.E2tData{
@@ -121,24 +119,31 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	}
 	/*err = validateE2tData(&data2)*/
 
-	e2tchannel := make(chan *models.E2tData, 10)
-	_ = createNewE2tHandleHandlerImpl(e2tchannel, &data2)
-	defer close(e2tchannel)
+	//e2tchannel := make(chan *models.E2tData, 10)
+	_ = createNewE2tHandleHandlerImpl(&data2)
+	//defer close(e2tchannel)
 
 	//test case for provideXappSubscriptionHandleImp
-	datachannel := make(chan *models.XappSubscriptionData, 10)
-	_ = provideXappSubscriptionHandleImpl(datachannel, &data1)
-	defer close(datachannel)
+	//datachannel := make(chan *models.XappSubscriptionData, 10)
+	sdlEngine, _ = sdl.GetSdl("file")
+	_ = provideXappSubscriptionHandleImpl( &data1)
+	//defer close(datachannel)
 
 	//test case for deleteXappSubscriptionHandleImpl
-	_ = deleteXappSubscriptionHandleImpl(datachannel, &data1)
+	_ = deleteXappSubscriptionHandleImpl(&data1)
 
 	data3 := models.XappSubscriptionData{
 		Address:        swag.String("10.55.55.5"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(123456)}
 	//test case for deleteXappSubscriptionHandleImpl
-	_ = deleteXappSubscriptionHandleImpl(datachannel, &data3)
+	_ = deleteXappSubscriptionHandleImpl(&data3)
+	data4 := models.XappSubscriptionData{
+		Address:        swag.String("1.5.5.5"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(1236)}
+	_ = deleteXappSubscriptionHandleImpl(&data4)
+
 }
 
 func TestValidateE2tDataEmpty(t *testing.T) {
@@ -173,6 +178,8 @@ func TestValidateE2tDatavalid(t *testing.T) {
 
 	err := validateE2tData(&data)
 	t.Log(err)
+
+	_ = createNewE2tHandleHandlerImpl(&data)
 
 }
 
@@ -321,13 +328,12 @@ func TestValidateE2TAddressRANListData(t *testing.T) {
 
 func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 
-	associateranchan := make(chan models.RanE2tMap, 10)
 	data := models.RanE2tMap{
 				{
 					E2TAddress: swag.String("10.101.01.1:8098"),
 			},
 	}
-	err := associateRanToE2THandlerImpl(associateranchan, data)
+	err := associateRanToE2THandlerImpl( data)
 	if (err != nil ) {
 		t.Log(err)
 	}
@@ -345,13 +351,11 @@ func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 					E2TAddress: swag.String("10.101.01.1:8098"),
 			},
 	}
-	err = associateRanToE2THandlerImpl(associateranchan, data)
+	err = associateRanToE2THandlerImpl(data)
 	if (err != nil ) {
 		t.Log(err)
 	}
-	data1 := <-associateranchan
 
-	fmt.Println(data1)
 //################ Delete End Point dummy entry  
     delete(rtmgr.Eps, uuid);
 //#####################
@@ -359,14 +363,13 @@ func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 
 func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 
-	disassranchan  := make(chan models.RanE2tMap, 10)
 
 	data := models.RanE2tMap{
 				{
 					E2TAddress: swag.String("10.101.01.1:8098"),
 			},
 	}
-	err := disassociateRanToE2THandlerImpl(disassranchan, data)
+	err := disassociateRanToE2THandlerImpl(data)
 	if (err != nil ) {
 		t.Log(err)
 	}
@@ -383,13 +386,11 @@ func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 					E2TAddress: swag.String("10.101.01.1:8098"),
 			},
 	}
-	err = disassociateRanToE2THandlerImpl(disassranchan, data)
+	err = disassociateRanToE2THandlerImpl(data)
 	if (err != nil ) {
 		t.Log(err)
 	}
-	data1 := <-disassranchan
 
-	fmt.Println(data1)
 //################ Delete End Point dummy entry  
     delete(rtmgr.Eps, uuid);
 //#####################
@@ -397,11 +398,10 @@ func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 
 func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
 
-	e2tdelchan := make(chan *models.E2tDeleteData, 10)
 	data := models.E2tDeleteData{
 		E2TAddress: swag.String(""),
 	}
-	err := deleteE2tHandleHandlerImpl(e2tdelchan, &data)
+	err := deleteE2tHandleHandlerImpl(&data)
 	if (err != nil ) {
 		t.Log(err)
 	}
@@ -417,13 +417,10 @@ func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
-	err = deleteE2tHandleHandlerImpl(e2tdelchan, &data)
+	err = deleteE2tHandleHandlerImpl(&data)
 	if (err != nil ) {
 		t.Log(err)
 	}
-	data1 := <-e2tdelchan
-
-	fmt.Println(data1)
 //################ Delete End Point dummy entry  
     delete(rtmgr.Eps, uuid);
 //#####################
@@ -466,47 +463,38 @@ func TestHttpInstance(t *testing.T) {
 	err := httpinstance.Terminate()
 	t.Log(err)
 
-	triggerSBI := make(chan bool)
 	createMockPlatformComponents()
 	//ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
 	//ts.Start()
 	//defer ts.Close()
 	var m sync.Mutex
-	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine, rpeEngine, triggerSBI, &m)
+	err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine, rpeEngine, &m)
 }
 
-func TestXappCallbackDataChannelwithdata(t *testing.T) {
+func TestXappCallbackWithData(t *testing.T) {
 	data := models.XappCallbackData{
 		XApps:   *swag.String("[]"),
 		Version: *swag.Int64(1),
 		Event:   *swag.String("someevent"),
 		ID:      *swag.String("123456")}
-	datach := make(chan *models.XappCallbackData, 1)
-	go func() { _, _ = recvXappCallbackData(datach) }()
-	defer close(datach)
-	datach <- &data
-}
-func TestXappCallbackDataChannelNodata(t *testing.T) {
-	datach := make(chan *models.XappCallbackData, 1)
-	go func() { _, _ = recvXappCallbackData(datach) }()
-	defer close(datach)
+	 _, _ = recvXappCallbackData(&data)
 }
 
-func TestE2TChannelwithData(t *testing.T) {
-	data2 := models.E2tData{
-		E2TAddress: swag.String("1.2.3.4"),
-		RanNamelist: []string{"ran1","ran2"},
-	}
-	dataChannel := make(chan *models.E2tData, 10)
-	go func() { _, _,_ = recvNewE2Tdata(dataChannel) }()
-	defer close(dataChannel)
-	dataChannel <- &data2
+func TestXappCallbackNodata(t *testing.T) {
+	//data := *models.XappCallbackData
+	 _, _ = recvXappCallbackData(nil)
 }
 
-func TestE2TChannelwithNoData(t *testing.T) {
-	dataChannel := make(chan *models.E2tData, 10)
-	go func() { _, _ ,_= recvNewE2Tdata(dataChannel) }()
-	defer close(dataChannel)
+func TestE2TwithData(t *testing.T) {
+        data2 := models.E2tData{
+                E2TAddress: swag.String("1.2.3.4"),
+                RanNamelist: []string{"ran1","ran2"},
+        }
+         _, _,_ = recvNewE2Tdata(&data2)
+}
+
+func TestE2TwithNoData(t *testing.T) {
+         _, _,_ = recvNewE2Tdata(nil)
 }
 
 func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
@@ -515,12 +503,7 @@ func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
 		Address:        swag.String("10.0.0.0"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(1234)}
-	datachannel := make(chan *models.XappSubscriptionData, 10)
-	go func() { _ = provideXappSubscriptionHandleImpl(datachannel, &data) }()
-	defer close(datachannel)
-	datachannel <- &data
-
-	//subdel test
+	 _ = provideXappSubscriptionHandleImpl(&data)
 }
 
 func createMockAppmgrWithData(url string, g []byte, p []byte, t []byte) *httptest.Server {
@@ -579,58 +562,18 @@ func createMockPlatformComponents() {
 	_ = ioutil.WriteFile(filename, file, 644)
 }
 
-func TestRecvXappCallbackData(t *testing.T) {
-	data := models.XappCallbackData{
-		XApps:   *swag.String("[]"),
-		Version: *swag.Int64(1),
-		Event:   *swag.String("any"),
-		ID:      *swag.String("123456"),
-	}
-
-	ch := make(chan *models.XappCallbackData)
-	defer close(ch)
-	httpRestful := NewHttpRestful()
-	go func() { ch <- &data }()
-	time.Sleep(1 * time.Second)
-	t.Log(string(len(ch)))
-	xappList, err := httpRestful.RecvXappCallbackData(ch)
-	if err != nil {
-		t.Error("Receive failed: " + err.Error())
-	} else {
-		if xappList == nil {
-			t.Error("Expected an XApp notification list")
-		} else {
-			t.Log("whatever")
-		}
-	}
-}
-
 func TestProvideXappHandleHandlerImpl(t *testing.T) {
-	datach := make(chan *models.XappCallbackData, 10)
-	defer close(datach)
 	data := models.XappCallbackData{
 		XApps:   *swag.String("[]"),
 		Version: *swag.Int64(1),
 		Event:   *swag.String("someevent"),
 		ID:      *swag.String("123456")}
-	var httpRestful, _ = GetNbi("httpRESTful")
-	err := httpRestful.(*HttpRestful).ProvideXappHandleHandlerImpl(datach, &data)
-	if err != nil {
-		t.Error("Error occured: " + err.Error())
-	} else {
-		recv := <-datach
-		if recv == nil {
-			t.Error("Something gone wrong: " + err.Error())
-		} else {
-			if recv != &data {
-				t.Error("Malformed data on channel")
-			}
-		}
-	}
+	err := provideXappHandleHandlerImpl( &data)
 
 	//Empty XappCallbackdata
 	data1 := models.XappCallbackData{}
-	err = httpRestful.(*HttpRestful).ProvideXappHandleHandlerImpl(datach, &data1)
+	err = provideXappHandleHandlerImpl(&data1)
+	t.Log(err)
 }
 
 func TestValidateXappCallbackData(t *testing.T) {
@@ -738,3 +681,45 @@ func TestInvalidarguments(t *testing.T) {
 	_ = PostSubReq("\n","nbifinterface")
 	_ = PostSubReq("xmurl","\n")
 }
+
+func TestInitEngine(t *testing.T) {
+	initRtmgr()
+}
+
+func TestUpdateXappSubscription(t *testing.T) {
+	ep := make(map[string]*rtmgr.Endpoint)
+        ep["dummy"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "10.1.1.1", Port: 1234, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
+
+        rtmgr.Eps = ep
+
+
+	p := uint16(1234)
+	xapp := models.XappElement{
+		Address:        swag.String("10.1.1.1"),
+                Port:           &p,
+	}
+
+	var b models.XappList
+	b = append(b,&xapp)
+	_ = updateXappSubscriptionHandleImpl(&b, 10)
+
+	//Test case when subscriptions already exist
+        data := models.XappSubscriptionData{
+                Address:        swag.String("10.0.0.0"),
+                Port:           &p,
+                SubscriptionID: swag.Int32(12345)}
+
+        rtmgr.Subs = *stub.ValidSubscriptions
+
+        subscriptionExists(&data)
+        addSubscription(&rtmgr.Subs, &data)
+	_ = updateXappSubscriptionHandleImpl(&b, 10)
+
+
+}
+
+func TestDumpDebugdata(t *testing.T) {
+	_,_ = dumpDebugData()
+}
+
+

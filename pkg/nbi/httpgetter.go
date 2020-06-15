@@ -78,7 +78,7 @@ func fetchAllXApps(xmurl string) (*[]rtmgr.XApp, error) {
 }
 
 func (g *HttpGetter) Initialize(xmurl string, nbiif string, fileName string, configfile string, e2murl string,
-	sdlEngine sdl.Engine, rpeEngine rpe.Engine, triggerSBI chan<- bool, m *sync.Mutex) error {
+	sdlEngine sdl.Engine, rpeEngine rpe.Engine,  m *sync.Mutex) error {
 	return nil
 }
 

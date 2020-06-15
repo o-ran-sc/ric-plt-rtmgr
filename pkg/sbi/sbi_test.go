@@ -36,15 +36,15 @@ import (
 
 func TestGetSbi(t *testing.T) {
 	var errtype = errors.New("")
-	var sbitype = new(NngPush)
-	var invalids = []string{"nngpus", ""}
+	var sbitype = new(RmrPush)
+	var invalids = []string{"rmrpus", ""}
 
-	sbii, err := GetSbi("nngpush")
+	sbii, err := GetSbi("rmrpush")
 	if err != nil {
-		t.Errorf("GetSbi(nngpub) was incorrect, got: %v, want: %v.", reflect.TypeOf(err), nil)
+		t.Errorf("GetSbi(rmrpub) was incorrect, got: %v, want: %v.", reflect.TypeOf(err), nil)
 	}
 	if reflect.TypeOf(sbii) != reflect.TypeOf(sbitype) {
-		t.Errorf("GetSbi(nngpub) was incorrect, got: %v, want: %v.", reflect.TypeOf(sbii), reflect.TypeOf(sbitype))
+		t.Errorf("GetSbi(rmrpub) was incorrect, got: %v, want: %v.", reflect.TypeOf(sbii), reflect.TypeOf(sbitype))
 	}
 
 	for _, arg := range invalids {
@@ -58,14 +58,14 @@ func TestGetSbi(t *testing.T) {
 func TestUpdateE2TendPoint(t *testing.T) {
 	var err error
 	var sbi = Sbi{}
-	sbii, err := GetSbi("nngpush")
+	sbii, err := GetSbi("rmrpush")
 
 	var EP = make(map[string]*rtmgr.Endpoint)
 	EP["127.0.0.2"] = &rtmgr.Endpoint{Uuid: "127.0.0.2", Name: "E2TERM", XAppType: "app1", Ip: "127.0.0.2", Port: 4562, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
 	rtmgr.Eps = EP
 
-	var nngpush = NngPush{}
-	nngpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
+	var rmrpush = RmrPush{}
+	rmrpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
 
 	var E2map = make(map[string]rtmgr.E2TInstance)
 
@@ -82,13 +82,13 @@ func TestUpdateE2TendPoint(t *testing.T) {
 func TestPruneEndpointList(t *testing.T) {
 	var sbi = Sbi{}
 	var err error
-	sbii, err := GetSbi("nngpush")
+	sbii, err := GetSbi("rmrpush")
 	var EP = make(map[string]*rtmgr.Endpoint)
 	EP["127.0.0.2"] = &rtmgr.Endpoint{Uuid: "127.0.0.2", Name: "E2TERM", XAppType: "app1", Ip: "127.0.0.1", Port: 4562, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false}
 	rtmgr.Eps = EP
 
-	var nngpush = NngPush{}
-	nngpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
+	var rmrpush = RmrPush{}
+	rmrpush.AddEndpoint(rtmgr.Eps["127.0.0.2"])
 
 	sbi.pruneEndpointList(sbii)
 	t.Log(err)

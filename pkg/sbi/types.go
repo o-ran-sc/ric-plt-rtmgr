@@ -49,11 +49,11 @@ type Engine interface {
 	DistributeToEp(*[]string, *rtmgr.Endpoint) error
 }
 
-type NngSocket interface {
+/*type NngSocket interface {
 	Listen(string) error
 	Send([]byte) error
 	Close() error
 	DialOptions(string, map[string]interface{}) error
 }
 
-type CreateNewNngSocketHandler func() (NngSocket, error)
+type CreateNewNngSocketHandler func() (NngSocket, error)*/
