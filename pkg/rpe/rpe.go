@@ -115,7 +115,8 @@ func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoin
 		if rx != nil {
 			rxList = []rtmgr.EndpointList{[]rtmgr.Endpoint{*rx}}
 		}
-		messageId := strconv.Itoa(xapp.RICMessageTypes[messageType])
+		//messageId := strconv.Itoa(xapp.RICMessageTypes[messageType])
+		messageId := rtmgr.Mtype[messageType]
 		route := rtmgr.RouteTableEntry{
 			MessageType: messageId,
 			TxList:      txList,
@@ -143,7 +144,8 @@ func (r *Rpe) addRoute_rx_list(messageType string, tx *rtmgr.Endpoint, rx []rtmg
 		}
 	}
 
-	messageId := strconv.Itoa(xapp.RICMessageTypes[messageType])
+	//messageId := strconv.Itoa(xapp.RICMessageTypes[messageType])
+	messageId := rtmgr.Mtype[messageType]
 	route := rtmgr.RouteTableEntry{
 		MessageType: messageId,
 		TxList:      txList,
@@ -250,8 +252,6 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp []rtmgr.Endpoint, subManEp *rtmgr.
 			sendEp = subManEp
 		case "E2MAN":
 			sendEp = e2ManEp
-		//case "UEMAN":
-		//	sendEp = ueManEp
 		case "RSM":
 			sendEp = rsmEp
 		case "A1MEDIATOR":
@@ -300,11 +300,6 @@ func (r *Rpe) generateRouteTable(endPointList rtmgr.Endpoints) *rtmgr.RouteTable
 		xapp.Logger.Error("Platform component not found: %v", "E2 Manager")
 		xapp.Logger.Debug("Endpoints: %v", endPointList)
 	}
-	/*ueManEp := getEndpointByName(&endPointList, "UEMAN")
-	if ueManEp == nil {
-		xapp.Logger.Error("Platform component not found: %v", "UE Manger")
-		xapp.Logger.Debug("Endpoints: %v", endPointList)
-	}*/
 	rsmEp := getEndpointByName(&endPointList, "RSM")
 	if rsmEp == nil {
 		xapp.Logger.Error("Platform component not found: %v", "Resource Status Manager")

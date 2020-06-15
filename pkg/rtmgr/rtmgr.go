@@ -35,6 +35,7 @@ import (
 	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 var (
@@ -122,12 +123,14 @@ var (
 	Eps  Endpoints
 	Subs SubscriptionList
 	PrsCfg  *PlatformRoutes
+	Mtype MessageTypeList
 )
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	xapp.Logger.Debug("Invoked rtmgr.GetPlatformComponents(" + configfile + ")")
 	var rcfg ConfigRtmgr
 	var rtroutes RtmgrRoutes
+	var mtypes MessageTypeIdentifier
 	yamlFile, err := os.Open(configfile)
 	if err != nil {
 		return nil, errors.New("cannot open the file due to: " + err.Error())
@@ -147,6 +150,16 @@ func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
         }
         PrsCfg = &(rtroutes.Prs)
 
+	err = json.Unmarshal(jsonByteValue,&mtypes)
+        if err != nil {
+               return nil, errors.New("cannot parse data due to: " + err.Error())
+        } else {
+		xapp.Logger.Debug("Messgaetypes = %v", mtypes)
+		for _,m := range mtypes.Mit {
+			splitstr := strings.Split(m,"=")
+			Mtype[splitstr[0]] = splitstr[1]
+		}
+	}
 	err = json.Unmarshal(jsonByteValue, &rcfg)
 	if err != nil {
 		return nil, errors.New("cannot parse data due to: " + err.Error())

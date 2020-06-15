@@ -33,10 +33,20 @@ import (
 	"routing-manager/pkg/sdl"
 	"strconv"
 	"sync"
+	"time"
+	"os"
 )
 
-func NewControl() Control {
+var m sync.Mutex
 
+var nbiEngine Engine
+var sbiEngine sbi.Engine
+var sdlEngine sdl.Engine
+var rpeEngine rpe.Engine
+
+const INTERVAL time.Duration = 60
+
+func NewControl() Control {
 	return Control{make(chan *xapp.RMRParams)}
 }
 
@@ -44,8 +54,15 @@ type Control struct {
 	rcChan chan *xapp.RMRParams
 }
 
-func (c *Control) Run(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
-	go c.controlLoop(sbiEngine, sdlEngine, rpeEngine, m)
+
+func (c *Control) Run() {
+	var err error
+	go c.controlLoop()
+	nbiEngine, sbiEngine, sdlEngine, rpeEngine, err = initRtmgr()
+	if err != nil {
+                xapp.Logger.Error(err.Error())
+                os.Exit(1)
+        }
 	xapp.Run(c)
 }
 
@@ -54,7 +71,20 @@ func (c *Control) Consume(rp *xapp.RMRParams) (err error) {
 	return
 }
 
-func (c *Control) controlLoop(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
+func initRtmgr() (nbiEngine Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, err error) {
+        if nbiEngine, err = GetNbi(xapp.Config.GetString("nbi")); err == nil && nbiEngine != nil {
+                if sbiEngine, err = sbi.GetSbi(xapp.Config.GetString("sbi")); err == nil && sbiEngine != nil {
+                        if sdlEngine, err = sdl.GetSdl(xapp.Config.GetString("sdl")); err == nil && sdlEngine != nil {
+                                if rpeEngine, err = rpe.GetRpe(xapp.Config.GetString("rpe")); err == nil && rpeEngine != nil {
+                                        return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
+                                }
+                        }
+                }
+        }
+        return nil, nil, nil, nil, err
+}
+
+func (c *Control) controlLoop() {
 	for {
 		msg := <-c.rcChan
 		xapp_msg := sbi.RMRParams{msg}
@@ -64,7 +94,7 @@ func (c *Control) controlLoop(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEng
 				xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
 			} else {
 				xapp.Logger.Info("Update Route Table Request(RMR to RM)")
-				go c.handleUpdateToRoutingManagerRequest(msg, sbiEngine, sdlEngine, rpeEngine, m)
+				go c.handleUpdateToRoutingManagerRequest(msg)
 			}
 		case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
 			xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
@@ -77,7 +107,7 @@ func (c *Control) controlLoop(sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEng
 	}
 }
 
-func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, m *sync.Mutex) {
+func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 
 	msg := sbi.RMRParams{params}
 
@@ -104,4 +134,47 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams, sb
 		xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
 		return
 	}
+}
+
+func sendRoutesToAll() (err error) {
+
+        m.Lock()
+        data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+        m.Unlock()
+        if err != nil || data == nil {
+                return errors.New("Cannot get data from sdl interface due to: " + err.Error())
+        }
+        sbiEngine.UpdateEndpoints(data)
+        policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
+        err = sbiEngine.DistributeAll(policies)
+        if err != nil {
+                return errors.New("Routing table cannot be published due to: " + err.Error())
+        }
+
+	return nil
+}
+
+func Serve() {
+
+        nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"), xapp.Config.GetString("e2murl"), sdlEngine, rpeEngine, &m)
+        if nbiErr != nil {
+                xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
+                return
+        }
+
+        err := sbiEngine.Initialize(xapp.Config.GetString("sbiurl"))
+        if err != nil {
+                xapp.Logger.Info("Failed to open push socket due to: " + err.Error())
+                return
+        }
+        defer nbiEngine.Terminate()
+        defer sbiEngine.Terminate()
+
+        for {
+                sendRoutesToAll()
+
+                rtmgr.Rtmgr_ready = true
+                time.Sleep(INTERVAL * time.Second)
+                xapp.Logger.Debug("Periodic loop timed out. Setting triggerSBI flag to distribute updated routes.")
+        }
 }

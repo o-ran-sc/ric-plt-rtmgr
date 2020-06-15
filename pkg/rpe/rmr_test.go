@@ -22,7 +22,7 @@
 ==================================================================================
 */
 /*
-	Mnemonic:	nngpub_test.go
+	Mnemonic:	rmrpub_test.go
 	Abstract:
 	Date:		25 April 2019
 */
