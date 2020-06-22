@@ -39,17 +39,17 @@ import (
 	"strings"
 )
 
-const DefaultNngPipelineSocketPrefix = "tcp://"
-const DefaultNngPipelineSocketNumber = 4561
+const DefaultRmrPipelineSocketPrefix = "tcp://"
+const DefaultRmrPipelineSocketNumber = 4561
 const PlatformType = "platform"
 
 var (
 	SupportedSbis = []*EngineConfig{
 		{
-			Name:        "nngpush",
+			Name:        "rmrpush",
 			Version:     "v1",
-			Protocol:    "nngpipeline",
-			Instance:    NewNngPush(),
+			Protocol:    "rmrpipeline",
+			Instance:    NewRmrPush(),
 			IsAvailable: true,
 		},
 	}

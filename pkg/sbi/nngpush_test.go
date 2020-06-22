@@ -21,7 +21,7 @@
 ==================================================================================
 */
 /*
-	Mnemonic:	nngpush_test.go
+	Mnemonic:	rmrpush_test.go
 	Abstract:
 	Date:		3 May 2019
 */
@@ -55,7 +55,7 @@ func TestMain(m *testing.M) {
 /*
 Resets the EndpointList according to argumnets
 */
-func resetTestPushDataset(instance NngPush, testdata []rtmgr.Endpoint) {
+func resetTestPushDataset(instance RmrPush, testdata []rtmgr.Endpoint) {
 	rtmgr.Eps = make(map[string]*rtmgr.Endpoint)
 	for _, endpoint := range testdata {
 		ep := endpoint
@@ -65,101 +65,101 @@ func resetTestPushDataset(instance NngPush, testdata []rtmgr.Endpoint) {
 }
 
 /*
-nngpush.Initialize() method is empty, nothing to be tested
+rmrpush.Initialize() method is empty, nothing to be tested
 */
-func TestNngPushInitialize(t *testing.T) {
-	var nngpush = NngPush{}
+func TestRmrPushInitialize(t *testing.T) {
+	var rmrpush = RmrPush{}
 
-	_ = nngpush.Initialize("")
+	_ = rmrpush.Initialize("")
 }
 
 /*
-nngpush.Terminate() method is empty, nothing to be tested
+rmrpush.Terminate() method is empty, nothing to be tested
 */
-func TestNngPushTerminate(t *testing.T) {
-	var nngpush = NngPush{}
+func TestRmrPushTerminate(t *testing.T) {
+	var rmrpush = RmrPush{}
 
-	_ = nngpush.Terminate()
+	_ = rmrpush.Terminate()
 }
 
 /*
-nngpush.UpdateEndpoints() is testd against stub.ValidXApps dataset
+rmrpush.UpdateEndpoints() is testd against stub.ValidXApps dataset
 */
-func TestNngPushUpdateEndpoints(t *testing.T) {
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
+func TestRmrPushUpdateEndpoints(t *testing.T) {
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
-	nngpush.UpdateEndpoints(&stub.ValidRicComponents)
+	rmrpush.UpdateEndpoints(&stub.ValidRicComponents)
 	if rtmgr.Eps == nil {
-		t.Errorf("nngpush.UpdateEndpoints() result was incorrect, got: %v, want: %v.", nil, "rtmgr.Endpoints")
+		t.Errorf("rmrpush.UpdateEndpoints() result was incorrect, got: %v, want: %v.", nil, "rtmgr.Endpoints")
 	}
 }
 
 /*
-nngpush.AddEndpoint() is tested for happy path case
+rmrpush.AddEndpoint() is tested for happy path case
 */
-func TestNngPushAddEndpoint(t *testing.T) {
+func TestRmrPushAddEndpoint(t *testing.T) {
 //	var err error
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
-	_ = nngpush.AddEndpoint(rtmgr.Eps["localhost"])
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
+	_ = rmrpush.AddEndpoint(rtmgr.Eps["localhost"])
 /*	if err != nil {
-		t.Errorf("nngpush.AddEndpoint() return was incorrect, got: %v, want: %v.", err, "nil")
+		t.Errorf("rmrpush.AddEndpoint() return was incorrect, got: %v, want: %v.", err, "nil")
 	}*/
 }
 
 
 /*
-nngpush.DistributeAll() is tested for happy path case
+rmrpush.DistributeAll() is tested for happy path case
 */
-func TestNngPushDistributeAll(t *testing.T) {
+func TestRmrPushDistributeAll(t *testing.T) {
 	var err error
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
-	err = nngpush.DistributeAll(stub.ValidPolicies)
+	err = rmrpush.DistributeAll(stub.ValidPolicies)
 	if err != nil {
-		t.Errorf("nngpush.DistributeAll(policies) was incorrect, got: %v, want: %v.", err, "nil")
+		t.Errorf("rmrpush.DistributeAll(policies) was incorrect, got: %v, want: %v.", err, "nil")
 	}
 }
 
 /*
-nngpush.DistributeToEp() is tested for Sending case
+rmrpush.DistributeToEp() is tested for Sending case
 */
 func TestDistributeToEp(t *testing.T) {
 	var err error
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
-	err = nngpush.DistributeToEp(stub.ValidPolicies,rtmgr.Eps["localhost"])
+	err = rmrpush.DistributeToEp(stub.ValidPolicies,rtmgr.Eps["localhost"])
 	if err != nil {
-		t.Errorf("nngpush.DistributetoEp(policies) was incorrect, got: %v, want: %v.", err, "nil")
+		t.Errorf("rmrpush.DistributetoEp(policies) was incorrect, got: %v, want: %v.", err, "nil")
 	}
 }
 
 func TestDeleteEndpoint(t *testing.T) {
 	var err error
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
-	err = nngpush.DeleteEndpoint(rtmgr.Eps["localhost"])
+	err = rmrpush.DeleteEndpoint(rtmgr.Eps["localhost"])
 	if err != nil {
-		t.Errorf("nngpush.DeleteEndpoint() was incorrect, got: %v, want: %v.", err, "nil")
+		t.Errorf("rmrpush.DeleteEndpoint() was incorrect, got: %v, want: %v.", err, "nil")
 	}
 }
 
 func TestCreateEndpoint(t *testing.T) {
-	var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints1)
-	 nngpush.CreateEndpoint("192.168.0.1:0")
-	 nngpush.CreateEndpoint("localhost:4560")
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints1)
+	 rmrpush.CreateEndpoint("192.168.0.1:0")
+	 rmrpush.CreateEndpoint("localhost:4560")
 }
 /*
 Initialize and send policies
 */
-func TestNngPushInitializeandsendPolicies(t *testing.T) {
-        var nngpush = NngPush{}
-	resetTestPushDataset(nngpush, stub.ValidEndpoints)
+func TestRmrPushInitializeandsendPolicies(t *testing.T) {
+        var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
         policies := []string{"hello","welcome"}
-	nngpush.send(rtmgr.Eps["localhost"],&policies)
+	rmrpush.send_data(rtmgr.Eps["localhost"],&policies,1)
 }
