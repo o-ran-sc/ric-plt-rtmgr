@@ -1,3 +1,6 @@
+### v0.6.3
+* [RIC-369] Routing manager needs to support for xApps that terminate other protocols than E2 
+
 ### v0.6.2
 * Distribution of routes is synchronous. 
 

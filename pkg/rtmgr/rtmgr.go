@@ -124,6 +124,7 @@ var (
 	Subs SubscriptionList
 	PrsCfg  *PlatformRoutes
 	Mtype MessageTypeList
+	DynamicRouteList []string
 )
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {

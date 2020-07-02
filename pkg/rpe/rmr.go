@@ -86,6 +86,10 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 
 		rawrt = append(rawrt, rawrte+"\n")
 	}
+	for _,val := range rtmgr.DynamicRouteList {
+		rawrt = append(rawrt,val)
+	}
+
 	rawrt = append(rawrt, key+"newrt|end\n")
         count := 0
 

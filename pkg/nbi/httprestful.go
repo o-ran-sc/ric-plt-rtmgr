@@ -491,6 +491,26 @@ func launchRest(nbiif *string){
 				return debug.NewGetDebuginfoOK().WithPayload(&response)
 			}
 		})
+        api.HandleAddRmrRouteHandler = handle.AddRmrRouteHandlerFunc(
+                func(params handle.AddRmrRouteParams) middleware.Responder {
+			err := adddelrmrroute(params.RoutesList,true)
+			if err != nil {
+				return handle.NewAddRmrRouteBadRequest()
+			} else {
+				return handle.NewAddRmrRouteCreated()
+			}
+
+                })
+        api.HandleDelRmrRouteHandler = handle.DelRmrRouteHandlerFunc(
+                func(params handle.DelRmrRouteParams) middleware.Responder {
+			err := adddelrmrroute(params.RoutesList,false)
+			if err != nil {
+				return handle.NewDelRmrRouteBadRequest()
+			} else {
+				return handle.NewDelRmrRouteCreated()
+			}
+                })
+
 	// start to serve API
 	xapp.Logger.Info("Starting the HTTP Rest service")
 	if err := server.Serve(); err != nil {
@@ -655,7 +675,26 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 
 	// post subscription req to appmgr
 	readErr = PostSubReq(xmurl, nbiif)
+	if readErr != nil {
+		return readErr
+	}
+
+	//rlist := make(map[string]string)
+	xapp.Logger.Info("Reading SDL for any routes")
+	rlist,sdlerr := xapp.Sdl.Read("routes")
+	readErr = sdlerr
 	if readErr == nil {
+		xapp.Logger.Info("Value is %s",rlist["routes"])
+		if rlist["routes"] != nil {
+			formstring := fmt.Sprintf("%s",rlist["routes"])
+			xapp.Logger.Info("Value of formed string = %s",formstring)
+			newstring := strings.Split(formstring," ")
+			for i,_ := range newstring {
+				xapp.Logger.Info("in Loop Value of formed string = %s",newstring)
+				rtmgr.DynamicRouteList = append(rtmgr.DynamicRouteList,newstring[i])
+			}
+		}
+
 		return nil
 	}
 
@@ -768,4 +807,57 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 			addSubscription(&rtmgr.Subs, &subdata)
 		}
 	}
+}
+
+func adddelrmrroute(routelist models.Routelist,rtflag bool) error {
+	xapp.Logger.Info("Updating rmrroute with Route list: %v,flag: %v", routelist,rtflag)
+	for _, rlist := range routelist {
+		var  subid int32
+		var data string
+		if rlist.SubscriptionID == 0 {
+			subid = -1
+		} else {
+			subid = rlist.SubscriptionID
+		}
+		if rlist.SenderEndPoint == "" && rlist.SubscriptionID != 0 {
+			data = fmt.Sprintf("mse|%d|%d|%s\n",*rlist.MessageType,rlist.SubscriptionID,*rlist.TargetEndPoint)
+		} else if rlist.SenderEndPoint == "" && rlist.SubscriptionID == 0 {
+			data = fmt.Sprintf("mse|%d|-1|%s\n",*rlist.MessageType,*rlist.TargetEndPoint)
+		} else {
+			data = fmt.Sprintf("mse|%d,%s|%d|%s\n",*rlist.MessageType,rlist.SenderEndPoint,subid,*rlist.TargetEndPoint)
+		}
+		err := checkrepeatedroute(data)
+
+		if rtflag == true {
+			if err == true {
+				xapp.Logger.Info("Given route %s is a duplicate",data)
+			}
+			rtmgr.DynamicRouteList = append(rtmgr.DynamicRouteList,data)
+			routearray := strings.Join(rtmgr.DynamicRouteList," ")
+			xapp.Sdl.Store("routes",routearray)
+		} else {
+			if err == true {
+				xapp.Logger.Info("Successfully deleted route: %s",data)
+				routearray := strings.Join(rtmgr.DynamicRouteList," ")
+				xapp.Sdl.Store("routes",routearray)
+			}else {
+				xapp.Logger.Info("No such route: %s",data)
+				return errors.New("No such route: " + data)
+			}
+
+		}
+	}
+	return sendRoutesToAll()
+}
+
+func checkrepeatedroute (data string) bool {
+	for i:=0;i<len(rtmgr.DynamicRouteList);i++ {
+		if rtmgr.DynamicRouteList[i] == data {
+			rtmgr.DynamicRouteList[i] = rtmgr.DynamicRouteList[len(rtmgr.DynamicRouteList)-1]
+			rtmgr.DynamicRouteList[len(rtmgr.DynamicRouteList)-1] = ""
+			rtmgr.DynamicRouteList = rtmgr.DynamicRouteList[:len(rtmgr.DynamicRouteList)-1]
+			return true
+		}
+	}
+	return false
 }
