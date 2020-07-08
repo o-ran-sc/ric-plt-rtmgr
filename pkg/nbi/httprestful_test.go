@@ -34,6 +34,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -41,10 +42,13 @@ import (
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
+	"routing-manager/pkg/sbi"
 	"routing-manager/pkg/stub"
 	"testing"
 	"sync"
 	"github.com/go-openapi/swag"
+	"github.com/spf13/viper"
+	"time"
 )
 
 var BasicXAppLists = []byte(`[
@@ -70,6 +74,22 @@ var E2TListResp = []byte(`[{"e2tAddress":"127.0.0.1:0","ranNames":["RanM0","RanN
 var SubscriptionList = []byte(`[{"SubscriptionId":11,"Meid":"Test-Gnb","Endpoint":["127.0.0.1:4056"]}]`)
 
 var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
+
+type Consumer struct{}
+
+func (m Consumer) Consume(params *xapp.RMRParams) (err error) {
+        xapp.Sdl.Store("myKey", params.Payload)
+        return nil
+}
+
+// Test cases
+func TestMain(m *testing.M) {
+        go xapp.RunWithParams(Consumer{}, viper.GetBool("db.waitForSdl"))
+        time.Sleep(time.Duration(5) * time.Second)
+        code := m.Run()
+        os.Exit(code)
+}
+
 
 func TestValidateXappCallbackData_1(t *testing.T) {
 	data := models.XappCallbackData{
@@ -126,6 +146,8 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	//test case for provideXappSubscriptionHandleImp
 	//datachannel := make(chan *models.XappSubscriptionData, 10)
 	sdlEngine, _ = sdl.GetSdl("file")
+	sbiEngine, _ =  sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe ("rmrpush")
 	_ = provideXappSubscriptionHandleImpl( &data1)
 	//defer close(datachannel)
 
@@ -459,9 +481,11 @@ func TestAddSubscriptions(t *testing.T) {
 func TestHttpInstance(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	rpeEngine, _ := rpe.GetRpe("rmrpush")
+	sbiEngine,_ :=  sbi.GetSbi("rmrpush")
 	httpinstance := NewHttpRestful()
 	err := httpinstance.Terminate()
 	t.Log(err)
+	fmt.Printf("sbiEngine = %v",sbiEngine)
 
 	createMockPlatformComponents()
 	//ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
@@ -722,4 +746,66 @@ func TestDumpDebugdata(t *testing.T) {
 	_,_ = dumpDebugData()
 }
 
+func TestManagerRequest(t *testing.T) {
+	var params xapp.RMRParams
+	var rmrmeid xapp.RMRMeid
+	sdlEngine, _ = sdl.GetSdl("file")
+	sbiEngine, _ =  sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	rmrmeid.RanName = "gnb1"
+	c := Control{make(chan *xapp.RMRParams)}
+	params.Payload = []byte{1, 2,3,4}
+	params.Mtype = 1234
+	params.SubId = -1
+	params.Meid = &rmrmeid
+	params.Src = "sender"
+	params.PayloadLen = 4
+	c.handleUpdateToRoutingManagerRequest(&params)
+}
 
+func TestRecievermr(t *testing.T) {
+	var params xapp.RMRParams
+	var rmrmeid xapp.RMRMeid
+	sdlEngine, _ = sdl.GetSdl("file")
+	sbiEngine, _ =  sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	rmrmeid.RanName = "gnb1"
+
+	params.Payload = []byte{1, 2,3,4}
+	params.SubId = -1
+	params.Meid = &rmrmeid
+	params.Src = "sender"
+	params.PayloadLen = 4
+
+	c := Control{make(chan *xapp.RMRParams)}
+	params.Mtype = xapp.RICMessageTypes["RMRRM_REQ_TABLE"]
+	c.recievermr(&params)
+	params.Mtype = xapp.RICMessageTypes["RMRRM_TABLE_STATE"]
+	c.recievermr(&params)
+	params.Mtype = 1234
+	c.recievermr(&params)
+
+	rtmgr.Rtmgr_ready = true
+	params.Mtype = xapp.RICMessageTypes["RMRRM_REQ_TABLE"]
+	c.recievermr(&params)
+}
+
+func TestAddDelRmr(t *testing.T) {
+	sdlEngine, _ = sdl.GetSdl("file")
+	sbiEngine, _ =  sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	var routelist models.Routelist
+	mtype := uint32(1234)
+	tendpoint := "goofle.com"
+	listofroutes := models.AddRmrRoute { SubscriptionID: 0, SenderEndPoint: "nokia.com", MessageType: &mtype, TargetEndPoint: &tendpoint}
+	listofroutes2 := models.AddRmrRoute { SubscriptionID: 1, SenderEndPoint: "", MessageType: &mtype, TargetEndPoint: &tendpoint}
+	listofroutes3 := models.AddRmrRoute { MessageType: &mtype, TargetEndPoint: &tendpoint}
+        adddelrmrroute(routelist,false)
+	routelist = append(routelist,&listofroutes)
+	routelist = append(routelist,&listofroutes2)
+	routelist = append(routelist,&listofroutes3)
+	routelist = append(routelist,&listofroutes3)
+	adddelrmrroute(routelist,true)
+
+        adddelrmrroute(routelist,false)
+}

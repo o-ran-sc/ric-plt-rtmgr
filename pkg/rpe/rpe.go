@@ -244,6 +244,10 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp []rtmgr.Endpoint, subManEp *rtmgr.
 	xapp.Logger.Debug("rpe.generatePlatformRoutes invoked")
 	//Platform Routes --- Subscription Routes
 	//Subscription Manager -> E2 Termination
+	if rtmgr.PrsCfg == nil {
+		xapp.Logger.Info("No static routes configuration")
+		return
+	}
 	for _, routes := range *rtmgr.PrsCfg {
 		var sendEp *rtmgr.Endpoint
 		var Ep *rtmgr.Endpoint

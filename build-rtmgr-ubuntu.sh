@@ -63,16 +63,16 @@ go build ./cmd/rtmgr.go
 export RMR_SEED_RT=/tmp/go/src/routing-manager/uta_rtg_ric.rt
 
 cd $currnewdir/pkg/sbi
-go-acc . -- -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml"
+go-acc . -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
 
 cd $currnewdir/pkg/rpe
-go-acc $(go list ./...) -- -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml"
+go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
 
 cd $currnewdir/pkg/sdl
-go-acc $(go list ./...) -- -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml"
+go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
 
 cd $currnewdir/pkg/nbi
-go-acc $(go list ./...) -- -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml"
+go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
 
 cd $currnewdir
 

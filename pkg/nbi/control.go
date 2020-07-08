@@ -35,6 +35,7 @@ import (
 	"sync"
 	"time"
 	"os"
+	"fmt"
 )
 
 var m sync.Mutex
@@ -76,6 +77,7 @@ func initRtmgr() (nbiEngine Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, 
                 if sbiEngine, err = sbi.GetSbi(xapp.Config.GetString("sbi")); err == nil && sbiEngine != nil {
                         if sdlEngine, err = sdl.GetSdl(xapp.Config.GetString("sdl")); err == nil && sdlEngine != nil {
                                 if rpeEngine, err = rpe.GetRpe(xapp.Config.GetString("rpe")); err == nil && rpeEngine != nil {
+	fmt.Printf("%v,%v,%v,%v",nbiEngine, sbiEngine, sdlEngine, rpeEngine)
                                         return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
                                 }
                         }
@@ -87,6 +89,8 @@ func initRtmgr() (nbiEngine Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, 
 func (c *Control) controlLoop() {
 	for {
 		msg := <-c.rcChan
+		c.recievermr(msg)
+		/*
 		xapp_msg := sbi.RMRParams{msg}
 		switch msg.Mtype {
 		case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
@@ -103,8 +107,27 @@ func (c *Control) controlLoop() {
 			err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
 			xapp.Logger.Error("Unknown message type: %v", err)
 		}
-		xapp.Rmr.Free(msg.Mbuf)
+		xapp.Rmr.Free(msg.Mbuf)*/
 	}
+}
+
+func (c *Control) recievermr(msg *xapp.RMRParams) {
+	xapp_msg := sbi.RMRParams{msg}
+        switch msg.Mtype {
+        case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
+	if rtmgr.Rtmgr_ready == false {
+		xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
+        } else {
+                xapp.Logger.Info("Update Route Table Request(RMR to RM)")
+                go c.handleUpdateToRoutingManagerRequest(msg)
+        }
+        case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
+                xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
+        default:
+                err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
+                xapp.Logger.Error("Unknown message type: %v", err)
+        }
+        xapp.Rmr.Free(msg.Mbuf)
 }
 
 func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
@@ -140,10 +163,14 @@ func sendRoutesToAll() (err error) {
 
         m.Lock()
         data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+	fmt.Printf("data = %v,%v,%v",data,sdlEngine,sbiEngine)
         m.Unlock()
         if err != nil || data == nil {
                 return errors.New("Cannot get data from sdl interface due to: " + err.Error())
         }
+	if sbiEngine == nil {
+		fmt.Printf("SBI is nil")
+	}
         sbiEngine.UpdateEndpoints(data)
         policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
         err = sbiEngine.DistributeAll(policies)

@@ -1,0 +1,23 @@
+{
+  "apiVersion": "v1",
+  "data": {
+    "rtmgrcfg": "{\n  \"PlatformComponents\":\n  [\n    {\n      \"name\": \"E2TERM\",\n      \"fqdn\": \"e2term\",\n      \"port\": 4561\n    },\n    {\n      \"name\": \"SUBMAN\",\n      \"fqdn\": \"subman\",\n      \"port\": 4561\n    },\n    {\n      \"name\": \"E2MAN\",\n      \"fqdn\": \"e2man\",\n      \"port\": 4561\n    },\n    {\n      \"name\": \"UEMAN\",\n      \"fqdn\": \"ueman\",\n      \"port\": 4561\n    }\n  ]\n \"local\":\n  \"host\": \":8080\"\n \"logger\":\n  \"level\": 3\n \"rmr\":\n  \"protPort\": \"tcp:4560\"\n  \"maxSize\": 2072\n  \"numWorkers\": 1\n  \"RTFILE\":\n     \"/db/rt.json\"\n  \"NBIURL\":\n          \"http://localhost:3800\"\n\n}\n"
+  },
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "rtmgrcfg"
+  },
+  "rtfile": "/db/rt.json",
+  "sdl" : "file",
+  "sbi": "rmrpush",
+  "rpe": "rmrpush",
+  "nbi": "httpRESTful",
+  "xmurl": "http://127.0.0.1:4560/ric/v1/xapps",
+  "e2murl": "http://127.0.0.1:3800/v1/e2t/list",
+  "nbiurl": "http://127.0.0.1:3800",
+  "subscription": {
+    "host": "127.0.0.1:8089"
+  },
+  "PlatformRoutes": [ {"messagetype" : "RIC_SUB_REQ", "senderendpoint": "SUBMAN", "subscriptionid": -1, "endpoint": "", "meid": "%meid"} ]
+
+}

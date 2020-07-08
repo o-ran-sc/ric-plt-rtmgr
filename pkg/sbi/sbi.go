@@ -75,7 +75,9 @@ func (s *Sbi) pruneEndpointList(sbi Engine) {
 			sbi.DeleteEndpoint(ep)
 			delete(rtmgr.Eps, ep.Uuid)
 		} else {
-			rtmgr.Eps[ep.Uuid].Keepalive = false
+			if rtmgr.Eps[ep.Uuid] != nil {
+				rtmgr.Eps[ep.Uuid].Keepalive = false
+			}
 		}
 	}
 }
