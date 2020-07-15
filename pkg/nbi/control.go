@@ -77,7 +77,6 @@ func initRtmgr() (nbiEngine Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, 
                 if sbiEngine, err = sbi.GetSbi(xapp.Config.GetString("sbi")); err == nil && sbiEngine != nil {
                         if sdlEngine, err = sdl.GetSdl(xapp.Config.GetString("sdl")); err == nil && sdlEngine != nil {
                                 if rpeEngine, err = rpe.GetRpe(xapp.Config.GetString("rpe")); err == nil && rpeEngine != nil {
-	fmt.Printf("%v,%v,%v,%v",nbiEngine, sbiEngine, sdlEngine, rpeEngine)
                                         return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
                                 }
                         }

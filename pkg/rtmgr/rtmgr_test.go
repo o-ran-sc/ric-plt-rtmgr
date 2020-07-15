@@ -32,18 +32,14 @@ import (
 	"testing"
 )
 
-func TestSetLogLevel(t *testing.T) {
-	modeIsOk := []string{"info", "warn", "debug", "error"}
-	modeOsNok := []string{"inValId", "LogLEVEL", "Provided"}
-	for _, value := range modeIsOk {
-		if SetLogLevel(value) != nil {
-			t.Error("Invalid log level: " + value)
-		}
-	}
+func TestGetPlatformComponents(t *testing.T) {
+	//Check epty file
+	_, err := GetPlatformComponents("")
+	t.Log(err)
 
-	for _, value := range modeOsNok {
-		if SetLogLevel(value) == nil {
-			t.Error("Invalid log level: " + value)
-		}
-	}
+	//Valid JSON file
+	_, err = GetPlatformComponents("/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml")
+
+	//Invalid JSON file
+	_, err = GetPlatformComponents("./pkg/rtmg/rtmgr.go")
 }

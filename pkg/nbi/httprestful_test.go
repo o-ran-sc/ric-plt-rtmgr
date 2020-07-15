@@ -35,6 +35,7 @@ import (
 	"io/ioutil"
 	"net"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -808,4 +809,18 @@ func TestAddDelRmr(t *testing.T) {
 	adddelrmrroute(routelist,true)
 
         adddelrmrroute(routelist,false)
+}
+
+func TestPopulateSubscription(t *testing.T) {
+	var sublist xfmodel.SubscriptionList
+
+	subdata := xfmodel.SubscriptionData { Endpoint: []string{"xapp1.com:3800"}, SubscriptionID: -1, Meid: "" }
+	subdata2 := xfmodel.SubscriptionData { Endpoint: []string{"xapp2.com:3800"}, SubscriptionID: 11, Meid: "" }
+	subdata3 := xfmodel.SubscriptionData { Endpoint: []string{"xapp3.com:3800"}, SubscriptionID: 221, Meid: "" }
+	sublist = append(sublist,&subdata)
+	sublist = append(sublist,&subdata2)
+	sublist = append(sublist,&subdata3)
+
+	PopulateSubscription(sublist)
+
 }
