@@ -74,11 +74,15 @@ go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr
 cd $currnewdir/pkg/nbi
 go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
 
+cd $currnewdir/pkg/rtmgr
+go-acc $(go list ./...) -- -f "/tmp/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.json"
+
 cd $currnewdir
 
 cat $currnewdir/pkg/rpe/coverage.txt | grep -v atomic > coverage_tmp.txt
 cat $currnewdir/pkg/sdl/coverage.txt | grep -v atomic >> coverage_tmp.txt
 cat $currnewdir/pkg/nbi/coverage.txt | grep -v atomic >> coverage_tmp.txt
+cat $currnewdir/pkg/rtmgr/coverage.txt | grep -v atomic >> coverage_tmp.txt
 cp  $currnewdir/pkg/sbi/coverage.txt  coverage_tmp2.txt
 cat coverage_tmp2.txt coverage_tmp.txt > $curdir/coverage.txt
 
