@@ -144,7 +144,7 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 		return
 	}
 
-	ep := sbiEngine.CreateEndpoint(string(params.Payload))
+	ep := sbiEngine.CreateEndpoint(string(params.Payload),msg.String())
 	if ep == nil {
 		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
 		return

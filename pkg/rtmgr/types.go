@@ -41,6 +41,8 @@ type SubscriptionList []Subscription
 
 type MessageTypeList map[string]string
 
+type ProcessMultipleRMR map[string]int
+
 //TODO: uuid is not a real UUID but a string of "ip:port"
 // this should be changed to real UUID later on which should come from xApp Manager // petszila
 type Endpoint struct {

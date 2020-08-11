@@ -45,7 +45,7 @@ type Engine interface {
 	AddEndpoint(*rtmgr.Endpoint) error
 	DeleteEndpoint(*rtmgr.Endpoint) error
 	UpdateEndpoints(*rtmgr.RicComponents)
-	CreateEndpoint(string) (*rtmgr.Endpoint)
+	CreateEndpoint(string,string)*rtmgr.Endpoint
 	DistributeToEp(*[]string, *rtmgr.Endpoint) error
 }
 

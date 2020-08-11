@@ -31,9 +31,9 @@ package sbi
 
 import (
 	"errors"
-	"fmt"
+	//"fmt"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	"net"
+	//"net"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 	"strings"
@@ -176,19 +176,19 @@ func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine)
 	}
 }
 
-func (s *Sbi) createEndpoint(payload string, sbi Engine) *rtmgr.Endpoint {
+func (s *Sbi) createEndpoint(payload string,rmrsrc string, sbi Engine) *rtmgr.Endpoint {
 	xapp.Logger.Debug("CreateEndPoint %v", payload)
-	stringSlice := strings.Split(payload, " ")
-	uuid := stringSlice[0]
-	xapp.Logger.Debug(">>> uuid %v", stringSlice[0])
+//	stringSlice := strings.Split(payload, " ")
+//	uuid := stringSlice[0]
+//	xapp.Logger.Debug(">>> uuid %v", stringSlice[0])
 
-	if _, ok := rtmgr.Eps[uuid]; ok {
+/*	if _, ok := rtmgr.Eps[uuid]; ok {
 		ep := rtmgr.Eps[uuid]
 		return ep
-	}
+	}*/
 
 	/* incase the stored Endpoint list is in the form of IP:port*/
-	stringsubsplit := strings.Split(uuid, ":")
+/*	stringsubsplit := strings.Split(uuid, ":")
 	addr, err := net.LookupIP(stringsubsplit[0])
 	if err == nil {
 		convertedUuid := fmt.Sprintf("%s:%s", addr[0], stringsubsplit[1])
@@ -197,7 +197,18 @@ func (s *Sbi) createEndpoint(payload string, sbi Engine) *rtmgr.Endpoint {
 			ep := rtmgr.Eps[convertedUuid]
 			return ep
 		}
+	}*/
+
+	/* Create a new mapping, this case is assumed for multiple process sending RMR request from a container */
+	srcString := strings.Split(rmrsrc," ")
+	srcStringSlice := strings.Split(srcString[0],"=")
+	Whid := int(xapp.Rmr.Openwh(srcStringSlice[1]))
+
+	xapp.Logger.Info("Wormhole Id created is %d for EndPoint %s",Whid,srcStringSlice[1])
+	if Whid > 0 {
+		rtmgr.RmrEp[srcStringSlice[1]] = Whid
+		xapp.Logger.Info("received %s and mapped to Whid = %d",srcStringSlice[1],Whid)
 	}
 
 	return nil
-}
+ }
