@@ -13,6 +13,7 @@ require (
 	github.com/go-openapi/swag v0.19.7
 	github.com/go-openapi/validate v0.19.6
 	github.com/jessevdk/go-flags v1.4.0
+	github.com/ory/go-acc v0.2.5 // indirect
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 )
 
