@@ -152,7 +152,7 @@ func TestCreateEndpoint(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints1)
 	rmrpush.CreateEndpoint("192.168.0.1:0","Src=192.168.0.1:4561")
-	rmrpush.CreateEndpoint("localhost:4560","Src=localhost:4561")
+	rmrpush.CreateEndpoint("localhost:4560","Src=192.168.11.1:4444")
 }
 /*
 Initialize and send policies
