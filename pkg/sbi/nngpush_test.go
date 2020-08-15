@@ -131,7 +131,7 @@ func TestDistributeToEp(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
-	err = rmrpush.DistributeToEp(stub.ValidPolicies,rtmgr.Eps["localhost"])
+	err = rmrpush.DistributeToEp(stub.ValidPolicies,"localhost:4561",100)
 	if err != nil {
 		t.Errorf("rmrpush.DistributetoEp(policies) was incorrect, got: %v, want: %v.", err, "nil")
 	}

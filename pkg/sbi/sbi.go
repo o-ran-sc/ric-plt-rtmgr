@@ -176,7 +176,7 @@ func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine)
 	}
 }
 
-func (s *Sbi) createEndpoint(payload string,rmrsrc string, sbi Engine) *rtmgr.Endpoint {
+func (s *Sbi) createEndpoint(payload string,rmrsrc string, sbi Engine) (*string,int) {
 	xapp.Logger.Debug("CreateEndPoint %v", payload)
 //	stringSlice := strings.Split(payload, " ")
 //	uuid := stringSlice[0]
@@ -206,9 +206,10 @@ func (s *Sbi) createEndpoint(payload string,rmrsrc string, sbi Engine) *rtmgr.En
 
 	xapp.Logger.Info("Wormhole Id created is %d for EndPoint %s",Whid,srcStringSlice[1])
 	if Whid > 0 {
-		rtmgr.RmrEp[srcStringSlice[1]] = Whid
+//		rtmgr.RmrEp[srcStringSlice[1]] = Whid
 		xapp.Logger.Info("received %s and mapped to Whid = %d",srcStringSlice[1],Whid)
+		return &srcStringSlice[1],Whid
 	}
 
-	return nil
+	return nil,Whid
  }

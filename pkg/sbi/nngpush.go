@@ -123,9 +123,6 @@ func (c *RmrPush) DistributeAll(policies *[]string) error {
         for _, ep := range rtmgr.Eps {
                 go c.send_sync(ep,  policies, channel, rmrcallid)
         }
-	for rEp, id := range rtmgr.RmrEp {
-                go c.send_rt_process(rEp,id,policies,rmrcallid)
-        }
 
 	rmrcallid++
 
@@ -192,11 +189,11 @@ func (c *RmrPush) send_data(ep *rtmgr.Endpoint, policies *[]string, call_id int)
         return false
 }
 
-func (c *RmrPush) CreateEndpoint(payload string,rmrsrc string)*rtmgr.Endpoint  {
+func (c *RmrPush) CreateEndpoint(payload string,rmrsrc string)(ep *string,whid int)  {
 	return c.createEndpoint(payload,rmrsrc, c)
 }
 
-func (c *RmrPush) DistributeToEp(policies *[]string, ep *rtmgr.Endpoint) error {
+func (c *RmrPush) DistributeToEp(policies *[]string, ep string, whid int) error {
 	xapp.Logger.Debug("Invoked: sbi.DistributeToEp")
 	xapp.Logger.Debug("args: %v", *policies)
 
@@ -204,13 +201,13 @@ func (c *RmrPush) DistributeToEp(policies *[]string, ep *rtmgr.Endpoint) error {
                 rmrdynamiccallid = 201
         }
 
-	go c.send_data(ep, policies,rmrdynamiccallid)
+	go c.sendDynamicRoutes(ep, whid, policies,rmrdynamiccallid)
 	rmrdynamiccallid++
 
 	return nil
 }
 
-func (c *RmrPush) send_rt_process(ep string,whid int, policies *[]string, call_id int) bool {
+func (c *RmrPush) sendDynamicRoutes(ep string,whid int, policies *[]string, call_id int) bool {
         xapp.Logger.Debug("Invoked send_rt_process to endpoint: " + ep + " call_id: " + strconv.Itoa(call_id) + "whid: " + strconv.Itoa(whid))
         var state int
         var retstr string

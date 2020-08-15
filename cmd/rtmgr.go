@@ -66,7 +66,6 @@ func main() {
 	xapp.Logger.Info("Start " + SERVICENAME + " service")
 	rtmgr.Eps = make(rtmgr.Endpoints)
 	rtmgr.Mtype = make(rtmgr.MessageTypeList)
-	rtmgr.RmrEp = make(rtmgr.ProcessMultipleRMR)
 	rtmgr.Rtmgr_ready = false
 
 // RMR thread is starting port: 4560

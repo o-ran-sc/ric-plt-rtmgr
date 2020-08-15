@@ -136,26 +136,26 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	xapp.Logger.Info("Update Route Table Request, msg.String() : %s", msg.String())
 	xapp.Logger.Info("Update Route Table Request, params.Payload : %s", string(params.Payload))
 
-	/*m.Lock()
+	m.Lock()
 	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
 	m.Unlock()
 	if err != nil || data == nil {
 		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
 		return
-	}*/
+	}
 
-	sbiEngine.CreateEndpoint(string(params.Payload),msg.String())
-	/*if ep == nil {
+	 ep,whid := sbiEngine.CreateEndpoint(string(params.Payload),msg.String())
+	if ep == nil || whid < 0 {
 		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
 		return
 	}
 
 	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
-	err = sbiEngine.DistributeToEp(policies, ep)
+	err = sbiEngine.DistributeToEp(policies, *ep, whid)
 	if err != nil {
 		xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
 		return
-	}*/
+	}
 }
 
 func sendRoutesToAll() (err error) {

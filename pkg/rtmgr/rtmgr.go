@@ -43,7 +43,6 @@ var (
 	Subs SubscriptionList
 	PrsCfg  *PlatformRoutes
 	Mtype MessageTypeList
-	RmrEp ProcessMultipleRMR
 	DynamicRouteList []string
 )
 

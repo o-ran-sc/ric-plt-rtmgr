@@ -1,3 +1,6 @@
+### v0.6.5
+* Removed Book Keeping of RMR CTL ports. Route Distribution on demand.
+
 ### v0.6.4
 * Creating dymanic endpoints(Eps) and distributing routes to those endpoints on  upgrade route table request from xApp (this is fixed part MCxapp distribution issue for multiple route ports)
 
