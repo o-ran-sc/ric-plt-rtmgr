@@ -1,3 +1,6 @@
+### v0.6.7
+* Publish Route only once to the endpoint that requests it. Periodic/Event based distribution will be done only for the process with RMR Control Port 4561.
+
 ### v0.6.5
 * Removed Book Keeping of RMR CTL ports. Route Distribution on demand.
 

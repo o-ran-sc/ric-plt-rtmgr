@@ -27,6 +27,7 @@
 */
 package sbi
 
+
 import (
 	//"errors"
 	"routing-manager/pkg/rtmgr"
@@ -117,6 +118,7 @@ func TestRmrPushDistributeAll(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
+	rmrcallid = 200
 	err = rmrpush.DistributeAll(stub.ValidPolicies)
 	if err != nil {
 		t.Errorf("rmrpush.DistributeAll(policies) was incorrect, got: %v, want: %v.", err, "nil")
@@ -131,6 +133,7 @@ func TestDistributeToEp(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
 
+	rmrdynamiccallid = 255
 	err = rmrpush.DistributeToEp(stub.ValidPolicies,"localhost:4561",100)
 	if err != nil {
 		t.Errorf("rmrpush.DistributetoEp(policies) was incorrect, got: %v, want: %v.", err, "nil")
@@ -148,11 +151,18 @@ func TestDeleteEndpoint(t *testing.T) {
 	}
 }
 
+func TestCheckEndpoint(t *testing.T) {
+	var rmrpush = RmrPush{}
+	resetTestPushDataset(rmrpush, stub.ValidEndpoints1)
+	rmrpush.CheckEndpoint("192.168.0.1:0")
+	rmrpush.CheckEndpoint("10.2.2.1:0")
+	rmrpush.CheckEndpoint("localhost:0")
+}
+
 func TestCreateEndpoint(t *testing.T) {
 	var rmrpush = RmrPush{}
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints1)
-	rmrpush.CreateEndpoint("192.168.0.1:0","Src=192.168.0.1:4561")
-	rmrpush.CreateEndpoint("localhost:4560","Src=192.168.11.1:4444")
+	rmrpush.CreateEndpoint("Src=127.0.0.1:4561 hello")
 }
 /*
 Initialize and send policies
@@ -162,4 +172,27 @@ func TestRmrPushInitializeandsendPolicies(t *testing.T) {
 	resetTestPushDataset(rmrpush, stub.ValidEndpoints)
         policies := []string{"hello","welcome"}
 	rmrpush.send_data(rtmgr.Eps["localhost"],&policies,1)
+}
+
+func TestString( t *testing.T) {
+	var params xapp.RMRParams
+	params.Payload = []byte("abcdefgh")
+	params.Meid = &xapp.RMRMeid{}
+	msg := RMRParams{&params}
+	msg.String()
+
+}
+
+func TestSenddata(t *testing.T) {
+	var rmrpush = RmrPush{}
+	ep := rtmgr.Endpoint{Whid:-1, Ip:"1.1.1.1"}
+	policies := []string{"mse|12345|-1|local.com"}
+	rmrpush.send_data(&ep, &policies,300)
+}
+
+func TestSendDynamicdata(t *testing.T) {
+	var rmrpush = RmrPush{}
+	ep := "1.1.1.1"
+	policies := []string{"mse|12345|-1|local.com"}
+	rmrpush.sendDynamicRoutes(ep,1, &policies,300)
 }

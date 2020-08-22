@@ -144,14 +144,22 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 		return
 	}
 
-	 ep,whid := sbiEngine.CreateEndpoint(string(params.Payload),msg.String())
-	if ep == nil || whid < 0 {
+	ep := sbiEngine.CheckEndpoint(string(params.Payload))
+	if ep == nil {
 		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
 		return
 	}
+	epstr,whid := sbiEngine.CreateEndpoint(msg.String())
+	if epstr == nil || whid < 0 {
+		xapp.Logger.Error("Wormhole Id creation failed %d for %s",whid,msg.String() )
+		return
+	}
 
+	/*This is to ensure the latest routes are sent.
+	Assumption is that in this time interval the routes are built for this endpoint */
+        time.Sleep(100 * time.Millisecond)
 	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
-	err = sbiEngine.DistributeToEp(policies, *ep, whid)
+	err = sbiEngine.DistributeToEp(policies, *epstr, whid)
 	if err != nil {
 		xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
 		return

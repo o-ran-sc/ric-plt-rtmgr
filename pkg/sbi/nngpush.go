@@ -177,20 +177,21 @@ func (c *RmrPush) send_data(ep *rtmgr.Endpoint, policies *[]string, call_id int)
         params.Timeout = 200
         state, retstr = xapp.Rmr.SendCallMsg(params.RMRParams)
 	routestatus := strings.Split(retstr," ")
-        if state != C.RMR_OK && routestatus[0] == "OK" {
+        if state != C.RMR_OK && routestatus[0] != "OK" {
               xapp.Logger.Error("Updating Routes to Endpoint: " + ep.Uuid + " failed, call_id: " + strconv.Itoa(call_id) + " for xapp.Rmr.SendCallMsg " + " Route Update Status: " + routestatus[0])
               return false
         } else {
 		xapp.Logger.Info("Update Routes to Endpoint: " + ep.Uuid + " successful, call_id: " + strconv.Itoa(call_id) + ", Payload length: " + strconv.Itoa(params.PayloadLen) + ", Route Update Status: " + routestatus[0] + "(# of Entries:" + strconv.Itoa(len(*policies)))
               return true
         }
-
-        xapp.Logger.Error("Route Update to endpoint: " + ep.Uuid + " failed, call_id: " + strconv.Itoa(call_id) + " xapp.Rmr.SendCallMsg not called")
-        return false
 }
 
-func (c *RmrPush) CreateEndpoint(payload string,rmrsrc string)(ep *string,whid int)  {
-	return c.createEndpoint(payload,rmrsrc, c)
+func (c *RmrPush) CheckEndpoint(payload string)(ep *rtmgr.Endpoint)  {
+	return c.checkEndpoint(payload)
+}
+
+func (c *RmrPush) CreateEndpoint(rmrsrc string)(ep *string,whid int)  {
+	return c.createEndpoint(rmrsrc)
 }
 
 func (c *RmrPush) DistributeToEp(policies *[]string, ep string, whid int) error {
@@ -230,15 +231,12 @@ func (c *RmrPush) sendDynamicRoutes(ep string,whid int, policies *[]string, call
         params.Timeout = 200
         state, retstr = xapp.Rmr.SendCallMsg(params.RMRParams)
         routestatus := strings.Split(retstr," ")
-        if state != C.RMR_OK && routestatus[0] == "OK" {
+        if state != C.RMR_OK && routestatus[0] != "OK" {
                 xapp.Logger.Error("Updating Routes to Endpoint: " + ep + " failed, call_id: " + strconv.Itoa(call_id) + ",whi_id: " + strconv.Itoa(whid) + " for xapp.Rmr.SendCallMsg " + " Route Update Status: " + routestatus[0])
               return false
         } else {
-                xapp.Logger.Info("Update Routes to Endpoint: " + ep + " successful, call_id: " + strconv.Itoa(call_id) + ", Payload length: " + strconv.Itoa(params.PayloadLen) + ",whi_id: " + strconv.Itoa(whid) + ", Route Update Status: " + routestatus[0] + "(# of Entries:" + strconv.Itoa(len(*policies)))
+                xapp.Logger.Info("Update Routes to Endpoint: " + ep + " successful, call_id: " + strconv.Itoa(call_id) + ", Payload length: " + strconv.Itoa(params.PayloadLen) + ",whid: " + strconv.Itoa(whid) + ", Route Update Status: " + routestatus[0] + "(# of Entries:" + strconv.Itoa(len(*policies)))
       return true
         }
-
-        xapp.Logger.Error("Route Update to endpoint: " + ep + " failed, call_id: " + strconv.Itoa(call_id) + ",whi_id: " + strconv.Itoa(whid) + " xapp.Rmr.SendCallMsg not called")
-        return false
 }
 

@@ -31,9 +31,9 @@ package sbi
 
 import (
 	"errors"
-	//"fmt"
+	"fmt"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	//"net"
+	"net"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 	"strings"
@@ -123,16 +123,16 @@ func (s *Sbi) updatePlatformEndpoints(pcs *rtmgr.PlatformComponents, sbi Engine)
 			rtmgr.Eps[uuid].Keepalive = true
 		} else {
 			ep := &rtmgr.Endpoint{
-				Uuid:       uuid,
-				Name:       pc.Name,
-				XAppType:   PlatformType,
-				Ip:         pc.Fqdn,
-				Port:       pc.Port,
+				Uuid:     uuid,
+				Name:     pc.Name,
+				XAppType: PlatformType,
+				Ip:       pc.Fqdn,
+				Port:     pc.Port,
 				//TxMessages: rtmgr.PLATFORMMESSAGETYPES[pc.Name]["tx"],
 				//RxMessages: rtmgr.PLATFORMMESSAGETYPES[pc.Name]["rx"],
-				Socket:     nil,
-				IsReady:    false,
-				Keepalive:  true,
+				Socket:    nil,
+				IsReady:   false,
+				Keepalive: true,
 			}
 			xapp.Logger.Debug("ep created: %v", ep)
 			if err := sbi.AddEndpoint(ep); err != nil {
@@ -155,16 +155,16 @@ func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine)
 			rtmgr.Eps[uuid].Keepalive = true
 		} else {
 			ep := &rtmgr.Endpoint{
-				Uuid:       uuid,
-				Name:       e2t.Name,
-				XAppType:   PlatformType,
-				Ip:         ipaddress,
-				Port:       uint16(port),
+				Uuid:     uuid,
+				Name:     e2t.Name,
+				XAppType: PlatformType,
+				Ip:       ipaddress,
+				Port:     uint16(port),
 				//TxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["tx"],
 				//RxMessages: rtmgr.PLATFORMMESSAGETYPES[e2t.Name]["rx"],
-				Socket:     nil,
-				IsReady:    false,
-				Keepalive:  true,
+				Socket:    nil,
+				IsReady:   false,
+				Keepalive: true,
 			}
 			xapp.Logger.Debug("ep created: %v", ep)
 			if err := sbi.AddEndpoint(ep); err != nil {
@@ -176,40 +176,47 @@ func (s *Sbi) updateE2TEndpoints(E2Ts *map[string]rtmgr.E2TInstance, sbi Engine)
 	}
 }
 
-func (s *Sbi) createEndpoint(payload string,rmrsrc string, sbi Engine) (*string,int) {
-	xapp.Logger.Debug("CreateEndPoint %v", payload)
-//	stringSlice := strings.Split(payload, " ")
-//	uuid := stringSlice[0]
-//	xapp.Logger.Debug(">>> uuid %v", stringSlice[0])
+func (s *Sbi) checkEndpoint(payload string) *rtmgr.Endpoint {
+	/* Payload contains endpoint in the form of IP<domain name>:Port.
+	Port is data port of sender endpoint.
+	Eps contains the UUID in the form of IP<domain name>:Port.
+	Port is the Application Port(http) */
 
-/*	if _, ok := rtmgr.Eps[uuid]; ok {
-		ep := rtmgr.Eps[uuid]
-		return ep
-	}*/
+	xapp.Logger.Debug("Invoked checkEndPoint %v", payload)
+	stringSlice := strings.Split(payload, " ")
+	uuid := stringSlice[0]
+	stringsubsplit := strings.Split(uuid, ":")
+	xapp.Logger.Debug(">>> uuid %v", stringSlice[0])
+	for _, ep := range rtmgr.Eps {
+		if strings.Contains(ep.Uuid, stringsubsplit[0]) == true {
+			endpoint := rtmgr.Eps[ep.Uuid]
+			return endpoint
+		}
+	}
 
 	/* incase the stored Endpoint list is in the form of IP:port*/
-/*	stringsubsplit := strings.Split(uuid, ":")
 	addr, err := net.LookupIP(stringsubsplit[0])
 	if err == nil {
 		convertedUuid := fmt.Sprintf("%s:%s", addr[0], stringsubsplit[1])
 		xapp.Logger.Info(" IP:Port received is %s", convertedUuid)
-		if _, ok := rtmgr.Eps[convertedUuid]; ok {
-			ep := rtmgr.Eps[convertedUuid]
-			return ep
+		IP := fmt.Sprintf("%s", addr[0])
+		for _, ep := range rtmgr.Eps {
+			res := strings.Contains(ep.Uuid, IP)
+			if res == true {
+				endpoint := rtmgr.Eps[ep.Uuid]
+				return endpoint
+			}
 		}
-	}*/
+	}
+	return nil
+}
 
+func (s *Sbi) createEndpoint(rmrsrc string) (*string, int) {
 	/* Create a new mapping, this case is assumed for multiple process sending RMR request from a container */
-	srcString := strings.Split(rmrsrc," ")
-	srcStringSlice := strings.Split(srcString[0],"=")
+	srcString := strings.Split(rmrsrc, " ")
+	srcStringSlice := strings.Split(srcString[0], "=")
 	Whid := int(xapp.Rmr.Openwh(srcStringSlice[1]))
 
-	xapp.Logger.Info("Wormhole Id created is %d for EndPoint %s",Whid,srcStringSlice[1])
-	if Whid > 0 {
-//		rtmgr.RmrEp[srcStringSlice[1]] = Whid
-		xapp.Logger.Info("received %s and mapped to Whid = %d",srcStringSlice[1],Whid)
-		return &srcStringSlice[1],Whid
-	}
-
-	return nil,Whid
- }
+	xapp.Logger.Info("Wormhole Id created is %d for EndPoint %s", Whid, srcStringSlice[1])
+	return &srcStringSlice[1], Whid
+}
