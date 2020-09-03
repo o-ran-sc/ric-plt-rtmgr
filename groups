@@ -1,4 +1,5 @@
 # UUID                                                                        	Group Name
 #
+73452b7d29e1ef85e11ba7f2a15aaafb38446b8a                                      	saml/oran-gerrit-ric-plt-rtmgr-committers
 add1d629e64dce7097223c93ca6e710c1460b5ba                                      	GitHub Replication
 ldap:cn=oran-gerrit-ric-plt-rtmgr-committers,ou=Groups,dc=freestandards,dc=org	ldap/oran-gerrit-ric-plt-rtmgr-committers
