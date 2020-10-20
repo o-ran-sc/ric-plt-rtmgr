@@ -68,17 +68,17 @@ func main() {
 	rtmgr.Mtype = make(rtmgr.MessageTypeList)
 	rtmgr.Rtmgr_ready = false
 
-// RMR thread is starting port: 4560
+	// RMR thread is starting port: 4560
 	c := nbi.NewControl()
 	go c.Run()
 
-// Waiting for RMR to be ready
+	// Waiting for RMR to be ready
 	time.Sleep(time.Duration(2) * time.Second)
 	for xapp.Rmr.IsReady() == false {
-	        time.Sleep(time.Duration(2) * time.Second)
+		time.Sleep(time.Duration(2) * time.Second)
 	}
 
-	dummy_whid := int(xapp.Rmr.Openwh("localhost:4560"))
+	dummy_whid := int(xapp.Rmr.Openwh("rtmgr:4560"))
 	xapp.Logger.Info("created dummy Wormhole ID for routingmanager and dummy_whid :%d", dummy_whid)
 
 	nbi.Serve()

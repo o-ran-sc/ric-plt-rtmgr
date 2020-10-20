@@ -184,31 +184,49 @@ func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoin
 
 }
 
-
 func (r *Rpe) generateXappToXappRoutes(RecvxAppEp *rtmgr.Endpoint, endPointList rtmgr.Endpoints, routeTable *rtmgr.RouteTable) {
 	xapp.Logger.Debug("rpe.generateXappToXappRoutes invoked")
 
 	for _, rxmsg := range RecvxAppEp.RxMessages {
 
 		var src_present bool
+		identicalMsg := false
+		var RxGrp []rtmgr.Endpoint
 		xapp.Logger.Debug("RecvxAppEp.RxMessages Endpoint: %v, xAppType: %v and rxmsg: %v ", RecvxAppEp.Name, RecvxAppEp.XAppType, rxmsg)
-		if (rxmsg != "RIC_SUB_RESP" && rxmsg != "RIC_SUB_FAILURE" && rxmsg != "RIC_SUB_DEL_RESP" && rxmsg != "RIC_SUB_DEL_FAILURE" && rxmsg != "RIC_INDICATION" && rxmsg != "RIC_CONTROL_ACK" && rxmsg != "RIC_CONTROL_FAILURE" && rxmsg != "A1_POLICY_REQ") {
+		if rxmsg != "RIC_SUB_RESP" && rxmsg != "RIC_SUB_FAILURE" && rxmsg != "RIC_SUB_DEL_RESP" && rxmsg != "RIC_SUB_DEL_FAILURE" && rxmsg != "RIC_INDICATION" && rxmsg != "RIC_CONTROL_ACK" && rxmsg != "RIC_CONTROL_FAILURE" && rxmsg != "A1_POLICY_REQ" {
 			for _, SrcxAppEp := range endPointList {
 				if SrcxAppEp.XAppType != sbi.PlatformType && (len(SrcxAppEp.TxMessages) > 0) && SrcxAppEp.Name != RecvxAppEp.Name {
 					for _, txmsg := range SrcxAppEp.TxMessages {
-							if (rxmsg == txmsg) {
-								r.addRoute(rxmsg, SrcxAppEp, RecvxAppEp, routeTable, -1, "")
-								src_present = true
-								break
-							}
+						if rxmsg == txmsg {
+							r.addRoute(rxmsg, SrcxAppEp, RecvxAppEp, routeTable, -1, "")
+							src_present = true
+							break
+						}
 					}
 				}
 			}
-			if src_present == false {
+			for _, SrcxAppEp := range endPointList {
+
+				if SrcxAppEp.XAppType != sbi.PlatformType && (len(SrcxAppEp.RxMessages) > 0) && SrcxAppEp.Name != RecvxAppEp.Name {
+					for _, newrxmsg := range SrcxAppEp.RxMessages {
+						if newrxmsg == rxmsg {
+							RxGrp = append(RxGrp, *SrcxAppEp)
+							identicalMsg = true
+						}
+					}
+				}
+			}
+			if src_present == false && identicalMsg == false {
+				xapp.Logger.Debug("Message type %v,for SrcxAppEp.Name %v", rxmsg, RecvxAppEp)
 				r.addRoute(rxmsg, nil, RecvxAppEp, routeTable, -1, "")
 			}
+			if identicalMsg == true {
+				xapp.Logger.Debug("Appending Message type %v,for SrcxAppEp.Name %v", rxmsg, RecvxAppEp)
+				RxGrp = append(RxGrp, *RecvxAppEp)
+				r.addRoute_rx_list(rxmsg, nil, RxGrp, routeTable, -1, "")
+				return
+			}
 		}
-
 	}
 }
 
@@ -235,7 +253,7 @@ func (r *Rpe) generateSubscriptionRoutes(selectedxAppEp *rtmgr.Endpoint, subManE
 				r.addRoute("RIC_CONTROL_FAILURE", nil, xAppEp, routeTable, subscription.SubID, "")
 			}
 		} else {
-				xapp.Logger.Error("generateSubscriptionRoutes xAppEp is nil, xApp UUID: %v", xAppUuid)
+			xapp.Logger.Error("generateSubscriptionRoutes xAppEp is nil, xApp UUID: %v", xAppUuid)
 		}
 	}
 }
