@@ -32,23 +32,23 @@ package nbi
 import (
 	"encoding/json"
 	"fmt"
+	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
+	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"github.com/go-openapi/swag"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net"
-	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
-	"routing-manager/pkg/sdl"
 	"routing-manager/pkg/sbi"
+	"routing-manager/pkg/sdl"
 	"routing-manager/pkg/stub"
-	"testing"
 	"sync"
-	"github.com/go-openapi/swag"
-	"github.com/spf13/viper"
+	"testing"
 	"time"
 )
 
@@ -79,18 +79,17 @@ var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
 type Consumer struct{}
 
 func (m Consumer) Consume(params *xapp.RMRParams) (err error) {
-        xapp.Sdl.Store("myKey", params.Payload)
-        return nil
+	xapp.Sdl.Store("myKey", params.Payload)
+	return nil
 }
 
 // Test cases
 func TestMain(m *testing.M) {
-        go xapp.RunWithParams(Consumer{}, viper.GetBool("db.waitForSdl"))
-        time.Sleep(time.Duration(5) * time.Second)
-        code := m.Run()
-        os.Exit(code)
+	go xapp.RunWithParams(Consumer{}, viper.GetBool("db.waitForSdl"))
+	time.Sleep(time.Duration(5) * time.Second)
+	code := m.Run()
+	os.Exit(code)
 }
-
 
 func TestValidateXappCallbackData_1(t *testing.T) {
 	data := models.XappCallbackData{
@@ -105,12 +104,11 @@ func TestValidateXappCallbackData_1(t *testing.T) {
 	}
 }
 
-func TestValidateXappCallbackDataInvalid (t *testing.T) {
+func TestValidateXappCallbackDataInvalid(t *testing.T) {
 	data := models.XappCallbackData{}
 	err := validateXappCallbackData(&data)
 	t.Log(err)
 }
-
 
 func TestValidateXappSubscriptionsData(t *testing.T) {
 
@@ -147,9 +145,9 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	//test case for provideXappSubscriptionHandleImp
 	//datachannel := make(chan *models.XappSubscriptionData, 10)
 	sdlEngine, _ = sdl.GetSdl("file")
-	sbiEngine, _ =  sbi.GetSbi("rmrpush")
-	rpeEngine, _ = rpe.GetRpe ("rmrpush")
-	_ = provideXappSubscriptionHandleImpl( &data1)
+	sbiEngine, _ = sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe("rmrpush")
+	_ = provideXappSubscriptionHandleImpl(&data1)
 	//defer close(datachannel)
 
 	//test case for deleteXappSubscriptionHandleImpl
@@ -198,7 +196,6 @@ func TestValidateE2tDatavalid(t *testing.T) {
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
 
-
 	err := validateE2tData(&data)
 	t.Log(err)
 
@@ -214,50 +211,48 @@ func TestValidateE2tDatavalidEndpointPresent(t *testing.T) {
 	// insert endpoint for testing purpose
 	uuid := "10.101.01.1:8098"
 	ep := &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
 
 	err := validateE2tData(&data)
 	t.Log(err)
 
-	// delete endpoint for at end of test case 
-    delete(rtmgr.Eps, uuid);
+	// delete endpoint for at end of test case
+	delete(rtmgr.Eps, uuid)
 
 }
 
-
 func TestValidateDeleteE2tData(t *testing.T) {
 
-// test-1		
+	// test-1
 	data := models.E2tDeleteData{
 		E2TAddress: swag.String(""),
 	}
 
 	err := validateDeleteE2tData(&data)
-	if (err.Error() != "E2TAddress is empty!!!") {
+	if err.Error() != "E2TAddress is empty!!!" {
 		t.Log(err)
 	}
 
-
-// test-2
+	// test-2
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
 
 	err = validateDeleteE2tData(&data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
-// test-3
-//################ Create End Point dummy entry  
+	// test-3
+	//################ Create End Point dummy entry
 	uuid := "10.101.01.1:8098"
 	ep := &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
-//#####################
+	//#####################
 
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
@@ -267,30 +262,30 @@ func TestValidateDeleteE2tData(t *testing.T) {
 	}
 
 	err = validateDeleteE2tData(&data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
-	// delete endpoint for at end of test case 
-//################ Delete End Point dummy entry  
-    delete(rtmgr.Eps, uuid);
-//#####################
+	// delete endpoint for at end of test case
+	//################ Delete End Point dummy entry
+	delete(rtmgr.Eps, uuid)
+	//#####################
 
-// test-4
+	// test-4
 
-//################ Create End Point dummy entry  
+	//################ Create End Point dummy entry
 	uuid = "10.101.01.1:9991"
 	ep = &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
 
 	uuid = "10.101.01.1:9992"
 	ep = &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
-//#####################
+	//#####################
 
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01:8098"),
@@ -301,15 +296,15 @@ func TestValidateDeleteE2tData(t *testing.T) {
 	}
 
 	err = validateDeleteE2tData(&data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
-//################ Delete End Point dummy entry  
-    delete(rtmgr.Eps, "10.101.01.1:9991")
-    delete(rtmgr.Eps, "10.101.01.1:9992")
-//#####################
+	//################ Delete End Point dummy entry
+	delete(rtmgr.Eps, "10.101.01.1:9991")
+	delete(rtmgr.Eps, "10.101.01.1:9992")
+	//#####################
 
-// test-5
+	// test-5
 
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01:8098"),
@@ -319,31 +314,30 @@ func TestValidateDeleteE2tData(t *testing.T) {
 	}
 
 	err = validateDeleteE2tData(&data)
-	if ( err.Error() != "E2T Delete - RanAssocList E2TAddress is not a proper format like ip:port, 10.101.01.19991") {
+	if err.Error() != "E2T Delete - RanAssocList E2TAddress is not a proper format like ip:port, 10.101.01.19991" {
 		t.Log(err)
 	}
 }
 
-
 func TestValidateE2TAddressRANListData(t *testing.T) {
 
 	data := models.RanE2tMap{
-				{
-					E2TAddress: swag.String(""),
-			},
+		{
+			E2TAddress: swag.String(""),
+		},
 	}
 	err := validateE2TAddressRANListData(data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
 	data = models.RanE2tMap{
-				{
-					E2TAddress: swag.String("10.101.01.1:8098"),
-			},
+		{
+			E2TAddress: swag.String("10.101.01.1:8098"),
+		},
 	}
 	err = validateE2TAddressRANListData(data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
@@ -352,71 +346,70 @@ func TestValidateE2TAddressRANListData(t *testing.T) {
 func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 
 	data := models.RanE2tMap{
-				{
-					E2TAddress: swag.String("10.101.01.1:8098"),
-			},
+		{
+			E2TAddress: swag.String("10.101.01.1:8098"),
+		},
 	}
-	err := associateRanToE2THandlerImpl( data)
-	if (err != nil ) {
+	err := associateRanToE2THandlerImpl(data)
+	if err != nil {
 		t.Log(err)
 	}
 
-//################ Create End Point dummy entry  
+	//################ Create End Point dummy entry
 	uuid := "10.101.01.1:8098"
 	ep := &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
-//#####################
+	//#####################
 
 	data = models.RanE2tMap{
-				{
-					E2TAddress: swag.String("10.101.01.1:8098"),
-			},
+		{
+			E2TAddress: swag.String("10.101.01.1:8098"),
+		},
 	}
 	err = associateRanToE2THandlerImpl(data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
-//################ Delete End Point dummy entry  
-    delete(rtmgr.Eps, uuid);
-//#####################
+	//################ Delete End Point dummy entry
+	delete(rtmgr.Eps, uuid)
+	//#####################
 }
 
 func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 
-
 	data := models.RanE2tMap{
-				{
-					E2TAddress: swag.String("10.101.01.1:8098"),
-			},
+		{
+			E2TAddress: swag.String("10.101.01.1:8098"),
+		},
 	}
 	err := disassociateRanToE2THandlerImpl(data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
-//################ Create End Point dummy entry  
+	//################ Create End Point dummy entry
 	uuid := "10.101.01.1:8098"
 	ep := &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
-//#####################
+	//#####################
 
 	data = models.RanE2tMap{
-				{
-					E2TAddress: swag.String("10.101.01.1:8098"),
-			},
+		{
+			E2TAddress: swag.String("10.101.01.1:8098"),
+		},
 	}
 	err = disassociateRanToE2THandlerImpl(data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
-//################ Delete End Point dummy entry  
-    delete(rtmgr.Eps, uuid);
-//#####################
+	//################ Delete End Point dummy entry
+	delete(rtmgr.Eps, uuid)
+	//#####################
 }
 
 func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
@@ -425,28 +418,28 @@ func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
 		E2TAddress: swag.String(""),
 	}
 	err := deleteE2tHandleHandlerImpl(&data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
 
-//################ Create End Point dummy entry  
+	//################ Create End Point dummy entry
 	uuid := "10.101.01.1:8098"
 	ep := &rtmgr.Endpoint{
-		Uuid:       uuid,
+		Uuid: uuid,
 	}
 	rtmgr.Eps[uuid] = ep
-//#####################
+	//#####################
 
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
 	err = deleteE2tHandleHandlerImpl(&data)
-	if (err != nil ) {
+	if err != nil {
 		t.Log(err)
 	}
-//################ Delete End Point dummy entry  
-    delete(rtmgr.Eps, uuid);
-//#####################
+	//################ Delete End Point dummy entry
+	delete(rtmgr.Eps, uuid)
+	//#####################
 }
 
 func TestSubscriptionExists(t *testing.T) {
@@ -478,15 +471,14 @@ func TestAddSubscriptions(t *testing.T) {
 	t.Log(yes_no)
 }
 
-
 func TestHttpInstance(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	rpeEngine, _ := rpe.GetRpe("rmrpush")
-	sbiEngine,_ :=  sbi.GetSbi("rmrpush")
+	sbiEngine, _ := sbi.GetSbi("rmrpush")
 	httpinstance := NewHttpRestful()
 	err := httpinstance.Terminate()
 	t.Log(err)
-	fmt.Printf("sbiEngine = %v",sbiEngine)
+	fmt.Printf("sbiEngine = %v", sbiEngine)
 
 	createMockPlatformComponents()
 	//ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
@@ -502,24 +494,24 @@ func TestXappCallbackWithData(t *testing.T) {
 		Version: *swag.Int64(1),
 		Event:   *swag.String("someevent"),
 		ID:      *swag.String("123456")}
-	 _, _ = recvXappCallbackData(&data)
+	_, _ = recvXappCallbackData(&data)
 }
 
 func TestXappCallbackNodata(t *testing.T) {
 	//data := *models.XappCallbackData
-	 _, _ = recvXappCallbackData(nil)
+	_, _ = recvXappCallbackData(nil)
 }
 
 func TestE2TwithData(t *testing.T) {
-        data2 := models.E2tData{
-                E2TAddress: swag.String("1.2.3.4"),
-                RanNamelist: []string{"ran1","ran2"},
-        }
-         _, _,_ = recvNewE2Tdata(&data2)
+	data2 := models.E2tData{
+		E2TAddress:  swag.String("1.2.3.4"),
+		RanNamelist: []string{"ran1", "ran2"},
+	}
+	_, _, _ = recvNewE2Tdata(&data2)
 }
 
 func TestE2TwithNoData(t *testing.T) {
-         _, _,_ = recvNewE2Tdata(nil)
+	_, _, _ = recvNewE2Tdata(nil)
 }
 
 func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
@@ -528,7 +520,7 @@ func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
 		Address:        swag.String("10.0.0.0"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(1234)}
-	 _ = provideXappSubscriptionHandleImpl(&data)
+	_ = provideXappSubscriptionHandleImpl(&data)
 }
 
 func createMockAppmgrWithData(url string, g []byte, p []byte, t []byte) *httptest.Server {
@@ -593,7 +585,7 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 		Version: *swag.Int64(1),
 		Event:   *swag.String("someevent"),
 		ID:      *swag.String("123456")}
-	err := provideXappHandleHandlerImpl( &data)
+	err := provideXappHandleHandlerImpl(&data)
 
 	//Empty XappCallbackdata
 	data1 := models.XappCallbackData{}
@@ -650,7 +642,6 @@ func TestHttpGetXAppsWithValidData(t *testing.T) {
 	}
 }
 
-
 func TestRetrieveStartupDataTimeout(t *testing.T) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	createMockPlatformComponents()
@@ -703,8 +694,8 @@ func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 }
 
 func TestInvalidarguments(t *testing.T) {
-	_ = PostSubReq("\n","nbifinterface")
-	_ = PostSubReq("xmurl","\n")
+	_ = PostSubReq("\n", "nbifinterface")
+	_ = PostSubReq("xmurl", "\n")
 }
 
 func TestInitEngine(t *testing.T) {
@@ -713,49 +704,47 @@ func TestInitEngine(t *testing.T) {
 
 func TestUpdateXappSubscription(t *testing.T) {
 	ep := make(map[string]*rtmgr.Endpoint)
-        ep["dummy"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "10.1.1.1", Port: 1234, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
+	ep["dummy"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "10.1.1.1", Port: 1234, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
 
-        rtmgr.Eps = ep
-
+	rtmgr.Eps = ep
 
 	p := uint16(1234)
 	xapp := models.XappElement{
-		Address:        swag.String("10.1.1.1"),
-                Port:           &p,
+		Address: swag.String("10.1.1.1"),
+		Port:    &p,
 	}
 
 	var b models.XappList
-	b = append(b,&xapp)
+	b = append(b, &xapp)
 	_ = updateXappSubscriptionHandleImpl(&b, 10)
 
 	//Test case when subscriptions already exist
-        data := models.XappSubscriptionData{
-                Address:        swag.String("10.0.0.0"),
-                Port:           &p,
-                SubscriptionID: swag.Int32(12345)}
+	data := models.XappSubscriptionData{
+		Address:        swag.String("10.0.0.0"),
+		Port:           &p,
+		SubscriptionID: swag.Int32(12345)}
 
-        rtmgr.Subs = *stub.ValidSubscriptions
+	rtmgr.Subs = *stub.ValidSubscriptions
 
-        subscriptionExists(&data)
-        addSubscription(&rtmgr.Subs, &data)
+	subscriptionExists(&data)
+	addSubscription(&rtmgr.Subs, &data)
 	_ = updateXappSubscriptionHandleImpl(&b, 10)
-
 
 }
 
 func TestDumpDebugdata(t *testing.T) {
-	_,_ = dumpDebugData()
+	_, _ = dumpDebugData()
 }
 
 func TestManagerRequest(t *testing.T) {
 	var params xapp.RMRParams
 	var rmrmeid xapp.RMRMeid
 	sdlEngine, _ = sdl.GetSdl("file")
-	sbiEngine, _ =  sbi.GetSbi("rmrpush")
-	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	sbiEngine, _ = sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe("rmrpush")
 	rmrmeid.RanName = "gnb1"
 	c := Control{make(chan *xapp.RMRParams)}
-	params.Payload = []byte{1, 2,3,4}
+	params.Payload = []byte{1, 2, 3, 4}
 	params.Mtype = 1234
 	params.SubId = -1
 	params.Meid = &rmrmeid
@@ -768,11 +757,11 @@ func TestRecievermr(t *testing.T) {
 	var params xapp.RMRParams
 	var rmrmeid xapp.RMRMeid
 	sdlEngine, _ = sdl.GetSdl("file")
-	sbiEngine, _ =  sbi.GetSbi("rmrpush")
-	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	sbiEngine, _ = sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe("rmrpush")
 	rmrmeid.RanName = "gnb1"
 
-	params.Payload = []byte{1, 2,3,4}
+	params.Payload = []byte{1, 2, 3, 4}
 	params.SubId = -1
 	params.Meid = &rmrmeid
 	params.Src = "sender"
@@ -789,37 +778,38 @@ func TestRecievermr(t *testing.T) {
 	rtmgr.Rtmgr_ready = true
 	params.Mtype = xapp.RICMessageTypes["RMRRM_REQ_TABLE"]
 	c.recievermr(&params)
+	time.Sleep(time.Duration(5) * time.Second)
 }
 
 func TestAddDelRmr(t *testing.T) {
 	sdlEngine, _ = sdl.GetSdl("file")
-	sbiEngine, _ =  sbi.GetSbi("rmrpush")
-	rpeEngine, _ = rpe.GetRpe ("rmrpush")
+	sbiEngine, _ = sbi.GetSbi("rmrpush")
+	rpeEngine, _ = rpe.GetRpe("rmrpush")
 	var routelist models.Routelist
 	mtype := uint32(1234)
 	tendpoint := "goofle.com"
-	listofroutes := models.AddRmrRoute { SubscriptionID: 0, SenderEndPoint: "nokia.com", MessageType: &mtype, TargetEndPoint: &tendpoint}
-	listofroutes2 := models.AddRmrRoute { SubscriptionID: 1, SenderEndPoint: "", MessageType: &mtype, TargetEndPoint: &tendpoint}
-	listofroutes3 := models.AddRmrRoute { MessageType: &mtype, TargetEndPoint: &tendpoint}
-        adddelrmrroute(routelist,false)
-	routelist = append(routelist,&listofroutes)
-	routelist = append(routelist,&listofroutes2)
-	routelist = append(routelist,&listofroutes3)
-	routelist = append(routelist,&listofroutes3)
-	adddelrmrroute(routelist,true)
+	listofroutes := models.AddRmrRoute{SubscriptionID: 0, SenderEndPoint: "nokia.com", MessageType: &mtype, TargetEndPoint: &tendpoint}
+	listofroutes2 := models.AddRmrRoute{SubscriptionID: 1, SenderEndPoint: "", MessageType: &mtype, TargetEndPoint: &tendpoint}
+	listofroutes3 := models.AddRmrRoute{MessageType: &mtype, TargetEndPoint: &tendpoint}
+	adddelrmrroute(routelist, false)
+	routelist = append(routelist, &listofroutes)
+	routelist = append(routelist, &listofroutes2)
+	routelist = append(routelist, &listofroutes3)
+	routelist = append(routelist, &listofroutes3)
+	adddelrmrroute(routelist, true)
 
-        adddelrmrroute(routelist,false)
+	adddelrmrroute(routelist, false)
 }
 
 func TestPopulateSubscription(t *testing.T) {
 	var sublist xfmodel.SubscriptionList
 
-	subdata := xfmodel.SubscriptionData { Endpoint: []string{"xapp1.com:3800"}, SubscriptionID: -1, Meid: "" }
-	subdata2 := xfmodel.SubscriptionData { Endpoint: []string{"xapp2.com:3800"}, SubscriptionID: 11, Meid: "" }
-	subdata3 := xfmodel.SubscriptionData { Endpoint: []string{"xapp3.com:3800"}, SubscriptionID: 221, Meid: "" }
-	sublist = append(sublist,&subdata)
-	sublist = append(sublist,&subdata2)
-	sublist = append(sublist,&subdata3)
+	subdata := xfmodel.SubscriptionData{Endpoint: []string{"xapp1.com:3800"}, SubscriptionID: -1, Meid: ""}
+	subdata2 := xfmodel.SubscriptionData{Endpoint: []string{"xapp2.com:3800"}, SubscriptionID: 11, Meid: ""}
+	subdata3 := xfmodel.SubscriptionData{Endpoint: []string{"xapp3.com:3800"}, SubscriptionID: 221, Meid: ""}
+	sublist = append(sublist, &subdata)
+	sublist = append(sublist, &subdata2)
+	sublist = append(sublist, &subdata3)
 
 	PopulateSubscription(sublist)
 
