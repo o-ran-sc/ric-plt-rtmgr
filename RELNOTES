@@ -1,3 +1,6 @@
+### v0.6.9
+* Code violations fixed in pkg/nbi/httprestful.go and pkg/nbi/control.go
+
 ### v0.6.8
 * Appending Receiver endpoint in routes if RX message type is same
 

@@ -127,6 +127,7 @@ func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 func provideXappHandleHandlerImpl(data *models.XappCallbackData) error {
 	if data != nil {
 		xapp.Logger.Debug("Received callback data")
+		return nil
 	}
 	err := validateXappCallbackData(data)
 	if err != nil {
@@ -370,9 +371,14 @@ func dumpDebugData() (models.Debuginfo, error) {
 	sdlEngine, _ := sdl.GetSdl("file")
 	rpeEngine, _ := rpe.GetRpe("rmrpush")
 	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
-	if err != nil || data == nil {
-		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
-		return response, err
+	if data == nil {
+		if err != nil {
+			xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+			return response, err
+		} else {
+			xapp.Logger.Debug("Cannot get data from sdl interface")
+			return response, errors.New("Cannot get data from sdl interface")
+		}
 	}
 	response.RouteTable = *rpeEngine.GeneratePolicies(rtmgr.Eps, data)
 

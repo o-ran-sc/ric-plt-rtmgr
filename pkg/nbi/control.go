@@ -139,10 +139,15 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	m.Lock()
 	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
 	m.Unlock()
-	if err != nil || data == nil {
-		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
-		return
-	}
+        if data == nil {
+                if err != nil {
+                        xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+                        return
+                } else {
+                        xapp.Logger.Debug("Cannot get data from sdl interface")
+                        return
+                }
+        }
 
 	ep := sbiEngine.CheckEndpoint(string(params.Payload))
 	if ep == nil {
@@ -172,9 +177,15 @@ func sendRoutesToAll() (err error) {
         data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
 	fmt.Printf("data = %v,%v,%v",data,sdlEngine,sbiEngine)
         m.Unlock()
-        if err != nil || data == nil {
-                return errors.New("Cannot get data from sdl interface due to: " + err.Error())
-        }
+	if data == nil {
+	        if err != nil {
+			return errors.New("Cannot get data from sdl interface due to: " + err.Error())
+	        } else {
+	                xapp.Logger.Debug("Cannot get data from sdl interface, data is null")
+	                return errors.New("Cannot get data from sdl interface")
+	        }
+	}
+
 	if sbiEngine == nil {
 		fmt.Printf("SBI is nil")
 	}
