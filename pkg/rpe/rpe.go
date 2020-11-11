@@ -224,7 +224,7 @@ func (r *Rpe) generateXappToXappRoutes(RecvxAppEp *rtmgr.Endpoint, endPointList 
 				xapp.Logger.Debug("Appending Message type %v,for SrcxAppEp.Name %v", rxmsg, RecvxAppEp)
 				RxGrp = append(RxGrp, *RecvxAppEp)
 				r.addRoute_rx_list(rxmsg, nil, RxGrp, routeTable, -1, "")
-				return
+				//return
 			}
 		}
 	}
