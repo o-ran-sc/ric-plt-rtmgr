@@ -1,3 +1,6 @@
+### v0.6.10
+* Code violations fixed in pkg/nbi/httprestful.go
+
 ### v0.6.9
 * Code violations fixed in pkg/nbi/httprestful.go and pkg/nbi/control.go
 

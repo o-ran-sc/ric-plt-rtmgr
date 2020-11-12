@@ -125,7 +125,7 @@ func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 }
 
 func provideXappHandleHandlerImpl(data *models.XappCallbackData) error {
-	if data != nil {
+	if data == nil {
 		xapp.Logger.Debug("Received callback data")
 		return nil
 	}
