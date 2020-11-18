@@ -1,3 +1,6 @@
+### v0.7.1
+* Upgraded to RMR v4.4.4
+
 ### v0.6.10
 * Code violations fixed in pkg/nbi/httprestful.go
 
