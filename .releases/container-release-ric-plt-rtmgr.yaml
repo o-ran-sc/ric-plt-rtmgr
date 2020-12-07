@@ -4,7 +4,7 @@ container_release_tag: 0.6.10
 container_pull_registry: nexus3.o-ran-sc.org:10004
 container_push_registry: nexus3.o-ran-sc.org:10002
 project: ric-plt/rtmgr
-ref: cbf4336c5387893e9da5fc154b11cc1aa48bbe41
+ref: d1a1b94278f6d01ebdd842bf31615264818c96ea
 containers:
     - name: ric-plt-rtmgr
-      version: 0.6.10
+      version: 0.7.2
