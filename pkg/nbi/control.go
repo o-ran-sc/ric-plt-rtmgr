@@ -26,7 +26,9 @@ import "C"
 
 import (
 	"errors"
+	//"fmt"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"os"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sbi"
@@ -34,8 +36,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"os"
-	"fmt"
 )
 
 var m sync.Mutex
@@ -55,15 +55,14 @@ type Control struct {
 	rcChan chan *xapp.RMRParams
 }
 
-
 func (c *Control) Run() {
 	var err error
 	go c.controlLoop()
 	nbiEngine, sbiEngine, sdlEngine, rpeEngine, err = initRtmgr()
 	if err != nil {
-                xapp.Logger.Error(err.Error())
-                os.Exit(1)
-        }
+		xapp.Logger.Error(err.Error())
+		os.Exit(1)
+	}
 	xapp.Run(c)
 }
 
@@ -73,16 +72,16 @@ func (c *Control) Consume(rp *xapp.RMRParams) (err error) {
 }
 
 func initRtmgr() (nbiEngine Engine, sbiEngine sbi.Engine, sdlEngine sdl.Engine, rpeEngine rpe.Engine, err error) {
-        if nbiEngine, err = GetNbi(xapp.Config.GetString("nbi")); err == nil && nbiEngine != nil {
-                if sbiEngine, err = sbi.GetSbi(xapp.Config.GetString("sbi")); err == nil && sbiEngine != nil {
-                        if sdlEngine, err = sdl.GetSdl(xapp.Config.GetString("sdl")); err == nil && sdlEngine != nil {
-                                if rpeEngine, err = rpe.GetRpe(xapp.Config.GetString("rpe")); err == nil && rpeEngine != nil {
-                                        return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
-                                }
-                        }
-                }
-        }
-        return nil, nil, nil, nil, err
+	if nbiEngine, err = GetNbi(xapp.Config.GetString("nbi")); err == nil && nbiEngine != nil {
+		if sbiEngine, err = sbi.GetSbi(xapp.Config.GetString("sbi")); err == nil && sbiEngine != nil {
+			if sdlEngine, err = sdl.GetSdl(xapp.Config.GetString("sdl")); err == nil && sdlEngine != nil {
+				if rpeEngine, err = rpe.GetRpe(xapp.Config.GetString("rpe")); err == nil && rpeEngine != nil {
+					return nbiEngine, sbiEngine, sdlEngine, rpeEngine, nil
+				}
+			}
+		}
+	}
+	return nil, nil, nil, nil, err
 }
 
 func (c *Control) controlLoop() {
@@ -90,43 +89,43 @@ func (c *Control) controlLoop() {
 		msg := <-c.rcChan
 		c.recievermr(msg)
 		/*
-		xapp_msg := sbi.RMRParams{msg}
-		switch msg.Mtype {
-		case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
-			if rtmgr.Rtmgr_ready == false {
-				xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
-			} else {
-				xapp.Logger.Info("Update Route Table Request(RMR to RM)")
-				go c.handleUpdateToRoutingManagerRequest(msg)
-			}
-		case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
-			xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
+			xapp_msg := sbi.RMRParams{msg}
+			switch msg.Mtype {
+			case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
+				if rtmgr.Rtmgr_ready == false {
+					xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
+				} else {
+					xapp.Logger.Info("Update Route Table Request(RMR to RM)")
+					go c.handleUpdateToRoutingManagerRequest(msg)
+				}
+			case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
+				xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
 
-		default:
-			err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
-			xapp.Logger.Error("Unknown message type: %v", err)
-		}
-		xapp.Rmr.Free(msg.Mbuf)*/
+			default:
+				err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
+				xapp.Logger.Error("Unknown message type: %v", err)
+			}
+			xapp.Rmr.Free(msg.Mbuf)*/
 	}
 }
 
 func (c *Control) recievermr(msg *xapp.RMRParams) {
 	xapp_msg := sbi.RMRParams{msg}
-        switch msg.Mtype {
-        case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
-	if rtmgr.Rtmgr_ready == false {
-		xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
-        } else {
-                xapp.Logger.Info("Update Route Table Request(RMR to RM)")
-                go c.handleUpdateToRoutingManagerRequest(msg)
-        }
-        case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
-                xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
-        default:
-                err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
-                xapp.Logger.Error("Unknown message type: %v", err)
-        }
-        xapp.Rmr.Free(msg.Mbuf)
+	switch msg.Mtype {
+	case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
+		if rtmgr.Rtmgr_ready == false {
+			xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
+		} else {
+			xapp.Logger.Info("Update Route Table Request(RMR to RM)")
+			go c.handleUpdateToRoutingManagerRequest(msg)
+		}
+	case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
+		xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
+	default:
+		err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
+		xapp.Logger.Error("Unknown message type: %v", err)
+	}
+	xapp.Rmr.Free(msg.Mbuf)
 }
 
 func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
@@ -139,30 +138,30 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	m.Lock()
 	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
 	m.Unlock()
-        if data == nil {
-                if err != nil {
-                        xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
-                        return
-                } else {
-                        xapp.Logger.Debug("Cannot get data from sdl interface")
-                        return
-                }
-        }
+	if data == nil {
+		if err != nil {
+			xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+			return
+		} else {
+			xapp.Logger.Debug("Cannot get data from sdl interface")
+			return
+		}
+	}
 
 	ep := sbiEngine.CheckEndpoint(string(params.Payload))
 	if ep == nil {
 		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
 		return
 	}
-	epstr,whid := sbiEngine.CreateEndpoint(msg.String())
+	epstr, whid := sbiEngine.CreateEndpoint(msg.String())
 	if epstr == nil || whid < 0 {
-		xapp.Logger.Error("Wormhole Id creation failed %d for %s",whid,msg.String() )
+		xapp.Logger.Error("Wormhole Id creation failed %d for %s", whid, msg.String())
 		return
 	}
 
 	/*This is to ensure the latest routes are sent.
 	Assumption is that in this time interval the routes are built for this endpoint */
-        time.Sleep(100 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
 	err = sbiEngine.DistributeToEp(policies, *epstr, whid)
 	if err != nil {
@@ -173,53 +172,53 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 
 func sendRoutesToAll() (err error) {
 
-        m.Lock()
-        data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
-	fmt.Printf("data = %v,%v,%v",data,sdlEngine,sbiEngine)
-        m.Unlock()
+	m.Lock()
+	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
+	//fmt.Printf("data = %v,%v,%v",data,sdlEngine,sbiEngine)
+	m.Unlock()
 	if data == nil {
-	        if err != nil {
+		if err != nil {
 			return errors.New("Cannot get data from sdl interface due to: " + err.Error())
-	        } else {
-	                xapp.Logger.Debug("Cannot get data from sdl interface, data is null")
-	                return errors.New("Cannot get data from sdl interface")
-	        }
+		} else {
+			xapp.Logger.Debug("Cannot get data from sdl interface, data is null")
+			return errors.New("Cannot get data from sdl interface")
+		}
 	}
 
-	if sbiEngine == nil {
+	/*	if sbiEngine == nil {
 		fmt.Printf("SBI is nil")
+	}*/
+	sbiEngine.UpdateEndpoints(data)
+	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
+	err = sbiEngine.DistributeAll(policies)
+	if err != nil {
+		return errors.New("Routing table cannot be published due to: " + err.Error())
 	}
-        sbiEngine.UpdateEndpoints(data)
-        policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
-        err = sbiEngine.DistributeAll(policies)
-        if err != nil {
-                return errors.New("Routing table cannot be published due to: " + err.Error())
-        }
 
 	return nil
 }
 
 func Serve() {
 
-        nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"), xapp.Config.GetString("e2murl"), sdlEngine, rpeEngine, &m)
-        if nbiErr != nil {
-                xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
-                return
-        }
+	nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"), xapp.Config.GetString("e2murl"), sdlEngine, rpeEngine, &m)
+	if nbiErr != nil {
+		xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
+		return
+	}
 
-        err := sbiEngine.Initialize(xapp.Config.GetString("sbiurl"))
-        if err != nil {
-                xapp.Logger.Info("Failed to open push socket due to: " + err.Error())
-                return
-        }
-        defer nbiEngine.Terminate()
-        defer sbiEngine.Terminate()
+	err := sbiEngine.Initialize(xapp.Config.GetString("sbiurl"))
+	if err != nil {
+		xapp.Logger.Info("Failed to open push socket due to: " + err.Error())
+		return
+	}
+	defer nbiEngine.Terminate()
+	defer sbiEngine.Terminate()
 
-        for {
-                sendRoutesToAll()
+	for {
+		sendRoutesToAll()
 
-                rtmgr.Rtmgr_ready = true
-                time.Sleep(INTERVAL * time.Second)
-                xapp.Logger.Debug("Periodic loop timed out. Setting triggerSBI flag to distribute updated routes.")
-        }
+		rtmgr.Rtmgr_ready = true
+		time.Sleep(INTERVAL * time.Second)
+		xapp.Logger.Debug("Periodic loop timed out. Setting triggerSBI flag to distribute updated routes.")
+	}
 }
