@@ -27,6 +27,7 @@ import "C"
 import (
 	"errors"
 	//"fmt"
+	"net/http"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"os"
 	"routing-manager/pkg/rpe"
@@ -63,7 +64,15 @@ func (c *Control) Run() {
 		xapp.Logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	xapp.Resource.InjectRoute("/ric/v1/symptomdata", c.SymptomDataHandler, "GET")
+
 	xapp.Run(c)
+}
+
+func (c *Control) SymptomDataHandler(w http.ResponseWriter, r *http.Request) {
+	resp, _ := dumpDebugData()
+	xapp.Resource.SendSymptomDataJson(w, r, resp, "platform/rttable.json")
 }
 
 func (c *Control) Consume(rp *xapp.RMRParams) (err error) {
