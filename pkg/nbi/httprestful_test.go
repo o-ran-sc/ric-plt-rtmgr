@@ -171,7 +171,7 @@ func TestValidateE2tDataEmpty(t *testing.T) {
 	data := models.E2tData{
 		E2TAddress: swag.String(""),
 	}
-	err := validateE2tData(&data)
+	err, _ := validateE2tData(&data)
 	t.Log(err)
 }
 
@@ -179,7 +179,7 @@ func TestValidateE2tDataDNSLookUPfails(t *testing.T) {
 	data := models.E2tData{
 		E2TAddress: swag.String("e2t.1com:1234"),
 	}
-	err := validateE2tData(&data)
+	err, _ := validateE2tData(&data)
 	t.Log(err)
 }
 
@@ -187,7 +187,7 @@ func TestValidateE2tDataInvalid(t *testing.T) {
 	data := models.E2tData{
 		E2TAddress: swag.String("10.101.01.1"),
 	}
-	err := validateE2tData(&data)
+	err, _ := validateE2tData(&data)
 	t.Log(err)
 }
 
@@ -196,7 +196,7 @@ func TestValidateE2tDatavalid(t *testing.T) {
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
 
-	err := validateE2tData(&data)
+	err, _ := validateE2tData(&data)
 	t.Log(err)
 
 	_ = createNewE2tHandleHandlerImpl(&data)
@@ -215,7 +215,7 @@ func TestValidateE2tDatavalidEndpointPresent(t *testing.T) {
 	}
 	rtmgr.Eps[uuid] = ep
 
-	err := validateE2tData(&data)
+	err, _ := validateE2tData(&data)
 	t.Log(err)
 
 	// delete endpoint for at end of test case
