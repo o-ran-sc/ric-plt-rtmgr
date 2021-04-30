@@ -1,3 +1,6 @@
+### v0.7.5
+* Open RMR connection in a a new thread. 
+
 ### v0.7.4
 * Overwrite duplicate E2T address instead of sending error to E2Manager
 

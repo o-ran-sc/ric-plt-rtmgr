@@ -39,11 +39,12 @@ import (
 )
 
 var (
-	Eps  Endpoints
-	Subs SubscriptionList
-	PrsCfg  *PlatformRoutes
-	Mtype MessageTypeList
+	Eps              Endpoints
+	Subs             SubscriptionList
+	PrsCfg           *PlatformRoutes
+	Mtype            MessageTypeList
 	DynamicRouteList []string
+	RMRConnStatus    map[string]bool
 )
 
 func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
@@ -64,19 +65,19 @@ func GetPlatformComponents(configfile string) (*PlatformComponents, error) {
 	if err != nil {
 		return nil, errors.New("cannot read the file due to: " + err.Error())
 	}
-	err = json.Unmarshal(jsonByteValue,&rtroutes)
-        if err != nil {
-               return nil, errors.New("cannot parse data due to: " + err.Error())
-        }
-        PrsCfg = &(rtroutes.Prs)
+	err = json.Unmarshal(jsonByteValue, &rtroutes)
+	if err != nil {
+		return nil, errors.New("cannot parse data due to: " + err.Error())
+	}
+	PrsCfg = &(rtroutes.Prs)
 
-	err = json.Unmarshal(jsonByteValue,&mtypes)
-        if err != nil {
-               return nil, errors.New("cannot parse data due to: " + err.Error())
-        } else {
+	err = json.Unmarshal(jsonByteValue, &mtypes)
+	if err != nil {
+		return nil, errors.New("cannot parse data due to: " + err.Error())
+	} else {
 		xapp.Logger.Debug("Messgaetypes = %v", mtypes)
-		for _,m := range mtypes.Mit {
-			splitstr := strings.Split(m,"=")
+		for _, m := range mtypes.Mit {
+			splitstr := strings.Split(m, "=")
 			Mtype[splitstr[0]] = splitstr[1]
 		}
 	}

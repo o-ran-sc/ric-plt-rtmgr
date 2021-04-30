@@ -67,6 +67,7 @@ func main() {
 	rtmgr.Eps = make(rtmgr.Endpoints)
 	rtmgr.Mtype = make(rtmgr.MessageTypeList)
 	rtmgr.Rtmgr_ready = false
+	rtmgr.RMRConnStatus = make(map[string]bool)
 
 	// RMR thread is starting port: 4560
 	c := nbi.NewControl()

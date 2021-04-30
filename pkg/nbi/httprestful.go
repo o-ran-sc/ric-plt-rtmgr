@@ -144,6 +144,7 @@ func provideXappHandleHandlerImpl(data *models.XappCallbackData) error {
 				m.Lock()
 				sdlEngine.WriteXApps(xapp.Config.GetString("rtfile"), alldata)
 				m.Unlock()
+				updateEp()
 				return sendRoutesToAll()
 			}
 		}
@@ -225,6 +226,7 @@ func provideXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error 
 	xapp.Logger.Debug("received XApp subscription data")
 	addSubscription(&rtmgr.Subs, data)
 	xapp.Logger.Debug("Endpoints: %v", rtmgr.Eps)
+	updateEp()
 	return sendRoutesToAll()
 }
 
@@ -256,6 +258,7 @@ func deleteXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
 
 	xapp.Logger.Debug("received XApp subscription delete data")
 	delSubscription(&rtmgr.Subs, data)
+	updateEp()
 	return sendRoutesToAll()
 
 }
@@ -283,6 +286,7 @@ func updateXappSubscriptionHandleImpl(data *models.XappList, subid uint16) error
 	}
 	xapp.Logger.Debug("received XApp subscription Merge data")
 	updateSubscription(&xapplist)
+	updateEp()
 	return sendRoutesToAll()
 }
 
@@ -290,6 +294,7 @@ func createNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	xapp.Logger.Debug("Invoked createNewE2tHandleHandlerImpl")
 	err, IsDuplicate := validateE2tData(data)
 	if IsDuplicate == true {
+		updateEp()
 		return sendRoutesToAll()
 	}
 
@@ -303,7 +308,16 @@ func createNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	m.Lock()
 	sdlEngine.WriteNewE2TInstance(xapp.Config.GetString("rtfile"), e2data, meiddata)
 	m.Unlock()
-	return sendRoutesToAll()
+	updateEp()
+	sendRoutesToAll()
+	time.Sleep(10 * time.Second)
+	for ep, value := range rtmgr.RMRConnStatus {
+		if ep == *data.E2TAddress && value == true {
+			return nil
+		}
+	}
+
+	return errors.New("Error while adding new E2T " + *data.E2TAddress)
 
 }
 
@@ -336,6 +350,7 @@ func associateRanToE2THandlerImpl(data models.RanE2tMap) error {
 	m.Lock()
 	sdlEngine.WriteAssRANToE2TInstance(xapp.Config.GetString("rtfile"), data)
 	m.Unlock()
+	updateEp()
 	return sendRoutesToAll()
 
 }
@@ -351,6 +366,7 @@ func disassociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 	m.Lock()
 	sdlEngine.WriteDisAssRANFromE2TInstance(xapp.Config.GetString("rtfile"), data)
 	m.Unlock()
+	updateEp()
 	return sendRoutesToAll()
 
 }
@@ -366,6 +382,7 @@ func deleteE2tHandleHandlerImpl(data *models.E2tDeleteData) error {
 	m.Lock()
 	sdlEngine.WriteDeleteE2TInstance(xapp.Config.GetString("rtfile"), data)
 	m.Unlock()
+	updateEp()
 	return sendRoutesToAll()
 
 }
@@ -489,7 +506,7 @@ func launchRest(nbiif *string) {
 				xapp.Logger.Error("RoutingManager->E2Manager DisassociateRanToE2T Request Failed: " + err.Error())
 				return handle.NewDissociateRanBadRequest()
 			} else {
-				xapp.Logger.Info("RoutingManager->E2Manager DisiassociateRanToE2T Request Success, E2T = %v", params.DissociateList)
+				xapp.Logger.Info("RoutingManager->E2Manager DisassociateRanToE2T Request Success, E2T = %v", params.DissociateList)
 				return handle.NewDissociateRanCreated()
 			}
 		})
@@ -870,6 +887,7 @@ func adddelrmrroute(routelist models.Routelist, rtflag bool) error {
 
 		}
 	}
+	updateEp()
 	return sendRoutesToAll()
 }
 
