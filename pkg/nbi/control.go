@@ -27,8 +27,8 @@ import "C"
 import (
 	"errors"
 	//"fmt"
-	"net/http"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"net/http"
 	"os"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
@@ -97,24 +97,6 @@ func (c *Control) controlLoop() {
 	for {
 		msg := <-c.rcChan
 		c.recievermr(msg)
-		/*
-			xapp_msg := sbi.RMRParams{msg}
-			switch msg.Mtype {
-			case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
-				if rtmgr.Rtmgr_ready == false {
-					xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
-				} else {
-					xapp.Logger.Info("Update Route Table Request(RMR to RM)")
-					go c.handleUpdateToRoutingManagerRequest(msg)
-				}
-			case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
-				xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
-
-			default:
-				err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
-				xapp.Logger.Error("Unknown message type: %v", err)
-			}
-			xapp.Rmr.Free(msg.Mbuf)*/
 	}
 }
 
@@ -179,25 +161,41 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	}
 }
 
-func sendRoutesToAll() (err error) {
-
+func getConfigData() (*rtmgr.RicComponents, error) {
+	var data *rtmgr.RicComponents
 	m.Lock()
 	data, err := sdlEngine.ReadAll(xapp.Config.GetString("rtfile"))
-	//fmt.Printf("data = %v,%v,%v",data,sdlEngine,sbiEngine)
+
 	m.Unlock()
 	if data == nil {
 		if err != nil {
-			return errors.New("Cannot get data from sdl interface due to: " + err.Error())
+			return nil, errors.New("Cannot get data from sdl interface due to: " + err.Error())
 		} else {
 			xapp.Logger.Debug("Cannot get data from sdl interface, data is null")
-			return errors.New("Cannot get data from sdl interface")
+			return nil, errors.New("Cannot get data from sdl interface")
 		}
 	}
 
-	/*	if sbiEngine == nil {
-		fmt.Printf("SBI is nil")
-	}*/
+	return data, nil
+}
+
+func updateEp() (err error) {
+	data, err := getConfigData()
+	if err != nil {
+		return errors.New("Routing table cannot be published due to: " + err.Error())
+	}
 	sbiEngine.UpdateEndpoints(data)
+
+	return nil
+}
+
+func sendRoutesToAll() (err error) {
+
+	data, err := getConfigData()
+	if err != nil {
+		return errors.New("Routing table cannot be published due to: " + err.Error())
+	}
+
 	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
 	err = sbiEngine.DistributeAll(policies)
 	if err != nil {
@@ -222,6 +220,10 @@ func Serve() {
 	}
 	defer nbiEngine.Terminate()
 	defer sbiEngine.Terminate()
+
+	/* used for rtmgr restart case to connect to Endpoints */
+	go updateEp()
+	time.Sleep(5 * time.Second)
 
 	for {
 		sendRoutesToAll()

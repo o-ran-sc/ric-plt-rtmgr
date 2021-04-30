@@ -80,27 +80,35 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 		}
 		rawrte += group
 
-                if (rte.RouteType == "%meid") {
-                        rawrte += group + rte.RouteType
-                }
+		if rte.RouteType == "%meid" {
+			rawrte += group + rte.RouteType
+		}
 
 		rawrt = append(rawrt, rawrte+"\n")
 	}
-	for _,val := range rtmgr.DynamicRouteList {
-		rawrt = append(rawrt,val)
+	for _, val := range rtmgr.DynamicRouteList {
+		rawrt = append(rawrt, val)
 	}
 
 	rawrt = append(rawrt, key+"newrt|end\n")
-        count := 0
+	count := 0
 
-	meidrt := key +"meid_map|start\n"
-        for _, value := range rcs.MeidMap {
-            meidrt += key + value + "\n"
-            count++
-        }
-        meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n"
+	//meidrt := key + "meid_map|start\n"
+	//meidrt := []string{key + "meid_map|start\n"}
+	rawrt = append(rawrt, key+"meid_map|start\n")
+	for _, value := range rcs.MeidMap {
+		//meidrt += key + value + "\n"
+		rawrt = append(rawrt, key+value+"\n")
+		count++
+	}
+	rawrt = append(rawrt, key+"meid_map|end|"+strconv.Itoa(count)+"\n")
+	//meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n"
 
-	rawrt = append(rawrt, meidrt)
+	/*for _, value := range meidrt {
+		rawrt = append(meidrt, value)
+	}*/
+
+	//rawrt = append(rawrt, meidrt)
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rcs)
 	return &rawrt

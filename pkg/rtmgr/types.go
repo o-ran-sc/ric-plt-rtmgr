@@ -92,59 +92,57 @@ type PlatformComponents []struct {
 }
 
 type E2TInstance struct {
-        Name string `json:"name"`
-        Fqdn string `json:"fqdn"`
-        Ranlist []string `json:"ranlist"`
+	Name    string   `json:"name"`
+	Fqdn    string   `json:"fqdn"`
+	Ranlist []string `json:"ranlist"`
 }
 
 type E2tIdentity struct {
-        E2taddress string `json:"e2tAddress"`
-        Rannames []string `json:"ranNames"`
+	E2taddress string   `json:"e2tAddress"`
+	Rannames   []string `json:"ranNames"`
 }
 
 type ConfigRtmgr struct {
 	Pcs PlatformComponents `json:"PlatformComponents"`
 }
 
-
 type MessageTypeIdentifier struct {
 	Mit []string `json:"messagetypes"`
 }
 
-
 type RicComponents struct {
-	XApps []XApp
-	E2Ts  map [string]E2TInstance
-	MeidMap  []string
-	Pcs   PlatformComponents
+	XApps   []XApp
+	E2Ts    map[string]E2TInstance
+	MeidMap []string
+	Pcs     PlatformComponents
 }
 
 type Subscription struct {
 	SubID int32
-	Fqdn string
-	Port uint16
+	Fqdn  string
+	Port  uint16
 }
 
 type PlatformRoutes []struct {
-       MessageType     string `json:"messagetype"`
-       SenderEndPoint  string `json:"senderendpoint"`
-       SubscriptionId  int32  `json:"subscriptionid"`
-       EndPoint        string `json:"endpoint"`
-       Meid            string `json:"meid"`
+	MessageType    string `json:"messagetype"`
+	SenderEndPoint string `json:"senderendpoint"`
+	SubscriptionId int32  `json:"subscriptionid"`
+	EndPoint       string `json:"endpoint"`
+	Meid           string `json:"meid"`
 }
 
 type RtmgrRoutes struct {
-       Prs PlatformRoutes      `json:"PlatformRoutes"`
+	Prs PlatformRoutes `json:"PlatformRoutes"`
 }
 
 type FqDn struct {
 	Address *string
-        Port *uint16
+	Port    *uint16
 }
 
 type XappList struct {
-        SubscriptionID  uint16
-	FqdnList []FqDn
+	SubscriptionID uint16
+	FqdnList       []FqDn
 }
 
 var (
