@@ -30,16 +30,19 @@ import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"net/http"
 	"os"
+	"routing-manager/pkg/models"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sbi"
 	"routing-manager/pkg/sdl"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 var m sync.Mutex
+var EndpointLock sync.Mutex
 
 var nbiEngine Engine
 var sbiEngine sbi.Engine
@@ -139,11 +142,15 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 		}
 	}
 
-	ep := sbiEngine.CheckEndpoint(string(params.Payload))
-	if ep == nil {
-		xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
-		return
+	/* hack with WA only for mcxapp in near future */
+	if strings.Contains(msg.String(), "ricxapp") {
+		ep := sbiEngine.CheckEndpoint(string(params.Payload))
+		if ep == nil {
+			xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
+			return
+		}
 	}
+
 	epstr, whid := sbiEngine.CreateEndpoint(msg.String())
 	if epstr == nil || whid < 0 {
 		xapp.Logger.Error("Wormhole Id creation failed %d for %s", whid, msg.String())
@@ -184,7 +191,19 @@ func updateEp() (err error) {
 	if err != nil {
 		return errors.New("Routing table cannot be published due to: " + err.Error())
 	}
+	EndpointLock.Lock()
 	sbiEngine.UpdateEndpoints(data)
+	EndpointLock.Unlock()
+
+	return nil
+}
+
+func sendPartialRoutesToAll(xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) (err error) {
+	policies := rpeEngine.GeneratePartialPolicies(rtmgr.Eps, xappSubData, updatetype)
+	err = sbiEngine.DistributeAll(policies)
+	if err != nil {
+		return errors.New("Routing table cannot be published due to: " + err.Error())
+	}
 
 	return nil
 }
@@ -224,9 +243,18 @@ func Serve() {
 	/* used for rtmgr restart case to connect to Endpoints */
 	go updateEp()
 	time.Sleep(5 * time.Second)
+	sendRoutesToAll()
+	/* Sometimes first message  fails, retry after 5 sec */
+	time.Sleep(5 * time.Second)
+	sendRoutesToAll()
 
 	for {
-		sendRoutesToAll()
+		xapp.Logger.Debug("Periodic Routes value = %s", xapp.Config.GetString("periodicroutes"))
+		if xapp.Config.GetString("periodicroutes") == "enable" {
+			go updateEp()
+			time.Sleep(5 * time.Second)
+			sendRoutesToAll()
+		}
 
 		rtmgr.Rtmgr_ready = true
 		time.Sleep(INTERVAL * time.Second)

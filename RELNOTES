@@ -1,3 +1,6 @@
+### v0.7.6
+* Upgraded to RMR 4.7.4 and some improvements 
+
 ### v0.7.5
 * Open RMR connection in a a new thread
 

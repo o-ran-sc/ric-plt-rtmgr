@@ -87,7 +87,8 @@ func (c *RmrPush) Terminate() error {
 }
 
 func (c *RmrPush) AddEndpoint(ep *rtmgr.Endpoint) error {
-	count := addendpointct + 1
+	addendpointct = addendpointct + 1
+	count := addendpointct
 	xapp.Logger.Debug("Invoked sbi.AddEndpoint for %s with count = %d", ep.Ip, count)
 	endpoint := ep.Ip + ":" + strconv.Itoa(DefaultRmrPipelineSocketNumber)
 	ep.Whid = int(xapp.Rmr.Openwh(endpoint))
@@ -159,7 +160,6 @@ func (c *RmrPush) send_sync(ep *rtmgr.Endpoint, policies *[]string, call_id int)
 	xapp.Logger.Debug("Push policy to endpoint: " + ep.Uuid)
 
 	ret := c.send_data(ep, policies, call_id)
-	xapp.Logger.Debug("return value is %v", ret)
 	conn.Lock()
 	rtmgr.RMRConnStatus[ep.Uuid] = ret
 	conn.Unlock()

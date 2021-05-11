@@ -146,6 +146,7 @@ func provideXappHandleHandlerImpl(data *models.XappCallbackData) error {
 				m.Unlock()
 				updateEp()
 				return sendRoutesToAll()
+				//return sendPartialRoutesToAll(nil, rtmgr.XappType)
 			}
 		}
 
@@ -227,7 +228,7 @@ func provideXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error 
 	addSubscription(&rtmgr.Subs, data)
 	xapp.Logger.Debug("Endpoints: %v", rtmgr.Eps)
 	updateEp()
-	return sendRoutesToAll()
+	return sendPartialRoutesToAll(data, rtmgr.SubsType)
 }
 
 func subscriptionExists(data *models.XappSubscriptionData) bool {
@@ -295,6 +296,7 @@ func createNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	err, IsDuplicate := validateE2tData(data)
 	if IsDuplicate == true {
 		updateEp()
+		//return sendPartialRoutesToAll(nil, rtmgr.E2Type)
 		return sendRoutesToAll()
 	}
 
@@ -309,6 +311,7 @@ func createNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	sdlEngine.WriteNewE2TInstance(xapp.Config.GetString("rtfile"), e2data, meiddata)
 	m.Unlock()
 	updateEp()
+	//sendPartialRoutesToAll(nil, rtmgr.E2Type)
 	sendRoutesToAll()
 	time.Sleep(10 * time.Second)
 	for ep, value := range rtmgr.RMRConnStatus {

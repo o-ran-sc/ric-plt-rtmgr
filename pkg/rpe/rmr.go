@@ -32,6 +32,7 @@ package rpe
 
 import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+	"routing-manager/pkg/models"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
 	//"strings"
@@ -114,6 +115,49 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 	return &rawrt
 }
 
+/*
+Produces the raw route message consumable by RMR
+*/
+func (r *Rmr) generatePartialRMRPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, key string, updatetype rtmgr.RMRUpdateType) *[]string {
+	rawrt := []string{key + "updatert|start\n"}
+	rt := r.generatePartialRouteTable(eps, xappSubData, updatetype)
+	for _, rte := range *rt {
+		rawrte := key + "mse|" + rte.MessageType
+		for _, tx := range rte.TxList {
+			rawrte += "," + tx.Ip + ":" + strconv.Itoa(int(tx.Port))
+		}
+		rawrte += "|" + strconv.Itoa(int(rte.SubID)) + "|"
+		group := ""
+		for _, rxg := range rte.RxGroups {
+			member := ""
+			for _, rx := range rxg {
+				if member == "" {
+					member += rx.Ip + ":" + strconv.Itoa(int(rx.Port))
+				} else {
+					member += "," + rx.Ip + ":" + strconv.Itoa(int(rx.Port))
+				}
+			}
+			if group == "" {
+				group += member
+			} else {
+				group += ";" + member
+			}
+		}
+		rawrte += group
+
+		if rte.RouteType == "%meid" {
+			rawrte += group + rte.RouteType
+		}
+
+		rawrt = append(rawrt, rawrte+"\n")
+	}
+
+	rawrt = append(rawrt, key+"updatert|end\n")
+	//count := 0
+
+	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
+	return &rawrt
+}
 func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents) *[]string {
 	xapp.Logger.Debug("Invoked rmr.GeneratePolicies, args: %v: ", eps)
 	return r.generateRMRPolicies(eps, rcs, "")
@@ -121,4 +165,9 @@ func (r *RmrPush) GeneratePolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents
 
 func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
 	return r.generateRouteTable(eps)
+}
+
+func (r *RmrPush) GeneratePartialPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *[]string {
+	xapp.Logger.Debug("Invoked rmr.GeneratePartialRMR, args: %v: ", eps)
+	return r.generatePartialRMRPolicies(eps, xappSubData, "", updatetype)
 }

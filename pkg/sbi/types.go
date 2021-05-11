@@ -45,9 +45,9 @@ type Engine interface {
 	AddEndpoint(*rtmgr.Endpoint) error
 	DeleteEndpoint(*rtmgr.Endpoint) error
 	UpdateEndpoints(*rtmgr.RicComponents)
-	CreateEndpoint(string)(*string,int)
-	CheckEndpoint(string)*rtmgr.Endpoint
-	DistributeToEp(*[]string, string, int ) error
+	CheckEndpoint(string) *rtmgr.Endpoint
+	CreateEndpoint(string) (*string, int)
+	DistributeToEp(*[]string, string, int) error
 }
 
 /*type NngSocket interface {

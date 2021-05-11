@@ -28,6 +28,14 @@
 
 package rtmgr
 
+type RMRUpdateType int
+
+const (
+	XappType = iota
+	SubsType
+	E2Type
+)
+
 type XApps struct {
 	XAppList []XApp
 }

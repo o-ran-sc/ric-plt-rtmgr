@@ -29,7 +29,10 @@
 
 package rpe
 
-import "routing-manager/pkg/rtmgr"
+import (
+	"routing-manager/pkg/models"
+	"routing-manager/pkg/rtmgr"
+)
 
 //type generatePolicies func(rtmgr.Endpoints) *[]string
 //type generateRouteTable func(rtmgr.Endpoints) *rtmgr.RouteTable
@@ -45,4 +48,5 @@ type EngineConfig struct {
 type Engine interface {
 	GeneratePolicies(rtmgr.Endpoints, *rtmgr.RicComponents) *[]string
 	GenerateRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
+	GeneratePartialPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *[]string
 }
