@@ -1,3 +1,6 @@
+### v0.7.7
+* go.mod updated from 1.12 go version to 1.13
+
 ### v0.7.6
 * Upgraded to RMR 4.7.4 and some improvements 
 
