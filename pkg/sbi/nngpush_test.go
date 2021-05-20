@@ -56,6 +56,7 @@ func TestMain(m *testing.M) {
 Resets the EndpointList according to argumnets
 */
 func resetTestPushDataset(instance RmrPush, testdata []rtmgr.Endpoint) {
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	rtmgr.Eps = make(map[string]*rtmgr.Endpoint)
 	for _, endpoint := range testdata {
 		ep := endpoint

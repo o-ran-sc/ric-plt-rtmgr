@@ -99,3 +99,10 @@ var Rane2tmap = models.RanE2tMap{
 var Rane2tmaponlyE2t = models.RanE2tMap{
 	{E2TAddress: swag.String("10.10.10.10:100"), RanNamelist: []string{}},
 }
+
+var XappSubscriptionData_port = uint16(0)
+var XappSubscriptionData_subid = int32(1)
+
+var XappSubData = models.XappSubscriptionData {
+    Address: swag.String("10.0.0.1"), Port: &XappSubscriptionData_port, SubscriptionID: &XappSubscriptionData_subid,
+}

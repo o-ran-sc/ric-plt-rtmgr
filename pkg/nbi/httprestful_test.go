@@ -78,6 +78,7 @@ var InvalidSubResp = []byte(`{"Version":0, "EventType":all}`)
 
 type Consumer struct{}
 
+
 func (m Consumer) Consume(params *xapp.RMRParams) (err error) {
 	xapp.Sdl.Store("myKey", params.Payload)
 	return nil
@@ -112,6 +113,7 @@ func TestValidateXappCallbackDataInvalid(t *testing.T) {
 
 func TestValidateXappSubscriptionsData(t *testing.T) {
 
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	ep := make(map[string]*rtmgr.Endpoint)
 	ep["dummy"] = &rtmgr.Endpoint{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true}
 	p := uint16(1234)
@@ -176,6 +178,7 @@ func TestValidateE2tDataEmpty(t *testing.T) {
 }
 
 func TestValidateE2tDataDNSLookUPfails(t *testing.T) {
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	data := models.E2tData{
 		E2TAddress: swag.String("e2t.1com:1234"),
 	}
@@ -184,6 +187,7 @@ func TestValidateE2tDataDNSLookUPfails(t *testing.T) {
 }
 
 func TestValidateE2tDataInvalid(t *testing.T) {
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	data := models.E2tData{
 		E2TAddress: swag.String("10.101.01.1"),
 	}
@@ -192,6 +196,7 @@ func TestValidateE2tDataInvalid(t *testing.T) {
 }
 
 func TestValidateE2tDatavalid(t *testing.T) {
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	data := models.E2tData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
@@ -204,6 +209,7 @@ func TestValidateE2tDatavalid(t *testing.T) {
 }
 
 func TestValidateE2tDatavalidEndpointPresent(t *testing.T) {
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	data := models.E2tData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
@@ -225,6 +231,7 @@ func TestValidateE2tDatavalidEndpointPresent(t *testing.T) {
 
 func TestValidateDeleteE2tData(t *testing.T) {
 
+    rtmgr.RMRConnStatus = make(map[string]bool)
 	// test-1
 	data := models.E2tDeleteData{
 		E2TAddress: swag.String(""),
@@ -658,7 +665,7 @@ func TestRetrieveStartupData(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	ts1 := createMockAppmgrWithData("127.0.0.1:8080", nil, nil, E2TListResp)
+	ts1 := createMockAppmgrWithData("127.0.0.1:8085", nil, nil, E2TListResp)
 	ts1.Start()
 	defer ts1.Close()
 

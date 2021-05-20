@@ -56,6 +56,10 @@ func TestRmrPushGeneratePolicies(t *testing.T) {
 	pcs = stub.ValidRicComponents
 
 	rawrt := rmrpush.GeneratePolicies(rtmgr.Eps, &pcs)
+    rawrt = rmrpush.GeneratePartialPolicies(rtmgr.Eps,nil,1)
+    rawrt = rmrpush.GeneratePartialPolicies(rtmgr.Eps,nil,0)
+    rawrt = rmrpush.GeneratePartialPolicies(rtmgr.Eps,&stub.XappSubData,1)
+    rawrt = rmrpush.GeneratePartialPolicies(rtmgr.Eps,&stub.XappSubData,0)
 	t.Log(rawrt)
 }
 
