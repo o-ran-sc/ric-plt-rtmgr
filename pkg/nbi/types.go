@@ -41,7 +41,8 @@ type FetchAllXAppsHandler func(string) (*[]rtmgr.XApp, error)
 type RecvXappCallbackDataHandler func(<-chan *models.XappCallbackData) (*[]rtmgr.XApp, error)
 type RecvNewE2TdataHandler func(<-chan *models.E2tData) (*rtmgr.E2TInstance, string, error)
 type LaunchRestHandler func(*string)
-type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
+
+//type ProvideXappHandleHandlerImpl func(chan<- *models.XappCallbackData, *models.XappCallbackData) error
 type RetrieveStartupDataHandler func(string, string, string, string, string, sdl.Engine) error
 
 type EngineConfig struct {

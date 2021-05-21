@@ -74,7 +74,7 @@ func (c *Control) Run() {
 }
 
 func (c *Control) SymptomDataHandler(w http.ResponseWriter, r *http.Request) {
-	resp, _ := dumpDebugData()
+	resp, _ := DumpDebugData()
 	xapp.Resource.SendSymptomDataJson(w, r, resp, "platform/rttable.json")
 }
 

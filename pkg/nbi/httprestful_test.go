@@ -141,7 +141,7 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	/*err = validateE2tData(&data2)*/
 
 	//e2tchannel := make(chan *models.E2tData, 10)
-	_ = createNewE2tHandleHandlerImpl(&data2)
+	_ = CreateNewE2tHandleHandlerImpl(&data2)
 	//defer close(e2tchannel)
 
 	//test case for provideXappSubscriptionHandleImp
@@ -149,23 +149,23 @@ func TestValidateXappSubscriptionsData(t *testing.T) {
 	sdlEngine, _ = sdl.GetSdl("file")
 	sbiEngine, _ = sbi.GetSbi("rmrpush")
 	rpeEngine, _ = rpe.GetRpe("rmrpush")
-	_ = provideXappSubscriptionHandleImpl(&data1)
+	_ = ProvideXappSubscriptionHandleImpl(&data1)
 	//defer close(datachannel)
 
 	//test case for deleteXappSubscriptionHandleImpl
-	_ = deleteXappSubscriptionHandleImpl(&data1)
+	_ = DeleteXappSubscriptionHandleImpl(&data1)
 
 	data3 := models.XappSubscriptionData{
 		Address:        swag.String("10.55.55.5"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(123456)}
 	//test case for deleteXappSubscriptionHandleImpl
-	_ = deleteXappSubscriptionHandleImpl(&data3)
+	_ = DeleteXappSubscriptionHandleImpl(&data3)
 	data4 := models.XappSubscriptionData{
 		Address:        swag.String("1.5.5.5"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(1236)}
-	_ = deleteXappSubscriptionHandleImpl(&data4)
+	_ = DeleteXappSubscriptionHandleImpl(&data4)
 
 }
 
@@ -204,7 +204,7 @@ func TestValidateE2tDatavalid(t *testing.T) {
 	err, _ := validateE2tData(&data)
 	t.Log(err)
 
-	_ = createNewE2tHandleHandlerImpl(&data)
+	_ = CreateNewE2tHandleHandlerImpl(&data)
 
 }
 
@@ -357,7 +357,7 @@ func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 			E2TAddress: swag.String("10.101.01.1:8098"),
 		},
 	}
-	err := associateRanToE2THandlerImpl(data)
+	err := AssociateRanToE2THandlerImpl(data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -375,7 +375,7 @@ func TestAssociateRanToE2THandlerImpl(t *testing.T) {
 			E2TAddress: swag.String("10.101.01.1:8098"),
 		},
 	}
-	err = associateRanToE2THandlerImpl(data)
+	err = AssociateRanToE2THandlerImpl(data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -392,7 +392,7 @@ func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 			E2TAddress: swag.String("10.101.01.1:8098"),
 		},
 	}
-	err := disassociateRanToE2THandlerImpl(data)
+	err := DisassociateRanToE2THandlerImpl(data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -409,7 +409,7 @@ func TestDisassociateRanToE2THandlerImpl(t *testing.T) {
 			E2TAddress: swag.String("10.101.01.1:8098"),
 		},
 	}
-	err = disassociateRanToE2THandlerImpl(data)
+	err = DisassociateRanToE2THandlerImpl(data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -424,7 +424,7 @@ func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
 	data := models.E2tDeleteData{
 		E2TAddress: swag.String(""),
 	}
-	err := deleteE2tHandleHandlerImpl(&data)
+	err := DeleteE2tHandleHandlerImpl(&data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -440,7 +440,7 @@ func TestDeleteE2tHandleHandlerImpl(t *testing.T) {
 	data = models.E2tDeleteData{
 		E2TAddress: swag.String("10.101.01.1:8098"),
 	}
-	err = deleteE2tHandleHandlerImpl(&data)
+	err = DeleteE2tHandleHandlerImpl(&data)
 	if err != nil {
 		t.Log(err)
 	}
@@ -527,7 +527,7 @@ func TestProvideXappSubscriptionHandleImpl(t *testing.T) {
 		Address:        swag.String("10.0.0.0"),
 		Port:           &p,
 		SubscriptionID: swag.Int32(1234)}
-	_ = provideXappSubscriptionHandleImpl(&data)
+	_ = ProvideXappSubscriptionHandleImpl(&data)
 }
 
 func createMockAppmgrWithData(url string, g []byte, p []byte, t []byte) *httptest.Server {
@@ -592,11 +592,11 @@ func TestProvideXappHandleHandlerImpl(t *testing.T) {
 		Version: *swag.Int64(1),
 		Event:   *swag.String("someevent"),
 		ID:      *swag.String("123456")}
-	err := provideXappHandleHandlerImpl(&data)
+	err := ProvideXappHandleHandlerImpl(&data)
 
 	//Empty XappCallbackdata
 	data1 := models.XappCallbackData{}
-	err = provideXappHandleHandlerImpl(&data1)
+	err = ProvideXappHandleHandlerImpl(&data1)
 	t.Log(err)
 }
 
@@ -723,7 +723,7 @@ func TestUpdateXappSubscription(t *testing.T) {
 
 	var b models.XappList
 	b = append(b, &xapp)
-	_ = updateXappSubscriptionHandleImpl(&b, 10)
+	_ = UpdateXappSubscriptionHandleImpl(&b, 10)
 
 	//Test case when subscriptions already exist
 	data := models.XappSubscriptionData{
@@ -735,12 +735,12 @@ func TestUpdateXappSubscription(t *testing.T) {
 
 	subscriptionExists(&data)
 	addSubscription(&rtmgr.Subs, &data)
-	_ = updateXappSubscriptionHandleImpl(&b, 10)
+	_ = UpdateXappSubscriptionHandleImpl(&b, 10)
 
 }
 
 func TestDumpDebugdata(t *testing.T) {
-	_, _ = dumpDebugData()
+	_, _ = DumpDebugData()
 }
 
 func TestManagerRequest(t *testing.T) {
@@ -798,14 +798,14 @@ func TestAddDelRmr(t *testing.T) {
 	listofroutes := models.AddRmrRoute{SubscriptionID: 0, SenderEndPoint: "nokia.com", MessageType: &mtype, TargetEndPoint: &tendpoint}
 	listofroutes2 := models.AddRmrRoute{SubscriptionID: 1, SenderEndPoint: "", MessageType: &mtype, TargetEndPoint: &tendpoint}
 	listofroutes3 := models.AddRmrRoute{MessageType: &mtype, TargetEndPoint: &tendpoint}
-	adddelrmrroute(routelist, false)
+	Adddelrmrroute(routelist, false)
 	routelist = append(routelist, &listofroutes)
 	routelist = append(routelist, &listofroutes2)
 	routelist = append(routelist, &listofroutes3)
 	routelist = append(routelist, &listofroutes3)
-	adddelrmrroute(routelist, true)
+	Adddelrmrroute(routelist, true)
 
-	adddelrmrroute(routelist, false)
+	Adddelrmrroute(routelist, false)
 }
 
 func TestPopulateSubscription(t *testing.T) {

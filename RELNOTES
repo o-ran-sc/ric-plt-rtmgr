@@ -1,3 +1,6 @@
+### v0.7.8
+* Refactoring rtmgr code 
+
 ### v0.7.7
 * go.mod updated from 1.12 go version to 1.13
 

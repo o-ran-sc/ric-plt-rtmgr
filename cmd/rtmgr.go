@@ -32,30 +32,18 @@
 */
 package main
 
-//TODO: change flag to pflag (won't need any argument parse)
-
 import (
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 	"os"
 	"os/signal"
 	"routing-manager/pkg/nbi"
-	//"routing-manager/pkg/rpe"
+	"routing-manager/pkg/nbi/restful"
 	"routing-manager/pkg/rtmgr"
-	//"routing-manager/pkg/sbi"
-	//"routing-manager/pkg/sdl"
 	"syscall"
 	"time"
 )
 
 const SERVICENAME = "rtmgr"
-
-/*type RMRUpdateType int
-
-const (
-	XappType = iota
-	SubsType
-	E2Type
-)*/
 
 func SetupCloseHandler() {
 	c := make(chan os.Signal, 2)
@@ -89,6 +77,10 @@ func main() {
 
 	dummy_whid := int(xapp.Rmr.Openwh("rtmgr:4560"))
 	xapp.Logger.Info("created dummy Wormhole ID for routingmanager and dummy_whid :%d", dummy_whid)
+
+	go func() {
+		restful.LaunchRest(xapp.Config.GetString("nbiurl"))
+	}()
 
 	nbi.Serve()
 	os.Exit(0)

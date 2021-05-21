@@ -37,16 +37,16 @@ import (
 	"fmt"
 	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	"github.com/go-openapi/loads"
-	"github.com/go-openapi/runtime/middleware"
+	//"github.com/go-openapi/loads"
+	//"github.com/go-openapi/runtime/middleware"
 	"net"
-	"net/url"
-	"os"
+	//"net/url"
+	//"os"
 	"routing-manager/pkg/models"
-	"routing-manager/pkg/restapi"
-	"routing-manager/pkg/restapi/operations"
-	"routing-manager/pkg/restapi/operations/debug"
-	"routing-manager/pkg/restapi/operations/handle"
+	//"routing-manager/pkg/restapi"
+	//"routing-manager/pkg/restapi/operations"
+	//"routing-manager/pkg/restapi/operations/debug"
+	//"routing-manager/pkg/restapi/operations/handle"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
 	"routing-manager/pkg/sdl"
@@ -58,13 +58,13 @@ import (
 
 type HttpRestful struct {
 	Engine
-	LaunchRest          LaunchRestHandler
+	//LaunchRest          LaunchRestHandler
 	RetrieveStartupData RetrieveStartupDataHandler
 }
 
 func NewHttpRestful() *HttpRestful {
 	instance := new(HttpRestful)
-	instance.LaunchRest = launchRest
+	//instance.LaunchRest = launchRest
 	instance.RetrieveStartupData = retrieveStartupData
 	return instance
 }
@@ -124,7 +124,7 @@ func validateXappCallbackData(callbackData *models.XappCallbackData) error {
 	return nil
 }
 
-func provideXappHandleHandlerImpl(data *models.XappCallbackData) error {
+func ProvideXappHandleHandlerImpl(data *models.XappCallbackData) error {
 	if data == nil {
 		xapp.Logger.Debug("Received callback data")
 		return nil
@@ -217,7 +217,7 @@ func checkValidaE2TAddress(e2taddress string) bool {
 
 }
 
-func provideXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
+func ProvideXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
 	xapp.Logger.Debug("Invoked provideXappSubscriptionHandleImpl")
 	err := validateXappSubscriptionData(data)
 	if err != nil {
@@ -243,7 +243,7 @@ func subscriptionExists(data *models.XappSubscriptionData) bool {
 	return present
 }
 
-func deleteXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
+func DeleteXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
 	xapp.Logger.Debug("Invoked deleteXappSubscriptionHandleImpl")
 	err := validateXappSubscriptionData(data)
 	if err != nil {
@@ -264,7 +264,7 @@ func deleteXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
 
 }
 
-func updateXappSubscriptionHandleImpl(data *models.XappList, subid uint16) error {
+func UpdateXappSubscriptionHandleImpl(data *models.XappList, subid uint16) error {
 	xapp.Logger.Debug("Invoked updateXappSubscriptionHandleImpl")
 
 	var fqdnlist []rtmgr.FqDn
@@ -291,7 +291,7 @@ func updateXappSubscriptionHandleImpl(data *models.XappList, subid uint16) error
 	return sendRoutesToAll()
 }
 
-func createNewE2tHandleHandlerImpl(data *models.E2tData) error {
+func CreateNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	xapp.Logger.Debug("Invoked createNewE2tHandleHandlerImpl")
 	err, IsDuplicate := validateE2tData(data)
 	if IsDuplicate == true {
@@ -342,7 +342,7 @@ func validateE2TAddressRANListData(assRanE2tData models.RanE2tMap) error {
 	return nil
 }
 
-func associateRanToE2THandlerImpl(data models.RanE2tMap) error {
+func AssociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 	xapp.Logger.Debug("Invoked associateRanToE2THandlerImpl")
 	err := validateE2TAddressRANListData(data)
 	if err != nil {
@@ -358,7 +358,7 @@ func associateRanToE2THandlerImpl(data models.RanE2tMap) error {
 
 }
 
-func disassociateRanToE2THandlerImpl(data models.RanE2tMap) error {
+func DisassociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 	xapp.Logger.Debug("Invoked disassociateRanToE2THandlerImpl")
 	err := validateE2TAddressRANListData(data)
 	if err != nil {
@@ -374,7 +374,7 @@ func disassociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 
 }
 
-func deleteE2tHandleHandlerImpl(data *models.E2tDeleteData) error {
+func DeleteE2tHandleHandlerImpl(data *models.E2tDeleteData) error {
 	xapp.Logger.Debug("Invoked deleteE2tHandleHandlerImpl")
 
 	err := validateDeleteE2tData(data)
@@ -390,7 +390,7 @@ func deleteE2tHandleHandlerImpl(data *models.E2tDeleteData) error {
 
 }
 
-func dumpDebugData() (models.Debuginfo, error) {
+func DumpDebugData() (models.Debuginfo, error) {
 	var response models.Debuginfo
 	sdlEngine, _ := sdl.GetSdl("file")
 	rpeEngine, _ := rpe.GetRpe("rmrpush")
@@ -410,155 +410,6 @@ func dumpDebugData() (models.Debuginfo, error) {
 	response.RouteConfigs = string(prettyJSON)
 
 	return response, err
-}
-
-func launchRest(nbiif *string) {
-	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
-	if err != nil {
-		//log.Fatalln(err)
-		xapp.Logger.Error(err.Error())
-		os.Exit(1)
-	}
-	nbiUrl, err := url.Parse(*nbiif)
-	if err != nil {
-		xapp.Logger.Error(err.Error())
-		os.Exit(1)
-	}
-	api := operations.NewRoutingManagerAPI(swaggerSpec)
-	server := restapi.NewServer(api)
-	defer server.Shutdown()
-
-	server.Port, err = strconv.Atoi(nbiUrl.Port())
-	if err != nil {
-		xapp.Logger.Error("Invalid NBI RestAPI port")
-		os.Exit(1)
-	}
-	server.Host = "0.0.0.0"
-	// set handlers
-	api.HandleProvideXappHandleHandler = handle.ProvideXappHandleHandlerFunc(
-		func(params handle.ProvideXappHandleParams) middleware.Responder {
-			xapp.Logger.Info("Data received on Http interface")
-			err := provideXappHandleHandlerImpl(params.XappCallbackData)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->AppManager request Failed: " + err.Error())
-				return handle.NewProvideXappHandleBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->AppManager request Success")
-				return handle.NewGetHandlesOK()
-			}
-		})
-	api.HandleProvideXappSubscriptionHandleHandler = handle.ProvideXappSubscriptionHandleHandlerFunc(
-		func(params handle.ProvideXappSubscriptionHandleParams) middleware.Responder {
-			err := provideXappSubscriptionHandleImpl(params.XappSubscriptionData)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->SubManager Add Request Failed: " + err.Error())
-				return handle.NewProvideXappSubscriptionHandleBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->SubManager Add Request Success, subid = %v, requestor = %v", *params.XappSubscriptionData.SubscriptionID, *params.XappSubscriptionData.Address)
-				return handle.NewGetHandlesOK()
-			}
-		})
-	api.HandleDeleteXappSubscriptionHandleHandler = handle.DeleteXappSubscriptionHandleHandlerFunc(
-		func(params handle.DeleteXappSubscriptionHandleParams) middleware.Responder {
-			err := deleteXappSubscriptionHandleImpl(params.XappSubscriptionData)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->SubManager Delete Request Failed: " + err.Error())
-				return handle.NewDeleteXappSubscriptionHandleNoContent()
-			} else {
-				xapp.Logger.Info("RoutingManager->SubManager Delete Request Success, subid = %v, requestor = %v", *params.XappSubscriptionData.SubscriptionID, *params.XappSubscriptionData.Address)
-				return handle.NewGetHandlesOK()
-			}
-		})
-	api.HandleUpdateXappSubscriptionHandleHandler = handle.UpdateXappSubscriptionHandleHandlerFunc(
-		func(params handle.UpdateXappSubscriptionHandleParams) middleware.Responder {
-			err := updateXappSubscriptionHandleImpl(&params.XappList, params.SubscriptionID)
-			if err != nil {
-				return handle.NewUpdateXappSubscriptionHandleBadRequest()
-			} else {
-				return handle.NewUpdateXappSubscriptionHandleCreated()
-			}
-		})
-	api.HandleCreateNewE2tHandleHandler = handle.CreateNewE2tHandleHandlerFunc(
-		func(params handle.CreateNewE2tHandleParams) middleware.Responder {
-			err := createNewE2tHandleHandlerImpl(params.E2tData)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->E2Manager AddE2T Request Failed: " + err.Error())
-				return handle.NewCreateNewE2tHandleBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->E2Manager AddE2T Request Success, E2T = %v", *params.E2tData.E2TAddress)
-				return handle.NewCreateNewE2tHandleCreated()
-			}
-		})
-
-	api.HandleAssociateRanToE2tHandleHandler = handle.AssociateRanToE2tHandleHandlerFunc(
-		func(params handle.AssociateRanToE2tHandleParams) middleware.Responder {
-			err := associateRanToE2THandlerImpl(params.RanE2tList)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->E2Manager associateRanToE2T Request Failed: " + err.Error())
-				return handle.NewAssociateRanToE2tHandleBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->E2Manager associateRanToE2T Request Success, E2T = %v", params.RanE2tList)
-				return handle.NewAssociateRanToE2tHandleCreated()
-			}
-		})
-
-	api.HandleDissociateRanHandler = handle.DissociateRanHandlerFunc(
-		func(params handle.DissociateRanParams) middleware.Responder {
-			err := disassociateRanToE2THandlerImpl(params.DissociateList)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->E2Manager DisassociateRanToE2T Request Failed: " + err.Error())
-				return handle.NewDissociateRanBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->E2Manager DisassociateRanToE2T Request Success, E2T = %v", params.DissociateList)
-				return handle.NewDissociateRanCreated()
-			}
-		})
-
-	api.HandleDeleteE2tHandleHandler = handle.DeleteE2tHandleHandlerFunc(
-		func(params handle.DeleteE2tHandleParams) middleware.Responder {
-			err := deleteE2tHandleHandlerImpl(params.E2tData)
-			if err != nil {
-				xapp.Logger.Error("RoutingManager->E2Manager DeleteE2T Request Failed: " + err.Error())
-				return handle.NewDeleteE2tHandleBadRequest()
-			} else {
-				xapp.Logger.Info("RoutingManager->E2Manager DeleteE2T Request Success, E2T = %v", *params.E2tData.E2TAddress)
-				return handle.NewDeleteE2tHandleCreated()
-			}
-		})
-	api.DebugGetDebuginfoHandler = debug.GetDebuginfoHandlerFunc(
-		func(params debug.GetDebuginfoParams) middleware.Responder {
-			response, err := dumpDebugData()
-			if err != nil {
-				return debug.NewGetDebuginfoCreated()
-			} else {
-				return debug.NewGetDebuginfoOK().WithPayload(&response)
-			}
-		})
-	api.HandleAddRmrRouteHandler = handle.AddRmrRouteHandlerFunc(
-		func(params handle.AddRmrRouteParams) middleware.Responder {
-			err := adddelrmrroute(params.RoutesList, true)
-			if err != nil {
-				return handle.NewAddRmrRouteBadRequest()
-			} else {
-				return handle.NewAddRmrRouteCreated()
-			}
-
-		})
-	api.HandleDelRmrRouteHandler = handle.DelRmrRouteHandlerFunc(
-		func(params handle.DelRmrRouteParams) middleware.Responder {
-			err := adddelrmrroute(params.RoutesList, false)
-			if err != nil {
-				return handle.NewDelRmrRouteBadRequest()
-			} else {
-				return handle.NewDelRmrRouteCreated()
-			}
-		})
-
-	// start to serve API
-	xapp.Logger.Info("Starting the HTTP Rest service")
-	if err := server.Serve(); err != nil {
-		xapp.Logger.Error(err.Error())
-	}
 }
 
 func httpGetXApps(xmurl string) (*[]rtmgr.XApp, error) {
@@ -751,9 +602,6 @@ func (r *HttpRestful) Initialize(xmurl string, nbiif string, fileName string, co
 		xapp.Logger.Error("Exiting as nbi failed to get the initial startup data from the xapp manager: " + err.Error())
 		return err
 	}
-	go func() {
-		r.LaunchRest(&nbiif)
-	}()
 
 	return nil
 }
@@ -852,7 +700,7 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 	}
 }
 
-func adddelrmrroute(routelist models.Routelist, rtflag bool) error {
+func Adddelrmrroute(routelist models.Routelist, rtflag bool) error {
 	xapp.Logger.Info("Updating rmrroute with Route list: %v,flag: %v", routelist, rtflag)
 	for _, rlist := range routelist {
 		var subid int32
