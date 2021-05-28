@@ -50,3 +50,8 @@ type Engine interface {
 	GenerateRouteTable(rtmgr.Endpoints) *rtmgr.RouteTable
 	GeneratePartialPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *[]string
 }
+
+type RouteIndex struct {
+	flag  bool
+	index uint16
+}

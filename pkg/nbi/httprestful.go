@@ -451,14 +451,14 @@ func httpGetE2TList(e2murl string) (*[]rtmgr.E2tIdentity, error) {
 			xapp.Logger.Warn("Json decode failed: " + err.Error())
 		}
 		xapp.Logger.Info("HTTP GET: OK")
-		xapp.Logger.Debug("httprestful.httpGetXApps returns: %v", E2Tlist)
+		xapp.Logger.Debug("httprestful.httpGetE2TList returns: %v", E2Tlist)
 		return &E2Tlist, err
 	}
 	xapp.Logger.Warn("httprestful got an unexpected http status code: %v", r.StatusCode)
 	return nil, nil
 }
 
-func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TInstance, meids []string) {
+func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TInstance, meids *[]string) {
 	xapp.Logger.Info("Invoked httprestful.PopulateE2TMap ")
 
 	for _, e2tData := range *e2tDataList {
@@ -477,12 +477,13 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 			for _, meid := range e2tData.Rannames {
 				meidar += meid + " "
 			}
-			str += "mme_ar|" + e2tData.E2taddress + "|" + strings.TrimSuffix(meidar, " ")
+			str = "mme_ar|" + e2tData.E2taddress + "|" + strings.TrimSuffix(meidar, " ")
+		    *meids = append(*meids, str)
 		}
 
 		e2ts[e2tinst.Fqdn] = e2tinst
-		meids = append(meids, str)
 	}
+    xapp.Logger.Info("MEID's retrieved are %v", *meids)
 }
 
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
@@ -520,7 +521,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		readErr = nil
 		e2tDataList, err := httpGetE2TList(e2murl)
 		if e2tDataList != nil && err == nil {
-			PopulateE2TMap(e2tDataList, e2ts, meids[:])
+			PopulateE2TMap(e2tDataList, e2ts, &meids)
 			break
 		} else if err == nil {
 			readErr = errors.New("unexpected HTTP status code")

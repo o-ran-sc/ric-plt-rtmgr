@@ -35,7 +35,7 @@ import (
 	"routing-manager/pkg/models"
 	"routing-manager/pkg/rtmgr"
 	"strconv"
-	//"strings"
+	"strings"
 )
 
 type Rmr struct {
@@ -94,22 +94,33 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 	rawrt = append(rawrt, key+"newrt|end\n")
 	count := 0
 
-	//meidrt := key + "meid_map|start\n"
-	//meidrt := []string{key + "meid_map|start\n"}
 	rawrt = append(rawrt, key+"meid_map|start\n")
+	keys := make(map[string]RouteIndex)
 	for _, value := range rcs.MeidMap {
-		//meidrt += key + value + "\n"
-		rawrt = append(rawrt, key+value+"\n")
-		count++
+		if _, v := keys[key+value+"\n"]; !v {
+			rawrt = append(rawrt, key+value+"\n")
+			appendedindex := uint16(len(rawrt)-1)
+			keys[key+value+"\n"] = RouteIndex{true,appendedindex}
+			count++
+		}
+		if strings.Contains(value,"mme_ar") {
+		    tmpstr := strings.Split(value,"|")
+
+		    MEID := strings.TrimSuffix(tmpstr[2],"\n")
+
+		    mapindex := "mme_del|"+MEID+"\n"
+		    i := keys[mapindex].index
+		    if keys[mapindex].flag {
+	            copy(rawrt[i:], rawrt[i+1:])
+			    rawrt[len(rawrt)-1] = ""
+			    rawrt = rawrt[:len(rawrt)-1]
+			    delete(keys,mapindex)
+			    count--
+		    }
+        }
 	}
 	rawrt = append(rawrt, key+"meid_map|end|"+strconv.Itoa(count)+"\n")
-	//meidrt += key+"meid_map|end|" + strconv.Itoa(count) +"\n"
 
-	/*for _, value := range meidrt {
-		rawrt = append(meidrt, value)
-	}*/
-
-	//rawrt = append(rawrt, meidrt)
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rcs)
 	return &rawrt
