@@ -478,12 +478,12 @@ func PopulateE2TMap(e2tDataList *[]rtmgr.E2tIdentity, e2ts map[string]rtmgr.E2TI
 				meidar += meid + " "
 			}
 			str = "mme_ar|" + e2tData.E2taddress + "|" + strings.TrimSuffix(meidar, " ")
-		    *meids = append(*meids, str)
+			*meids = append(*meids, str)
 		}
 
 		e2ts[e2tinst.Fqdn] = e2tinst
 	}
-    xapp.Logger.Info("MEID's retrieved are %v", *meids)
+	xapp.Logger.Info("MEID's retrieved are %v", *meids)
 }
 
 func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile string, e2murl string, sdlEngine sdl.Engine) error {
@@ -688,8 +688,7 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 		var subdata models.XappSubscriptionData
 		id := int32(sub_row.SubscriptionID)
 		subdata.SubscriptionID = &id
-		for _, ep := range sub_row.Endpoint {
-
+		for _, ep := range sub_row.ClientEndpoint {
 			stringSlice := strings.Split(ep, ":")
 			subdata.Address = &stringSlice[0]
 			intportval, _ := strconv.Atoi(stringSlice[1])

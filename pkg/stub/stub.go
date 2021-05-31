@@ -60,18 +60,18 @@ var E2map = make(map[string]rtmgr.E2TInstance)
 var ValidEndPointsEmpty = rtmgr.Endpoints{}
 
 var ValidRicComponents = rtmgr.RicComponents{
-	XApps: *ValidXApps, Pcs: *ValidPlatformComponents, E2Ts: E2map, MeidMap: []string{"mme_ar|e2t.com:1234"},
+	XApps: *ValidXApps, Pcs: *ValidPlatformComponents, E2Ts: E2map, MeidMap: []string{"mme_ar|e2t.com:1234|gnbID1"},
 }
 
 var ValidPolicies = &[]string{"", ""}
 
 var ValidEndpoints1 = []rtmgr.Endpoint{
-{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
-        {Uuid: "10.0.0.2:0", Name: "E2TERMINST", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
-        {Uuid: "192.168.0.1:0", Name: "SUBMAN", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
-        {Uuid: "10.1.1.1:0", Name: "E2MAN", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
-        {Uuid: "10.2.2.1:0", Name: "UEMAN", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
-        {Uuid: "127.0.0.1:0", Name: "UEMAN1", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
+	{Uuid: "10.0.0.1:0", Name: "E2TERM", XAppType: "app1", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
+	{Uuid: "10.0.0.2:0", Name: "E2TERMINST", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: true},
+	{Uuid: "192.168.0.1:0", Name: "SUBMAN", XAppType: "app2", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: false, Keepalive: false},
+	{Uuid: "10.1.1.1:0", Name: "E2MAN", XAppType: "app3", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Socket: nil, IsReady: true, Keepalive: false},
+	{Uuid: "10.2.2.1:0", Name: "UEMAN", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
+	{Uuid: "127.0.0.1:0", Name: "UEMAN1", XAppType: "app4", Ip: "", Port: 0, TxMessages: []string{"", ""}, RxMessages: []string{"", ""}, Policies: []int32{1, 2}, Socket: nil, IsReady: false, Keepalive: true},
 }
 
 var ValidSubscriptions = &[]rtmgr.Subscription{
@@ -103,6 +103,6 @@ var Rane2tmaponlyE2t = models.RanE2tMap{
 var XappSubscriptionData_port = uint16(0)
 var XappSubscriptionData_subid = int32(1)
 
-var XappSubData = models.XappSubscriptionData {
-    Address: swag.String("10.0.0.1"), Port: &XappSubscriptionData_port, SubscriptionID: &XappSubscriptionData_subid,
+var XappSubData = models.XappSubscriptionData{
+	Address: swag.String("10.0.0.1"), Port: &XappSubscriptionData_port, SubscriptionID: &XappSubscriptionData_subid,
 }
