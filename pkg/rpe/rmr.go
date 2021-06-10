@@ -79,10 +79,11 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 				group += ";" + member
 			}
 		}
-		rawrte += group
 
 		if rte.RouteType == "%meid" {
-			rawrte += group + rte.RouteType
+			rawrte += "%" + "meid"
+		} else {
+			rawrte += group
 		}
 
 		rawrt = append(rawrt, rawrte+"\n")
@@ -155,10 +156,11 @@ func (r *Rmr) generatePartialRMRPolicies(eps rtmgr.Endpoints, xappSubData *model
 				group += ";" + member
 			}
 		}
-		rawrte += group
 
 		if rte.RouteType == "%meid" {
-			rawrte += group + rte.RouteType
+			rawrte += "%" + "meid"
+		} else {
+			rawrte += group
 		}
 
 		rawrt = append(rawrt, rawrte+"\n")
