@@ -31,11 +31,6 @@ package nbi
 
 import (
 	"testing"
-	"fmt"
-	"routing-manager/pkg/rpe"
-	"routing-manager/pkg/sbi"
-	"routing-manager/pkg/sdl"
-	"net/http"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
 )
 
