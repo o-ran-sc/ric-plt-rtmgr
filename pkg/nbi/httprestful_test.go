@@ -576,6 +576,7 @@ func createMockSubmgrWithData(url string, t []byte) *httptest.Server {
 	return ts
 }
 
+
 func createMockPlatformComponents() {
 	var filename = "config.json"
 	file, _ := json.MarshalIndent(stub.ValidPlatformComponents, "", "")
@@ -684,6 +685,29 @@ func TestRetrieveStartupData(t *testing.T) {
 	os.Remove("config.json")
 }
 
+func TestRetrieveStartupDatawithInvalidE2MUrl(t *testing.T) {
+	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, SubscriptionResp, nil)
+	ts.Start()
+	defer ts.Close()
+
+	ts1 := createMockAppmgrWithData("127.0.0.1:8085", nil, nil, E2TListResp)
+	ts1.Start()
+	defer ts1.Close()
+
+	ts2 := createMockSubmgrWithData("127.0.0.1:8089", SubscriptionList)
+	ts2.Start()
+	defer ts2.Close()
+
+
+	sdlEngine, _ := sdl.GetSdl("file")
+	var httpRestful, _ = GetNbi("httpRESTful")
+	createMockPlatformComponents()
+
+	E2MURL1 := "http://127.0.0.1:8080/ric/v1/e2t/list"
+	httpRestful.(*HttpRestful).RetrieveStartupData(XMURL, "httpgetter", "rt.json", "config.json", E2MURL1, sdlEngine)
+	os.Remove("rt.json")
+	os.Remove("config.json")
+}
 func TestRetrieveStartupDataWithInvalidSubResp(t *testing.T) {
 	ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, InvalidSubResp, nil)
 	ts.Start()
@@ -742,6 +766,10 @@ func TestDumpDebugdata(t *testing.T) {
 	_, _ = DumpDebugData()
 }
 
+func TestDumpDebugdata1(t *testing.T) {
+	_, _ = DumpDebugData()
+}
+
 func TestManagerRequest(t *testing.T) {
 	var params xapp.RMRParams
 	var rmrmeid xapp.RMRMeid
@@ -756,6 +784,7 @@ func TestManagerRequest(t *testing.T) {
 	params.Meid = &rmrmeid
 	params.Src = "sender"
 	params.PayloadLen = 4
+
 	c.handleUpdateToRoutingManagerRequest(&params)
 }
 

@@ -34,11 +34,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"routing-manager/pkg/sbi"
+	"routing-manager/pkg/sdl"
+	"routing-manager/pkg/rpe"
+	"fmt"
+	"sync"
 )
 
 var (
 	XMURL = "http://127.0.0.1:3000/ric/v1/xapps"
-	E2MURL = "http://127.0.0.1:8080/ric/v1/e2t/list"
+	E2MURL = "http://127.0.0.1:8085/ric/v1/e2t/list"
 )
 
 func TestFetchXappListInvalidData(t *testing.T) {
@@ -129,3 +134,21 @@ func TestFetchAllXAppsWithValidData(t *testing.T) {
 		}
 	}
 }
+
+func TestHttpInstance1(t *testing.T) {
+        sdlEngine, _ := sdl.GetSdl("file")
+        rpeEngine, _ := rpe.GetRpe("rmrpush")
+        sbiEngine, _ := sbi.GetSbi("rmrpush")
+        httpinstance := NewHttpGetter()
+        err := httpinstance.Terminate()
+        t.Log(err)
+        fmt.Printf("sbiEngine = %v", sbiEngine)
+
+        createMockPlatformComponents()
+        //ts := createMockAppmgrWithData("127.0.0.1:3000", BasicXAppLists, nil)
+        //ts.Start()
+        //defer ts.Close()
+        var m sync.Mutex
+        err = httpinstance.Initialize(XMURL, "httpgetter", "rt.json", "config.json", E2MURL, sdlEngine, rpeEngine, &m)
+}
+
