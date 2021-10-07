@@ -576,7 +576,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 
 	//rlist := make(map[string]string)
 	xapp.Logger.Info("Reading SDL for any routes")
-	rlist, sdlerr := xapp.Sdl.Read("routes")
+	rlist, sdlerr := xapp.SdlStorage.Read(rtmgr.RTMGR_SDL_NS, "routes")
 	readErr = sdlerr
 	if readErr == nil {
 		xapp.Logger.Info("Value is %s", rlist["routes"])
@@ -725,12 +725,12 @@ func Adddelrmrroute(routelist models.Routelist, rtflag bool) error {
 			}
 			rtmgr.DynamicRouteList = append(rtmgr.DynamicRouteList, data)
 			routearray := strings.Join(rtmgr.DynamicRouteList, " ")
-			xapp.Sdl.Store("routes", routearray)
+			xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "routes", routearray)
 		} else {
 			if err == true {
 				xapp.Logger.Info("Successfully deleted route: %s", data)
 				routearray := strings.Join(rtmgr.DynamicRouteList, " ")
-				xapp.Sdl.Store("routes", routearray)
+				xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "routes", routearray)
 			} else {
 				xapp.Logger.Info("No such route: %s", data)
 				return errors.New("No such route: " + data)

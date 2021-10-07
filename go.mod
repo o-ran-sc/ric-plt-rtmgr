@@ -3,7 +3,7 @@ module routing-manager
 go 1.13
 
 require (
-	gerrit.o-ran-sc.org/r/ric-plt/xapp-frame v0.4.15
+	gerrit.o-ran-sc.org/r/ric-plt/xapp-frame v0.9.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/errors v0.19.3
 	github.com/go-openapi/loads v0.19.4
@@ -26,8 +26,8 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
 
-replace gerrit.o-ran-sc.org/r/ric-plt/sdlgo => gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.7.0
+replace gerrit.o-ran-sc.org/r/ric-plt/sdlgo => gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.8.0
 
-replace gerrit.o-ran-sc.org/r/ric-plt/xapp-frame => gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.8.3-1
+replace gerrit.o-ran-sc.org/r/ric-plt/xapp-frame => gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.9.1
 
 replace gerrit.o-ran-sc.org/r/com/golog => gerrit.o-ran-sc.org/r/com/golog.git v0.0.2

@@ -156,3 +156,6 @@ type XappList struct {
 var (
 	Rtmgr_ready bool
 )
+
+//To encapsulate routing-manager's keys under their own namespace in a DB
+const RTMGR_SDL_NS string = "rtmgr"

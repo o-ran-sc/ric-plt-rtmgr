@@ -40,7 +40,7 @@ import (
 type Consumer struct{}
 
 func (m Consumer) Consume(params *xapp.RMRParams) (err error) {
-	xapp.Sdl.Store("myKey", params.Payload)
+	xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "myKey", params.Payload)
 	return nil
 }
 
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 Resets the EndpointList according to argumnets
 */
 func resetTestPushDataset(instance RmrPush, testdata []rtmgr.Endpoint) {
-    rtmgr.RMRConnStatus = make(map[string]bool)
+	rtmgr.RMRConnStatus = make(map[string]bool)
 	rtmgr.Eps = make(map[string]*rtmgr.Endpoint)
 	for _, endpoint := range testdata {
 		ep := endpoint
