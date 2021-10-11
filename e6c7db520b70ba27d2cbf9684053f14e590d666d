@@ -1,0 +1,10 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Antti Puhakka <antti.puhakka@nokia.com>
+Code-Review+1: Juha Hyttinen <juha.hyttinen@nokia.com>
+Code-Review+1: makiaija <jussi.maki-aijala@nokia.com>
+Code-Review+2: Abdul Wahid W <abdulwahid.w@nokia.com>
+Submitted-by: Abdul Wahid W <abdulwahid.w@nokia.com>
+Submitted-at: Mon, 11 Oct 2021 16:59:05 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/ric-plt/rtmgr/+/6827
+Project: ric-plt/rtmgr
+Branch: refs/heads/master
