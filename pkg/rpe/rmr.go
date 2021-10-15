@@ -182,6 +182,6 @@ func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
 }
 
 func (r *RmrPush) GeneratePartialPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *[]string {
-	xapp.Logger.Debug("Invoked rmr.GeneratePartialRMR, args: %v: ", eps)
+	xapp.Logger.Debug("Invoked rmr.GeneratePartialPolicies, args: %v: ", eps)
 	return r.generatePartialRMRPolicies(eps, xappSubData, "", updatetype)
 }

@@ -1,3 +1,6 @@
+### v0.8.1
+* RIC-702: Clean-up logging in routing manager
+
 ### v0.7.9
 * Replacing deprecated SDL APIs
 

@@ -108,13 +108,13 @@ func (c *Control) recievermr(msg *xapp.RMRParams) {
 	switch msg.Mtype {
 	case xapp.RICMessageTypes["RMRRM_REQ_TABLE"]:
 		if rtmgr.Rtmgr_ready == false {
-			xapp.Logger.Info("Update Route Table Request(RMR to RM), message discarded as routing manager is not ready")
+			xapp.Logger.Info("Update route Table Request(RMR -> RM), message discarded as routing manager is not ready")
 		} else {
-			xapp.Logger.Info("Update Route Table Request(RMR to RM)")
+			xapp.Logger.Info("Update Route Table Request(RMR -> RM)")
 			go c.handleUpdateToRoutingManagerRequest(msg)
 		}
 	case xapp.RICMessageTypes["RMRRM_TABLE_STATE"]:
-		xapp.Logger.Info("state of table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
+		xapp.Logger.Info("State of route table to route mgr %s,payload %s", xapp_msg.String(), msg.Payload)
 	default:
 		err := errors.New("Message Type " + strconv.Itoa(msg.Mtype) + " is discarded")
 		xapp.Logger.Error("Unknown message type: %v", err)
@@ -146,7 +146,7 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	if strings.Contains(msg.String(), "ricxapp") {
 		ep := sbiEngine.CheckEndpoint(string(params.Payload))
 		if ep == nil {
-			xapp.Logger.Error("Update Routing Table Request can't handle due to end point %s is not avail in complete ep list: ", string(params.Payload))
+			xapp.Logger.Error("Update Routing Table Request, can't handle due to end point %s is not available in complete ep list: ", string(params.Payload))
 			return
 		}
 	}
@@ -163,7 +163,7 @@ func (c *Control) handleUpdateToRoutingManagerRequest(params *xapp.RMRParams) {
 	policies := rpeEngine.GeneratePolicies(rtmgr.Eps, data)
 	err = sbiEngine.DistributeToEp(policies, *epstr, whid)
 	if err != nil {
-		xapp.Logger.Error("Routing table cannot be published due to: " + err.Error())
+		xapp.Logger.Error("Not able to publish the routing table due to: " + err.Error())
 		return
 	}
 }
@@ -178,7 +178,7 @@ func getConfigData() (*rtmgr.RicComponents, error) {
 		if err != nil {
 			return nil, errors.New("Cannot get data from sdl interface due to: " + err.Error())
 		} else {
-			xapp.Logger.Debug("Cannot get data from sdl interface, data is null")
+			xapp.Logger.Debug("Cannot get data from sdl interface due to data is null")
 			return nil, errors.New("Cannot get data from sdl interface")
 		}
 	}
@@ -228,7 +228,7 @@ func Serve() {
 
 	nbiErr := nbiEngine.Initialize(xapp.Config.GetString("xmurl"), xapp.Config.GetString("nbiurl"), xapp.Config.GetString("rtfile"), xapp.Config.GetString("cfgfile"), xapp.Config.GetString("e2murl"), sdlEngine, rpeEngine, &m)
 	if nbiErr != nil {
-		xapp.Logger.Error("Failed to initialize nbi due to: " + nbiErr.Error())
+		xapp.Logger.Error("Initialization of nbi failed due to: " + nbiErr.Error())
 		return
 	}
 

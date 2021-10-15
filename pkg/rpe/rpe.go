@@ -107,7 +107,7 @@ func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoin
 		pc, _, _, ok := runtime.Caller(1)
 		details := runtime.FuncForPC(pc)
 		if ok && details != nil {
-			xapp.Logger.Error("Route addition skipped: Either TX or RX endpoint not present. Caller function is %s", details.Name())
+			xapp.Logger.Error("Addition of route skipped due to either TX or RX endpoint not present. Caller function is %s", details.Name())
 		}
 	} else {
 		if tx != nil {
@@ -125,8 +125,8 @@ func (r *Rpe) addRoute(messageType string, tx *rtmgr.Endpoint, rx *rtmgr.Endpoin
 			SubID:       subId,
 			RouteType:   routeType}
 		*routeTable = append(*routeTable, route)
-		//	        xapp.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
-		//	        xapp.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
+		//	        xapp.Logger.Debug("Route added: MessageType: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
+		//	        xapp.Logger.Trace("Route added: MessageType: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
 	}
 }
 
@@ -154,8 +154,8 @@ func (r *Rpe) addRoute_rx_list(messageType string, tx *rtmgr.Endpoint, rx []rtmg
 		SubID:       subId,
 		RouteType:   routeType}
 	*routeTable = append(*routeTable, route)
-	//	xapp.Logger.Debug("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, subId)
-	//	xapp.Logger.Trace("Route added: MessageTyp: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, subId)
+	//	xapp.Logger.Debug("Route added: MessageType: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx.Uuid, rx.Uuid, SubId)
+	//	xapp.Logger.Trace("Route added: MessageType: %v, Tx: %v, Rx: %v, SubId: %v", messageId, tx, rx, SubId)
 }
 
 func (r *Rpe) generateXappRoutes(xAppEp *rtmgr.Endpoint, subManEp *rtmgr.Endpoint, routeTable *rtmgr.RouteTable) {

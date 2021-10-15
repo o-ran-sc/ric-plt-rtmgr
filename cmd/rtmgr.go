@@ -76,7 +76,7 @@ func main() {
 	}
 
 	dummy_whid := int(xapp.Rmr.Openwh("rtmgr:4560"))
-	xapp.Logger.Info("created dummy Wormhole ID for routingmanager and dummy_whid :%d", dummy_whid)
+	xapp.Logger.Info("Wormhole ID created for routingmanager:%d", dummy_whid)
 
 	go func() {
 		restful.LaunchRest(xapp.Config.GetString("nbiurl"))

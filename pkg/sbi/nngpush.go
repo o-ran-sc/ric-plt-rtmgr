@@ -49,7 +49,7 @@ import (
 var rmrcallid = 1
 var rmrdynamiccallid = 201
 var addendpointct = 1
-
+var count int
 var conn sync.Mutex
 
 type RmrPush struct {
@@ -96,7 +96,7 @@ func (c *RmrPush) AddEndpoint(ep *rtmgr.Endpoint) error {
 		time.Sleep(time.Duration(10) * time.Second)
 		ep.Whid = int(xapp.Rmr.Openwh(endpoint))
 		if ep.Whid < 0 {
-			return errors.New("can't open warmhole connection for endpoint:" + ep.Uuid + " due to invalid Wormhole ID: " + string(ep.Whid) + " count: " + strconv.Itoa(count))
+			return errors.New("cannot open wormhole connection for endpoint:" + ep.Uuid + " due to invalid Wormhole ID: " + string(ep.Whid) + " count: " + strconv.Itoa(count))
 		}
 	} else {
 		xapp.Logger.Debug("Wormhole ID is %v and EP is %v", ep.Whid, endpoint)
@@ -144,7 +144,7 @@ func (c *RmrPush) DistributeAll(policies *[]string) error {
 		                if result[i].status == true {
 		                        count++
 		                } else {
-		                        xapp.Logger.Error("RMR send failed for endpoint %v", result[i].endpoint)
+		                        xapp.Logger.Error("RMR sent failed for endpoint %v", result[i].endpoint)
 		                }
 		        }
 
@@ -160,6 +160,15 @@ func (c *RmrPush) send_sync(ep *rtmgr.Endpoint, policies *[]string, call_id int)
 	xapp.Logger.Debug("Push policy to endpoint: " + ep.Uuid)
 
 	ret := c.send_data(ep, policies, call_id)
+	for count = 0; count <= 2 && ret == false; count++ {
+		time.Sleep(time.Second)
+		ret := c.send_data(ep, policies, call_id)
+		if ret == true {
+			break
+		}
+		xapp.Logger.Error("Invoked  send_data to try again due to return value : %v", ret)
+	}
+
 	conn.Lock()
 	rtmgr.RMRConnStatus[ep.Uuid] = ret
 	conn.Unlock()

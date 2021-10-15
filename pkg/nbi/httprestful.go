@@ -84,7 +84,7 @@ func recvXappCallbackData(xappData *models.XappCallbackData) (*[]rtmgr.XApp, err
 
 func recvNewE2Tdata(e2tData *models.E2tData) (*rtmgr.E2TInstance, string, error) {
 	var str string
-	xapp.Logger.Info("data received")
+	xapp.Logger.Info("Data received")
 
 	if nil != e2tData {
 
@@ -136,9 +136,9 @@ func ProvideXappHandleHandlerImpl(data *models.XappCallbackData) error {
 	} else {
 		appdata, err := recvXappCallbackData(data)
 		if err != nil {
-			xapp.Logger.Error("cannot get data from rest api dute to: " + err.Error())
+			xapp.Logger.Error("Cannot get data from rest api dute to: " + err.Error())
 		} else if appdata != nil {
-			xapp.Logger.Debug("Fetching all xApps deployed in xApp Manager through GET operation.")
+			xapp.Logger.Debug("Fetching all xApps deployed in xApp Manager through GET operation")
 			alldata, err1 := httpGetXApps(xapp.Config.GetString("xmurl"))
 			if alldata != nil && err1 == nil {
 				m.Lock()
@@ -224,7 +224,7 @@ func ProvideXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error 
 		xapp.Logger.Error(err.Error())
 		return err
 	}
-	xapp.Logger.Debug("received XApp subscription data")
+	xapp.Logger.Debug("Received xApp subscription data")
 	addSubscription(&rtmgr.Subs, data)
 	xapp.Logger.Debug("Endpoints: %v", rtmgr.Eps)
 	updateEp()
@@ -252,12 +252,12 @@ func DeleteXappSubscriptionHandleImpl(data *models.XappSubscriptionData) error {
 	}
 
 	if !subscriptionExists(data) {
-		xapp.Logger.Warn("subscription not found: %d", *data.SubscriptionID)
-		err := fmt.Errorf("subscription not found: %d", *data.SubscriptionID)
+		xapp.Logger.Warn("Subscription not found: %d", *data.SubscriptionID)
+		err := fmt.Errorf("Subscription not found: %d", *data.SubscriptionID)
 		return err
 	}
 
-	xapp.Logger.Debug("received XApp subscription delete data")
+	xapp.Logger.Debug("Received xApp subscription delete data")
 	delSubscription(&rtmgr.Subs, data)
 	updateEp()
 	return sendRoutesToAll()
@@ -285,7 +285,7 @@ func UpdateXappSubscriptionHandleImpl(data *models.XappList, subid uint16) error
 			return err
 		}
 	}
-	xapp.Logger.Debug("received XApp subscription Merge data")
+	xapp.Logger.Debug("Received XApp subscription Merge data")
 	updateSubscription(&xapplist)
 	updateEp()
 	return sendRoutesToAll()
@@ -306,7 +306,7 @@ func CreateNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	}
 	//e2taddchan <- data
 	e2data, meiddata, _ := recvNewE2Tdata(data)
-	xapp.Logger.Debug("received create New E2T data")
+	xapp.Logger.Debug("Received create New E2T data")
 	m.Lock()
 	sdlEngine.WriteNewE2TInstance(xapp.Config.GetString("rtfile"), e2data, meiddata)
 	m.Unlock()
@@ -349,7 +349,7 @@ func AssociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 		xapp.Logger.Warn(" Association of RAN to E2T Instance data validation failed: " + err.Error())
 		return err
 	}
-	xapp.Logger.Debug("received associate RAN list to E2T instance mapping from E2 Manager")
+	xapp.Logger.Debug("Received associate RAN list to E2T instance mapping from E2 Manager")
 	m.Lock()
 	sdlEngine.WriteAssRANToE2TInstance(xapp.Config.GetString("rtfile"), data)
 	m.Unlock()
@@ -365,7 +365,7 @@ func DisassociateRanToE2THandlerImpl(data models.RanE2tMap) error {
 		xapp.Logger.Warn(" Disassociation of RAN List from E2T Instance data validation failed: " + err.Error())
 		return err
 	}
-	xapp.Logger.Debug("received disassociate RANs from E2T instance")
+	xapp.Logger.Debug("Received disassociate RANs from E2T instance")
 	m.Lock()
 	sdlEngine.WriteDisAssRANFromE2TInstance(xapp.Config.GetString("rtfile"), data)
 	m.Unlock()
@@ -504,7 +504,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		} else if err == nil {
 			readErr = errors.New("unexpected HTTP status code")
 		} else {
-			xapp.Logger.Warn("cannot get xapp data due to: " + err.Error())
+			xapp.Logger.Warn("Cannot get xapp data due to: " + err.Error())
 			readErr = err
 		}
 	}
@@ -526,7 +526,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 		} else if err == nil {
 			readErr = errors.New("unexpected HTTP status code")
 		} else {
-			xapp.Logger.Warn("cannot get E2T data from E2M due to: " + err.Error())
+			xapp.Logger.Warn("Cannot get E2T data from E2M due to: " + err.Error())
 			readErr = err
 		}
 		time.Sleep(2 * time.Second)
@@ -559,7 +559,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			break
 		} else {
 			readErr = err
-			xapp.Logger.Warn("cannot get xapp data due to: " + readErr.Error())
+			xapp.Logger.Warn("Cannot get xapp data due to: " + readErr.Error())
 		}
 		time.Sleep(2 * time.Second)
 	}
@@ -585,7 +585,7 @@ func retrieveStartupData(xmurl string, nbiif string, fileName string, configfile
 			xapp.Logger.Info("Value of formed string = %s", formstring)
 			newstring := strings.Split(formstring, " ")
 			for i, _ := range newstring {
-				xapp.Logger.Info("in Loop Value of formed string = %s", newstring)
+				xapp.Logger.Info("Value of formed string in loop = %s", newstring)
 				rtmgr.DynamicRouteList = append(rtmgr.DynamicRouteList, newstring[i])
 			}
 		}
@@ -666,7 +666,7 @@ func updateSubscription(data *rtmgr.XappList) {
 				subdata.SubscriptionID = &subs.SubID
 				subdata.Address = &subs.Fqdn
 				subdata.Port = &subs.Port
-				xapp.Logger.Debug("Deletion Subscription List has %v", subdata)
+				xapp.Logger.Debug("Deleting Subscription List has %v", subdata)
 				delSubscription(&rtmgr.Subs, &subdata)
 				break
 			}
@@ -701,7 +701,7 @@ func PopulateSubscription(sub_list xfmodel.SubscriptionList) {
 }
 
 func Adddelrmrroute(routelist models.Routelist, rtflag bool) error {
-	xapp.Logger.Info("Updating rmrroute with Route list: %v,flag: %v", routelist, rtflag)
+	xapp.Logger.Info("Updating rmr route with Route list: %v,flag: %v", routelist, rtflag)
 	for _, rlist := range routelist {
 		var subid int32
 		var data string
@@ -728,7 +728,7 @@ func Adddelrmrroute(routelist models.Routelist, rtflag bool) error {
 			xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "routes", routearray)
 		} else {
 			if err == true {
-				xapp.Logger.Info("Successfully deleted route: %s", data)
+				xapp.Logger.Info("route %s deleted successfully", data)
 				routearray := strings.Join(rtmgr.DynamicRouteList, " ")
 				xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "routes", routearray)
 			} else {

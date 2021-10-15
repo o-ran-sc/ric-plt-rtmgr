@@ -59,7 +59,7 @@ func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
 	var rcs *rtmgr.RicComponents
 	jsonFile, err := os.Open(file)
 	if err != nil {
-		return nil, errors.New("cannot open the file due to: " + err.Error())
+		return nil, errors.New("Cannot open the file due to: " + err.Error())
 	}
 	defer jsonFile.Close()
 	byteValue, err := ioutil.ReadAll(jsonFile)
@@ -76,12 +76,10 @@ func (f *File) ReadAll(file string) (*rtmgr.RicComponents, error) {
 }
 
 func (f *File) WriteAll(file string, rcs *rtmgr.RicComponents) error {
-	xapp.Logger.Debug("Invoked sdl.WriteAll")
-	xapp.Logger.Debug("file.fileWriteAll writes into file: " + file)
-	xapp.Logger.Debug("file.fileWriteAll writes data: %v", *rcs)
+    xapp.Logger.Debug("Invoked sdl.WriteAll:" + file + ", file.fileWriteAll writes data: %v", *rcs )
 	byteValue, err := json.Marshal(rcs)
 	if err != nil {
-		return errors.New("cannot convert data due to: " + err.Error())
+		return errors.New("Cannot convert data due to: " + err.Error())
 	}
 	err = ioutil.WriteFile(file, byteValue, 0644)
 	if err != nil {
@@ -91,14 +89,12 @@ func (f *File) WriteAll(file string, rcs *rtmgr.RicComponents) error {
 }
 
 func (f *File) WriteXApps(file string, xApps *[]rtmgr.XApp) error {
-	xapp.Logger.Debug("Invoked sdl.WriteXApps")
-	xapp.Logger.Debug("file.fileWriteXApps writes into file: " + file)
-	xapp.Logger.Debug("file.fileWriteXApps writes data: %v", *xApps)
+    xapp.Logger.Debug("Invoked sdl.WriteXApps: " + file + ", file.fileWriteXApps writes data: %v", *xApps )
 
 	ricData, err := NewFile().ReadAll(file)
 	if err != nil {
-		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
-		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("Cannot read full ric data to modify xApps data, due to:  " + err.Error())
 	}
 	ricData.XApps = *xApps
 
@@ -114,14 +110,12 @@ func (f *File) WriteXApps(file string, xApps *[]rtmgr.XApp) error {
 }
 
 func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance, meiddata string) error {
-	xapp.Logger.Debug("Invoked sdl.WriteNewE2TInstance")
-	xapp.Logger.Debug("file.WriteNewE2TInstance writes into file: " + file)
-	xapp.Logger.Debug("file.WriteNewE2TInstance writes data: %v", *E2TInst)
+    xapp.Logger.Debug("Invoked sdl.WriteNewE2TInstance: " + file + ", file.WriteNewE2TInstance writes data: %v", *E2TInst )
 
 	ricData, err := NewFile().ReadAll(file)
-	if err != nil {
-		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
-		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+        if err != nil {
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("cannot read full ric data to modify xApps data due to:  " + err.Error())
 	}
 	ricData.E2Ts[E2TInst.Fqdn] = *E2TInst
 	if len(meiddata) > 0 {
@@ -146,19 +140,17 @@ func (f *File) WriteNewE2TInstance(file string, E2TInst *rtmgr.E2TInstance, meid
 }
 
 func (f *File) WriteAssRANToE2TInstance(file string, rane2tmap models.RanE2tMap) error {
-	xapp.Logger.Debug("Invoked sdl.WriteAssRANToE2TInstance")
-	xapp.Logger.Debug("file.WriteAssRANToE2TInstance writes into file: " + file)
-	xapp.Logger.Debug("file.WriteAssRANToE2TInstance writes data: %v", rane2tmap)
+    xapp.Logger.Debug("Invoked sdl.WriteAssRANToE2TInstance: " + file + ", file.WriteAssRANToE2TInstance writes data: %v", rane2tmap)
 
 	ricData, err := NewFile().ReadAll(file)
 	if err != nil {
-		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
-		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("cannot read full ric data to modify xApps data due to:  " + err.Error())
 	}
 
 	//ricData.MeidMap = []string{}
 	for _, element := range rane2tmap {
-		xapp.Logger.Info("data received")
+		xapp.Logger.Info("Data received")
 		var str, meidar string
 		for _, meid := range element.RanNamelist {
 			meidar += meid + " "
@@ -188,20 +180,18 @@ func (f *File) WriteAssRANToE2TInstance(file string, rane2tmap models.RanE2tMap)
 }
 
 func (f *File) WriteDisAssRANFromE2TInstance(file string, disassranmap models.RanE2tMap) error {
-	xapp.Logger.Debug("Invoked sdl.WriteDisAssRANFromE2TInstance")
-	xapp.Logger.Debug("file.WriteDisAssRANFromE2TInstance writes into file: " + file)
-	xapp.Logger.Debug("file.WriteDisAssRANFromE2TInstance writes data: %v", disassranmap)
+    xapp.Logger.Debug("Invoked sdl.WriteDisAssRANFromE2TInstance: " + file + ",file.WriteDisAssRANFromE2TInstance writes data: %v", disassranmap)
 
 	ricData, err := NewFile().ReadAll(file)
 	if err != nil {
-		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
-		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("cannot read full ric data to modify xApps data due to:  " + err.Error())
 	}
 
 	var str, meiddel, meiddisdel string
 	//ricData.MeidMap = []string{}
 	for _, element := range disassranmap {
-		xapp.Logger.Info("data received")
+		xapp.Logger.Info("Data received")
 		for _, meid := range element.RanNamelist {
 			meiddisdel += meid + " "
 		}
@@ -255,14 +245,12 @@ func (f *File) WriteDisAssRANFromE2TInstance(file string, disassranmap models.Ra
 }
 
 func (f *File) WriteDeleteE2TInstance(file string, E2TInst *models.E2tDeleteData) error {
-	xapp.Logger.Debug("Invoked sdl.WriteDeleteE2TInstance")
-	xapp.Logger.Debug("file.WriteDeleteE2TInstance writes into file: " + file)
-	xapp.Logger.Debug("file.WriteDeleteE2TInstance writes data: %v", *E2TInst)
+    xapp.Logger.Debug("Invoked sdl.WriteDeleteE2TInstance: " + file + ",file.WriteDeleteE2TInstance writes data: %v", *E2TInst)
 
 	ricData, err := NewFile().ReadAll(file)
 	if err != nil {
-		xapp.Logger.Error("cannot get data from sdl interface due to: " + err.Error())
-		return errors.New("cannot read full ric data to modify xApps data, due to:  " + err.Error())
+		xapp.Logger.Error("Cannot get data from sdl interface due to: " + err.Error())
+		return errors.New("cannot read full ric data to modify xApps data due to:  " + err.Error())
 	}
 
 	//ricData.MeidMap = []string{}
@@ -287,7 +275,7 @@ func (f *File) WriteDeleteE2TInstance(file string, E2TInst *models.E2tDeleteData
 
 	for _, element := range E2TInst.RanAssocList {
 		var str, meidar string
-		xapp.Logger.Info("data received")
+		xapp.Logger.Info("Data received")
 		for _, meid := range element.RanNamelist {
 			meidar = meid + " "
 		}
