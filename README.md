@@ -166,3 +166,6 @@ For troubleshooting purpose the default logging level can be increased to `DEBUG
 ## License
 This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE)
 
+## Building arm64 rtmgr docker image
+
+docker build -f Dockerfile-arm64 -t ric-plt-rtmgr:0.6.3 .
