@@ -23,7 +23,7 @@
 # a Docker tag from the string in file container-tag.yaml
 
 #FROM golang:1.12.1 as rtmgrbuild
-FROM nexus3.o-ran-sc.org:10002/o-ran-sc/bldr-ubuntu18-c-go:1.9.0 as rtmgrbuild
+FROM nexus3.o-ran-sc.org:10002/o-ran-sc/bldr-ubuntu20-c-go:1.0.0 as rtmgrbuild
 
 # Install RMr shared library
 ARG RMRVERSION=4.7.4
@@ -31,10 +31,10 @@ RUN wget --content-disposition https://packagecloud.io/o-ran-sc/release/packages
 # Install RMr development header files
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr-dev_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr-dev_${RMRVERSION}_amd64.deb && rm -rf rmr-dev_${RMRVERSION}_amd64.deb
 
-ENV GOLANG_VERSION 1.13.10
-RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
-     && tar xvzf go$GOLANG_VERSION.linux-amd64.tar.gz -C /usr/local 
-ENV PATH="/usr/local/go/bin:${PATH}"
+#ENV GOLANG_VERSION 1.16
+#RUN wget --quiet https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz \
+#     && tar xvzf go$GOLANG_VERSION.linux-amd64.tar.gz -C /usr/local 
+#ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH /go
 
 RUN mkdir -p /go/bin
@@ -78,7 +78,7 @@ RUN go install ./cmd/rtmgr.go
 #RUN go test ./pkg/sbi ./pkg/rpe ./pkg/nbi ./pkg/sdl -f "/go/src/routing-manager/manifests/rtmgr/rtmgr-cfg.yaml" -cover -race
 
 # Final, executable container
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 COPY --from=rtmgrbuild /go/bin/rtmgr /
 COPY --from=rtmgrbuild /run_rtmgr.sh /
 COPY --from=rtmgrbuild /usr/local/include /usr/local/include
