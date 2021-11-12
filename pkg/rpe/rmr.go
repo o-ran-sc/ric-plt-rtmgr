@@ -113,14 +113,16 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 			mapindex := "mme_del|" + MEID + "\n"
 			i := keys[mapindex].index
 			if keys[mapindex].flag {
-				copy(rawrt[i:], rawrt[i+1:])
-				rawrt[len(rawrt)-1] = ""
-				rawrt = rawrt[:len(rawrt)-1]
+				//copy(rawrt[i:], rawrt[i+1:])
+				//rawrt[len(rawrt)-1] = ""
+				//rawrt = rawrt[:len(rawrt)-1]
+				rawrt[i] = ""
 				delete(keys, mapindex)
 				count--
 			}
 		}
 	}
+	rawrt = removeEmptyStrings(rawrt)
 	rawrt = append(rawrt, key+"meid_map|end|"+strconv.Itoa(count)+"\n")
 
 	xapp.Logger.Debug("rmr.GeneratePolicies returns: %v", rawrt)
@@ -182,6 +184,16 @@ func (r *RmrPush) GenerateRouteTable(eps rtmgr.Endpoints) *rtmgr.RouteTable {
 }
 
 func (r *RmrPush) GeneratePartialPolicies(eps rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *[]string {
-	xapp.Logger.Debug("Invoked rmr.GeneratePartialRMR, args: %v: ", eps)
+	xapp.Logger.Debug("Invoked rmr.GeneratePartialPolicies, args: %v: ", eps)
 	return r.generatePartialRMRPolicies(eps, xappSubData, "", updatetype)
+}
+
+func removeEmptyStrings(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }

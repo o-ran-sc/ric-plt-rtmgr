@@ -316,6 +316,7 @@ func CreateNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	time.Sleep(10 * time.Second)
 	for ep, value := range rtmgr.RMRConnStatus {
 		if ep == *data.E2TAddress && value == true {
+			rtmgr.RMRConnStatus[ep] = false
 			return nil
 		}
 	}
