@@ -34,20 +34,26 @@ repositories:
     - ric-plt/rtmgr
 committers:
     - <<: *oran_ric_plt_rtmgr_ptl
-    - name: 'Nithinsin K'
-      email: 'nithinsen.k@nokia.com'
+    - name: 'Sandeep Kumar'
+      email: 'sandeep.15.kumar@nokia.com'
       company: 'Nokia'
-      id: 'nithinsen'
-      timezone: 'Europe/Helsinki'
+      id: 'sandeeku'
+      timezone: 'Asia/Kolkata'
     - name: 'Abdulwahid W'
       email: 'abdulwahid.w@nokia.com'
       company: 'Nokia'
       id: 'wahidw'
-      timezone: 'Europe/Helsinki'
+      timezone: 'Asia/Kolkata'
 tsc:
     # yamllint disable rule:line-length
     approval: 'https://lists.o-ran-sc.org/g/main/topic/toc_oran_sc_new_repo_and/44124573?p=,,,100,0,0,0::recentpostdate%2Fsticky,,,100,2,0,44124573'
     changes:
+        - type: 'promotion'
+          name: 'Sandeep Kumar'
+          link: ''
+        - type: 'removal'
+          name: 'Nithinsin K'
+          link: ''
         - type: 'promotion'
           name: 'Abdulwahid W'
           link: 'https://lists.o-ran-sc.org/g/main/topic/toc_oran_sc_new_repo_and/44124573?p=,,,100,0,0,0::recentpostdate%2Fsticky,,,100,2,0,44124573'
