@@ -244,9 +244,11 @@ func Serve() {
 	go updateEp()
 	time.Sleep(5 * time.Second)
 	sendRoutesToAll()
-	/* Sometimes first message  fails, retry after 5 sec */
-	time.Sleep(5 * time.Second)
-	sendRoutesToAll()
+	for i := 0; i <= 5; i++ {
+		/* Sometimes first message  fails, retry after 5 sec */
+		time.Sleep(10 * time.Second)
+		sendRoutesToAll()
+	}
 
 	for {
 		xapp.Logger.Debug("Periodic Routes value = %s", xapp.Config.GetString("periodicroutes"))

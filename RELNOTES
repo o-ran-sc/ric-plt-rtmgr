@@ -1,3 +1,6 @@
+### v0.8.2
+* Added some checks for E2tcreate handling and RMR update to v4.8.0 
+
 ### v0.8.1
 * RIC-702: Clean-up logging in routing manager
 

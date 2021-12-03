@@ -49,6 +49,7 @@ import (
 	//"routing-manager/pkg/restapi/operations/handle"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
+	"routing-manager/pkg/sbi"
 	"routing-manager/pkg/sdl"
 	"strconv"
 	"strings"
@@ -312,13 +313,18 @@ func CreateNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	m.Unlock()
 	updateEp()
 	//sendPartialRoutesToAll(nil, rtmgr.E2Type)
+	sbi.Conn.Lock()
+	rtmgr.RMRConnStatus[*data.E2TAddress] = false
+	sbi.Conn.Unlock()
+
 	sendRoutesToAll()
 	time.Sleep(10 * time.Second)
-	for ep, value := range rtmgr.RMRConnStatus {
-		if ep == *data.E2TAddress && value == true {
-			rtmgr.RMRConnStatus[ep] = false //Reset to false incase of E2t restart scenario
-			return nil
-		}
+	if rtmgr.RMRConnStatus[*data.E2TAddress] == true {
+		sbi.Conn.Lock()
+		delete(rtmgr.RMRConnStatus, *data.E2TAddress)
+		sbi.Conn.Unlock()
+		xapp.Logger.Debug("RMRConnStatus Map after = %v", rtmgr.RMRConnStatus)
+		return nil
 	}
 
 	return errors.New("Error while adding new E2T " + *data.E2TAddress)
