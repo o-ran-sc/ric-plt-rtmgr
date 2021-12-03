@@ -50,7 +50,7 @@ var rmrcallid = 1
 var rmrdynamiccallid = 201
 var addendpointct = 1
 var count int
-var conn sync.Mutex
+var Conn sync.Mutex
 
 type RmrPush struct {
 	Sbi
@@ -169,9 +169,9 @@ func (c *RmrPush) send_sync(ep *rtmgr.Endpoint, policies *[]string, call_id int)
 		xapp.Logger.Error("Invoked  send_data to try again due to return value : %v", ret)
 	}
 
-	conn.Lock()
+	Conn.Lock()
 	rtmgr.RMRConnStatus[ep.Uuid] = ret
-	conn.Unlock()
+	Conn.Unlock()
 	// Handling per connection .. may be updating global map
 
 	//channel <- EPStatus{ep.Uuid, ret}
