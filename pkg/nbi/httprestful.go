@@ -37,18 +37,11 @@ import (
 	"fmt"
 	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
-	//"github.com/go-openapi/loads"
-	//"github.com/go-openapi/runtime/middleware"
 	"net"
-	//"net/url"
-	//"os"
 	"routing-manager/pkg/models"
-	//"routing-manager/pkg/restapi"
-	//"routing-manager/pkg/restapi/operations"
-	//"routing-manager/pkg/restapi/operations/debug"
-	//"routing-manager/pkg/restapi/operations/handle"
 	"routing-manager/pkg/rpe"
 	"routing-manager/pkg/rtmgr"
+	"routing-manager/pkg/sbi"
 	"routing-manager/pkg/sdl"
 	"strconv"
 	"strings"
@@ -312,13 +305,16 @@ func CreateNewE2tHandleHandlerImpl(data *models.E2tData) error {
 	m.Unlock()
 	updateEp()
 	//sendPartialRoutesToAll(nil, rtmgr.E2Type)
+	sbi.Conn.Lock()
+	rtmgr.RMRConnStatus[*data.E2TAddress] = false
+	sbi.Conn.Unlock()
 	sendRoutesToAll()
 	time.Sleep(10 * time.Second)
-	for ep, value := range rtmgr.RMRConnStatus {
-		if ep == *data.E2TAddress && value == true {
-			rtmgr.RMRConnStatus[ep] = false
-			return nil
-		}
+	if rtmgr.RMRConnStatus[*data.E2TAddress] == true {
+		sbi.Conn.Lock()
+		delete(rtmgr.RMRConnStatus, *data.E2TAddress)
+		sbi.Conn.Unlock()
+		return nil
 	}
 
 	return errors.New("Error while adding new E2T " + *data.E2TAddress)
