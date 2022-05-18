@@ -25,6 +25,7 @@
 #FROM golang:1.12.1 as rtmgrbuild
 FROM nexus3.o-ran-sc.org:10002/o-ran-sc/bldr-ubuntu18-c-go:1.9.0 as rtmgrbuild
 
+RUN apt update && apt install ca-certificates libgnutls30 -y
 # Install RMr shared library
 ARG RMRVERSION=4.5.2
 RUN wget --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr_${RMRVERSION}_amd64.deb/download.deb && dpkg -i rmr_${RMRVERSION}_amd64.deb && rm -rf rmr_${RMRVERSION}_amd64.deb
