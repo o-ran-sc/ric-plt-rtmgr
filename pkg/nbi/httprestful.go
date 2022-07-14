@@ -35,8 +35,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	xfmodel "gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/models"
 	"gerrit.o-ran-sc.org/r/ric-plt/xapp-frame/pkg/xapp"
+
 	//"github.com/go-openapi/loads"
 	//"github.com/go-openapi/runtime/middleware"
 	"net"
@@ -727,12 +729,13 @@ func Adddelrmrroute(routelist models.Routelist, rtflag bool) error {
 		err := checkrepeatedroute(data)
 
 		if rtflag == true {
-			if err == true {
-				xapp.Logger.Info("Given route %s is a duplicate", data)
-			}
 			rtmgr.DynamicRouteList = append(rtmgr.DynamicRouteList, data)
 			routearray := strings.Join(rtmgr.DynamicRouteList, " ")
 			xapp.SdlStorage.Store(rtmgr.RTMGR_SDL_NS, "routes", routearray)
+			if err == true {
+				xapp.Logger.Info("Given route %s is a duplicate", data)
+				return nil
+			}
 		} else {
 			if err == true {
 				xapp.Logger.Info("route %s deleted successfully", data)
