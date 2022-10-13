@@ -96,32 +96,34 @@ func (r *Rmr) generateRMRPolicies(eps rtmgr.Endpoints, rcs *rtmgr.RicComponents,
 	count := 0
 
 	rawrt = append(rawrt, key+"meid_map|start\n")
-	keys := make(map[string]RouteIndex)
+	
+	keys := make(map[string]MeidEntry)
+	MEID := ""
+	E2TIP := ""
+	RECTYP := ""
 	for _, value := range rcs.MeidMap {
-		if _, v := keys[key+value+"\n"]; !v {
-			rawrt = append(rawrt, key+value+"\n")
-			appendedindex := uint16(len(rawrt) - 1)
-			keys[key+value+"\n"] = RouteIndex{true, appendedindex}
-			count++
-		}
 		if strings.Contains(value, "mme_ar") {
 			tmpstr := strings.Split(value, "|")
-
 			//MEID entry for mme_ar must always contain 3 strings speartred by | i.e "mme_ar|<string1>|<string2>"
-			MEID := strings.TrimSuffix(tmpstr[2], "\n")
+			MEID = strings.TrimSuffix(tmpstr[2], "\n")
+			E2TIP = strings.TrimSuffix(tmpstr[1], "\n")
+			RECTYP = "mme_ar"
+		} else if strings.Contains(value, "mme_del") {
+			tmpstr := strings.Split(value, "|")
+			MEID = strings.TrimSuffix(tmpstr[1], "\n")
+			E2TIP = ""
+			RECTYP = "mme_del"
+		}
+		keys[MEID] = MeidEntry{RECTYP, E2TIP}
+	}
 
-			mapindex := "mme_del|" + MEID + "\n"
-			i := keys[mapindex].index
-			if keys[mapindex].flag {
-				//copy(rawrt[i:], rawrt[i+1:])
-				//rawrt[len(rawrt)-1] = ""
-				//rawrt = rawrt[:len(rawrt)-1]
-				rawrt[i] = ""
-				delete(keys, mapindex)
-				count--
-			}
+	for k, v := range keys {
+		if v.recordtype == "mme_ar" {
+			rawrt = append(rawrt, key+v.recordtype+"|"+v.e2tip+"|"+k+"\n")
+		    count++
 		}
 	}
+
 	rawrt = removeEmptyStrings(rawrt)
 	rawrt = append(rawrt, key+"meid_map|end|"+strconv.Itoa(count)+"\n")
 
