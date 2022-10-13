@@ -1,3 +1,6 @@
+### v0.9.2
+* fixed issue in meid table if same meid is associated with different E2T 
+
 ### v0.8.2
 * Added some checks for E2tcreate handling and RMR update to v4.8.0 
 
