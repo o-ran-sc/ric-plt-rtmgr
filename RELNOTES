@@ -1,3 +1,6 @@
+### v0.9.3
+* updating RMR to 4.8.5
+
 ### v0.9.2
 * fixed issue in meid table if same meid is associated with different E2T 
 
