@@ -11,8 +11,8 @@ gerrit.o-ran-sc.org/r/ric-plt/nodeb-rnib.git/reader v1.2.1 h1:BG3kste8PLVTG0m8CR
 gerrit.o-ran-sc.org/r/ric-plt/nodeb-rnib.git/reader v1.2.1/go.mod h1:zX8rW6YEsagHrRGVW5YO50Ku/Csrpzsuvblhr4DbYi4=
 gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.8.0 h1:H7GtCRC+pGn6oOxYalUZr7LinQX5jQCVa+ConX7PB5Q=
 gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.8.0/go.mod h1:KCHu4JkWnw2Ro6P747wU9S2t7zxFLmBNCiYvGZo3CHo=
-gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.9.1 h1:qutjgf6QMlpcAG8JPwQiCnLczoTosVjCRCRh5nsGZsM=
-gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.9.1/go.mod h1:foKMPQZ+RlM0Pos2GlEPAg6ux7Y9PRQmCUglYM7/Qt8=
+gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.9.16 h1:sXJSaCU8m2CXqX5JnqWAfV8hlM6snPfVihkHS/ygM2A=
+gerrit.o-ran-sc.org/r/ric-plt/xapp-frame.git v0.9.16/go.mod h1:M8cnd1lgNS0Rtf9X/bD+jYoHg1Uee5gpdt4Fv46EkKM=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
