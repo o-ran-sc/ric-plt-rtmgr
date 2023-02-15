@@ -70,6 +70,7 @@ COPY "uta_rtg_ric.rt" /
 ENV GOPATH /go
 
 ENV GOBIN /go/bin
+RUN go mod download
 RUN go install ./cmd/rtmgr.go
 
 # UT intermediate container
