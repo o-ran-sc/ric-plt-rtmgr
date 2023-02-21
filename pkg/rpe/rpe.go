@@ -328,8 +328,12 @@ func (r *Rpe) generatePlatformRoutes(e2TermEp []rtmgr.Endpoint, subManEp *rtmgr.
 		r.addRoute_rx_list("RIC_SERVICE_UPDATE_FAILURE", e2ManEp, e2TermEp, routeTable, -1, "")
 		r.addRoute_rx_list("RIC_E2NODE_CONFIG_UPDATE_ACK", e2ManEp, e2TermEp, routeTable, -1, "")
 		r.addRoute_rx_list("RIC_E2NODE_CONFIG_UPDATE_FAILURE", e2ManEp, e2TermEp, routeTable, -1, "")
+
+		r.addRoute("RIC_E2_RESET_REQ", nil, e2ManEp, routeTable, -1, "")
+
 		r.addRoute_rx_list("RIC_E2_RESET_RESP", e2ManEp, e2TermEp, routeTable, -1, "")
 	}
+
 }
 
 func (r *Rpe) generatePartialRouteTable(endPointList rtmgr.Endpoints, xappSubData *models.XappSubscriptionData, updatetype rtmgr.RMRUpdateType) *rtmgr.RouteTable {
