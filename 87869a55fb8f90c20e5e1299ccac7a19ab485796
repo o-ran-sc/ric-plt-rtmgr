@@ -64,6 +64,30 @@
       "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2765af62_0c8795f7",
+        "filename": "pkg/rpe/rpe.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1000475
+      },
+      "writtenOn": "2023-02-22T10:29:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51a2b942_39d48147",
+      "range": {
+        "startLine": 333,
+        "startChar": 5,
+        "endLine": 333,
+        "endChar": 13
+      },
+      "revId": "87869a55fb8f90c20e5e1299ccac7a19ab485796",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5b758fec_6f8a4d82",
