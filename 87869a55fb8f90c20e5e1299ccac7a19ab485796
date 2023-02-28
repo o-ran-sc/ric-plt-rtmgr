@@ -88,6 +88,30 @@
       "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "386993d7_244a95b0",
+        "filename": "pkg/rpe/rpe.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1001361
+      },
+      "writtenOn": "2023-02-28T10:43:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3628f26b_c4996a83",
+      "range": {
+        "startLine": 333,
+        "startChar": 15,
+        "endLine": 333,
+        "endChar": 39
+      },
+      "revId": "87869a55fb8f90c20e5e1299ccac7a19ab485796",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5b758fec_6f8a4d82",
@@ -101,6 +125,30 @@
       "writtenOn": "2023-02-22T10:18:23Z",
       "side": 1,
       "message": "use the constants from RMR.h (message type)",
+      "range": {
+        "startLine": 336,
+        "startChar": 22,
+        "endLine": 336,
+        "endChar": 48
+      },
+      "revId": "87869a55fb8f90c20e5e1299ccac7a19ab485796",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6c4f152e_f5e5fe83",
+        "filename": "pkg/rpe/rpe.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1001361
+      },
+      "writtenOn": "2023-02-28T10:43:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5b758fec_6f8a4d82",
       "range": {
         "startLine": 336,
         "startChar": 22,
