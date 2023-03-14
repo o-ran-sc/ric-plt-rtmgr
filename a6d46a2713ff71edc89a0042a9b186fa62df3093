@@ -16,6 +16,24 @@
       "message": "to me this looks like all E2 Reset requests shoudl be sent to e2ManEp. A simpler static route addRoute(\"RIC_E2_RESET_REQ\", nil, e2ManEp, ...\" should be sufficient.",
       "revId": "a6d46a2713ff71edc89a0042a9b186fa62df3093",
       "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c5f2d07a_c973363d",
+        "filename": "pkg/rpe/rpe.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1001361
+      },
+      "writtenOn": "2023-03-14T05:53:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2878a520_8066931c",
+      "revId": "a6d46a2713ff71edc89a0042a9b186fa62df3093",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
     }
   ]
 }
