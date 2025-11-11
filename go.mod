@@ -1,6 +1,6 @@
 module routing-manager
 
-go 1.18
+go 1.22
 
 require (
 	gerrit.o-ran-sc.org/r/ric-plt/xapp-frame v0.9.16
