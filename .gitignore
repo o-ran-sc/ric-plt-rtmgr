@@ -3,3 +3,4 @@ bin
 pkg/sdl/ut.rt
 .idea/*
 .gitreview
+docs/_build/
